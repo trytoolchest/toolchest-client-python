@@ -88,6 +88,7 @@ class Query():
             headers=self.HEADERS,
             json={"status": new_status},
         )
+        response.raise_for_status()
         return response
 
     def _wait_for_job(self):
@@ -101,8 +102,7 @@ class Query():
             self.STATUS_URL,
             headers=self.HEADERS
         )
-        if not response.ok:
-            return response.status_code
+        response.raise_for_status()
         return response.text["status"]
 
     def _download(self, output_path):
