@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # Custom files
+demo.py
 src/demo.py

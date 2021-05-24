@@ -6,13 +6,25 @@ def run_tool(tool, version, **kwargs):
     TODO: Document
     """
 
-    with Query() as q:
-        q.run_query(tool, version, **kwargs)
+    q = Query()
+    q.run_query(tool, version, **kwargs)
 
 def cutadapt(cutadapt_args, **kwargs):
-    query_kwargs = dict(tool_args=cutadapt_args, kwargs)
-    run_tool("cutadapt", Version.CUTADAPT.value, **query_kwargs))
+    run_tool(
+        "cutadapt",
+        Version.CUTADAPT.value,
+        tool_args=cutadapt_args,
+        input_name="input.fastq",
+        output_name="output.fastq",
+        **kwargs
+    )
 
 def kraken2(kraken2_args="", **kwargs):
-    query_kwargs = dict(tool_args=cutadapt_args, kwargs)
-    run_tool("kraken2", Version.KRAKEN2.value, **query_kwargs)
+    run_tool(
+        "kraken2",
+        Version.KRAKEN2.value,
+        tool_args=kraken2_args,
+        input_name="input.fastq",
+        output_name="output.txt",
+        **kwargs
+    )

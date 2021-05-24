@@ -1,21 +1,27 @@
+import os
 import time
 
 import requests
 
-from auth import get_key
-from status import Status
+from .auth import get_key
+from models.status import Status
 
 class Query():
     BASE_URL = "http://toolchest.us-east-1.elasticbeanstalk.com"
     PIPELINE_ROUTE = "/pipeline-segment-instances"
-    PIPELINE_URL = BASE_URL + PIPELINE_URL
+    PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
     WAIT_FOR_JOB_DELAY = 15
 
     def run_query(self, tool_name, tool_version,
-            tool_args=None, input_name=None, output_name=None,
+            tool_args=None, input_name="input", output_name="output",
             input_path=None, output_path=None):
-        # TODO: check arguments
+        self._validate_args(
+            input_path,
+            output_path,
+            input_name,
+            output_name,
+        )
 
         key = get_key()
         self.HEADERS = {"Authorization": "Key " + key}
@@ -27,13 +33,13 @@ class Query():
             input_name,
             output_name,
         )
-        create_content = create_response.text
+        create_content = create_response.json()
         self.CUSTOMER_ID = create_content["id"]
-        self.STATUS_URL = "/".join(
+        self.STATUS_URL = "/".join([
             self.PIPELINE_URL,
             self.CUSTOMER_ID,
             "status",
-        )
+        ])
         self.UPLOAD_URL = create_content["input_file_upload_location"]
 
         print("Uploading...")
@@ -41,12 +47,31 @@ class Query():
         print("Uploaded!")
 
         print("Executing job...")
-        self._wait_for_job(input_path)
+        self._wait_for_job()
         print("Job complete!")
 
         print("Downloading...")
         self._download(output_path)
         print("Downloaded!")
+
+    def _validate_args(self, input_path, output_path, input_name, output_name):
+        if input_path is None:
+            raise FileNotFoundError("input file path must be specified") # temp error message
+            # TODO: implement file selection
+        elif not os.path.isfile(input_path):
+            raise FileNotFoundError("input file path must be a valid file")
+
+        if output_path is None:
+            raise FileNotFoundError("output file path must be specified") # temp error message
+            # TODO: implement file selection
+        elif not os.access(output_path, os.W_OK):
+            raise ValueError("output file path must be writable")
+
+        if not input_name:
+            raise ValueError("input name must be non-empty")
+        if not output_name:
+            raise ValueError("output name must be non-empty")
+        # TODO: complete implementing argument checking
 
     def _send_initial_request(self, tool_name, tool_version,
             tool_args, input_name, output_name):
@@ -75,14 +100,13 @@ class Query():
 
         upload_response = requests.put(
             self.UPLOAD_URL,
-            headers=headers,
             data=open(input_path, "rb")
         )
         upload_response.raise_for_status()
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT.value)
 
-    def _update_status(new_status):
+    def _update_status(self, new_status):
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
@@ -93,9 +117,11 @@ class Query():
 
     def _wait_for_job(self):
         status = self._get_job_status()
+        print(status)
         while status != Status.READY_TO_TRANSFER_TO_CLIENT.value:
             time.sleep(self.WAIT_FOR_JOB_DELAY)
             status = self._get_job_status()
+            print(status)
 
     def _get_job_status(self):
         response = requests.get(
@@ -103,7 +129,7 @@ class Query():
             headers=self.HEADERS
         )
         response.raise_for_status()
-        return response.text["status"]
+        return response.json()["status"]
 
     def _download(self, output_path):
         download_signed_url = self._get_download_signed_url()
@@ -122,9 +148,9 @@ class Query():
 
     def _get_download_signed_url(self):
         response = requests.get(
-            "/".join(self.API_URL, self.CUSTOMER_ID, "downloads"),
+            "/".join([self.PIPELINE_URL, self.CUSTOMER_ID, "downloads"]),
             headers=self.HEADERS,
         )
         response.raise_for_status()
         # TODO: add support for multiple download files
-        return response.text[0]["signed_url"]
+        return response.json()[0]["signed_url"]
