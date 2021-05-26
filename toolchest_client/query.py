@@ -4,7 +4,7 @@ import time
 import requests
 
 from .auth import get_key
-from models.status import Status
+from .status import Status
 
 class Query():
     BASE_URL = "http://toolchest.us-east-1.elasticbeanstalk.com"
