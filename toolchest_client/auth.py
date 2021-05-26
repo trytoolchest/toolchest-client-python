@@ -5,7 +5,8 @@ def get_key():
         key = os.environ["TOOLCHEST_KEY"]
     except KeyError as e:
         print("Key not found. Please set env var TOOLCHEST_KEY to your specified Toolchest authentication key.")
-        print("You can use the client.set_key() function for this.")
+        print("Function call:")
+        print("    toolchest_client.set_key(YOUR_KEY_HERE)")
         return e
     return key
 
