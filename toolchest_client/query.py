@@ -1,3 +1,11 @@
+"""
+toolchest_client.query
+~~~~~~~~~~~~~~~~~~~~~~
+
+This module provides a Query object to execute any queries made by Toolchest
+tools. These queries are handled by the Toolchest API.
+"""
+
 import os
 import time
 
@@ -7,6 +15,13 @@ from .auth import get_key
 from .status import Status
 
 class Query():
+    """A Toolchest query.
+
+    Provides persistence of query details (e.g., query ID) from start (query
+    creation) to finish (query output download).
+
+    """
+
     BASE_URL = "http://toolchest.us-east-1.elasticbeanstalk.com"
     PIPELINE_ROUTE = "/pipeline-segment-instances"
     PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
@@ -34,10 +49,10 @@ class Query():
             output_name,
         )
         create_content = create_response.json()
-        self.CUSTOMER_ID = create_content["id"]
+        self.PIPELINE_SEG_ID = create_content["id"]
         self.STATUS_URL = "/".join([
             self.PIPELINE_URL,
-            self.CUSTOMER_ID,
+            self.PIPELINE_SEG_ID,
             "status",
         ])
         self.UPLOAD_URL = create_content["input_file_upload_location"]
@@ -64,8 +79,11 @@ class Query():
         if output_path is None:
             raise FileNotFoundError("output file path must be specified") # temp error message
             # TODO: implement file selection
-        elif not os.access(output_path, os.W_OK):
-            raise ValueError("output file path must be writable")
+        try:
+            with open(output_path, "a") as f:
+                pass
+        except OSError:
+            raise OSError("output file path must be writable")
 
         if not input_name:
             raise ValueError("input name must be non-empty")
@@ -148,7 +166,7 @@ class Query():
 
     def _get_download_signed_url(self):
         response = requests.get(
-            "/".join([self.PIPELINE_URL, self.CUSTOMER_ID, "downloads"]),
+            "/".join([self.PIPELINE_URL, self.PIPELINE_SEG_ID, "downloads"]),
             headers=self.HEADERS,
         )
         response.raise_for_status()
