@@ -3,13 +3,14 @@ toolchest_client.query
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This module provides a Query object to execute any queries made by Toolchest
-tools. These queries are handled by the Toolchest API.
+tools. These queries are handled by the Toolchest (server) API.
 """
 
 import os
 import time
 
 import requests
+from requests.exceptions import HTTPError
 
 from .auth import get_key
 from .status import Status
@@ -17,20 +18,33 @@ from .status import Status
 class Query():
     """A Toolchest query.
 
-    Provides persistence of query details (e.g., query ID) from start (query
+    Provides persistence of query-specific variables from start (query
     creation) to finish (query output download).
 
     """
 
+    # Base URLs used by the server API.
     BASE_URL = "http://toolchest.us-east-1.elasticbeanstalk.com"
     PIPELINE_ROUTE = "/pipeline-segment-instances"
     PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
+    # Period (in seconds) between requests when waiting for job(s) to finish executing.
     WAIT_FOR_JOB_DELAY = 15
 
     def run_query(self, tool_name, tool_version,
             tool_args=None, input_name="input", output_name="output",
             input_path=None, output_path=None):
+        """Executes a query to the Toolchest API.
+
+        :param tool_name: Tool to be used.
+        :param tool_version: Version of tool to be used.
+        :param tool_args: Tool-specific arguments to be passed to the tool.
+        :param input_name: (optional) Internal name of file inputted to the tool.
+        :param output_name: (optional) Internal name of file outputted by the tool.
+        :param input_path: Path (client-side) of file to be passed in as input.
+        :param output_path: Path (client-side) where the output file will be downloaded.
+        """
+
         self._validate_args(
             input_path,
             output_path,
@@ -38,9 +52,21 @@ class Query():
             output_name,
         )
 
+        # Retrieve and validate Toolchest auth key.
         key = get_key()
         self.HEADERS = {"Authorization": "Key " + key}
+        validation_response = requests.get(
+            self.BASE_URL,
+            headers=self.HEADERS,
+        )
+        try:
+            validation_response.raise_for_status()
+        except HTTPError:
+            print("Invalid Toolchest auth key. Please check the key value or contact Toolchest.")
+            raise
 
+        # Create pipeline segment and task(s).
+        # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
             tool_name,
             tool_version,
@@ -69,7 +95,9 @@ class Query():
         self._download(output_path)
         print("Downloaded!")
 
-    def _validate_args(self, input_path, output_path, input_name, output_name):
+    def _validate_args(self, input_name, output_name, input_path, output_path):
+        """Checks if query args are correctly formatted."""
+
         if input_path is None:
             raise FileNotFoundError("input file path must be specified") # temp error message
             # TODO: implement file selection
@@ -93,6 +121,11 @@ class Query():
 
     def _send_initial_request(self, tool_name, tool_version,
             tool_args, input_name, output_name):
+        """Sends the initial request to the Toolchest API to create the query.
+
+        Returns the response from the POST request.
+        """
+
         create_body = {
             "tool_name": tool_name,
             "tool_version": tool_version,
@@ -107,12 +140,16 @@ class Query():
             headers=self.HEADERS,
             json=create_body,
         )
-        create_response.raise_for_status()
+        try:
+            create_response.raise_for_status()
+        except HTTPError:
+            print("Query creation failed.")
+            raise
 
         return create_response
 
     def _upload(self, input_path):
-        # TODO: check if input path is NULL, add user file selection
+        """Uploads the file at ``input_path`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT.value)
 
@@ -120,20 +157,36 @@ class Query():
             self.UPLOAD_URL,
             data=open(input_path, "rb")
         )
-        upload_response.raise_for_status()
+        try:
+            upload_response.raise_for_status()
+        except HTTPError:
+            print("Input file upload failed.")
+            raise
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT.value)
 
     def _update_status(self, new_status):
+        """Updates the internal status of the query's task(s).
+
+        Returns the response from the PUT request.
+        """
+
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
             json={"status": new_status},
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Job status update failed.")
+            raise
+
         return response
 
     def _wait_for_job(self):
+        """Waits for query task(s) to finish executing."""
+
         status = self._get_job_status()
         print(status)
         while status != Status.READY_TO_TRANSFER_TO_CLIENT.value:
@@ -142,22 +195,37 @@ class Query():
             print(status)
 
     def _get_job_status(self):
+        """Gets status of current job (tasks)."""
+
         response = requests.get(
             self.STATUS_URL,
             headers=self.HEADERS
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Job status retrieval failed.")
+            raise
+
         return response.json()["status"]
 
     def _download(self, output_path):
-        download_signed_url = self._get_download_signed_url()
+        """Downloads output to ``output_path``."""
 
-        # TODO: check if output path is NULL, add user file selection
+        download_signed_url = self._get_download_signed_url()
 
         self._update_status(Status.TRANSFERRING_TO_CLIENT.value)
 
+        # Dowloads output by sending a GET request.
         with requests.get(download_signed_url, stream=True) as r:
-            r.raise_for_status()
+            # Validates reponse of GET request.
+            try:
+                r.raise_for_status()
+            except HTTPError:
+                print("Output download failed.")
+                raise
+
+            # Writes streamed output data from response to the output file.
             with open(output_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
@@ -165,10 +233,18 @@ class Query():
         self._update_status(Status.TRANSFERRED_TO_CLIENT.value)
 
     def _get_download_signed_url(self):
+        """Gets URL for downloading output of query task(s)."""
+
         response = requests.get(
             "/".join([self.PIPELINE_URL, self.PIPELINE_SEG_ID, "downloads"]),
             headers=self.HEADERS,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Download URL retrieval failed.")
+            raise
+
         # TODO: add support for multiple download files
+
         return response.json()[0]["signed_url"]

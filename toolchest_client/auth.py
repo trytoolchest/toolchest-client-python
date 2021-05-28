@@ -21,7 +21,7 @@ def get_key():
     return key
 
 def set_key(key):
-    """Sets the Toolchest auth key (TOOLCHEST_KEY) to the given value.
+    """Sets the Toolchest auth key (env var TOOLCHEST_KEY) to the given value.
 
     :param key: key value (str) or path to file containing key. If given a filename,
         the file must consist of only the key itself.

@@ -8,6 +8,8 @@ This module contains a Status class for status updates to the Toolchest API.
 from enum import Enum
 
 class Status(Enum):
+    """Status values for the Toolchest API."""
+
     INITIALIZED = "initialized"
     TRANSFERRING_FROM_CLIENT = "transferring_from_client"
     TRANSFERRED_FROM_CLIENT = "transferred_from_client"
