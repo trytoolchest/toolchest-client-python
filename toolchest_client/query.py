@@ -46,10 +46,10 @@ class Query():
         """
 
         self._validate_args(
-            input_path,
-            output_path,
             input_name,
             output_name,
+            input_path,
+            output_path,
         )
 
         # Retrieve and validate Toolchest auth key.
