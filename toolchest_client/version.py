@@ -2,7 +2,7 @@
 toolchest_client.version
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains the latest version for each tool, needed for the query.
+This module contains the version for each tool (required by the server API).
 """
 
 from enum import Enum
