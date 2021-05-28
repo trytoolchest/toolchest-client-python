@@ -6,6 +6,15 @@
 Toolchest Client Documentation
 =======================================================
 
+.. automodule:: toolchest_client.tools
+    :members:
+
+.. automodule:: toolchest_client.auth
+    :members:
+
+.. automodule:: toolchest_client.query
+    :members:
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
