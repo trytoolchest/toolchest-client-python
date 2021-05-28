@@ -1,2 +1,50 @@
-# toolchest-client-python
-Python Client for Toolchest
+# Toolchest Python Client
+
+**Toolchest** provides APIs for scientific and bioinformatic data analysis.
+It allows you to abstract away the costliness of running tools on your
+own resources by running the same jobs on secure, powerful remote
+servers.
+
+This package contains the **Python** client for using Toolchest. 
+For the **R** client, [see here](https://github.com/trytoolchest/toolchest-client-r).
+
+## Usage
+
+Using a tool in Toolchest is as simple as:
+
+``` python
+import toolchest_client as tc
+tc.set_key(YOUR_TOOLCHEST_KEY)
+tc.cutadapt(
+  YOUR_CUSTOM_TOOL_ARGS,
+  input_path="path/to/input",
+  output_path="path/to/output",
+)
+```
+
+For a list of available tools, see the documentation. (Link to be added soon)
+
+## Installation
+
+The Toolchest client is available on TestPyPI (and will be made available on PyPI shortly):
+``` shell
+$ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple toolchest-client
+```
+
+## Configuration
+
+To use Toolchest, you must have an authentication key stored 
+in the `TOOLCHEST_KEY` environment variable.
+
+``` python
+import toolchest_client as tc
+tc.set_key(YOUR_TOOLCHEST_KEY) # or a file path containing the key
+```
+
+Contact Toolchest if:
+
+-   you need a key
+-   you’ve forgotten your key
+-   the key is producing authentication errors.
+
+## Documentation & User Guide available at Read the Docs (to be added soon)
