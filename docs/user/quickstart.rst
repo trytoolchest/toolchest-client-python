@@ -9,10 +9,12 @@ First, make sure that:
 
 * The Toolchest client is :ref:`installed <install>`
 * The Toolchest client is up-to-date
-* You have an :ref:`authentication key <Configuring Your Client>`
+* You have an :ref:`authentication key <config>`
 
 Configuring Your Client
 -----------------------
+
+.. _config:
 
 Toolchest requires an authentication key in order to process queries.
 
@@ -24,10 +26,8 @@ Contact Toolchest if:
 
 Once you have an authentication key, configure your client as follows:
 
-``` python
-import toolchest_client as tc
-tc.set_key(YOUR_TOOLCHEST_KEY)
-```
+    >>> import toolchest_client as tc
+    >>> tc.set_key(YOUR_TOOLCHEST_KEY)
 
 The variable `YOUR_TOOLCHEST_KEY` can be either a string containing your
 key or a path to a file containing the key (and nothing else).
@@ -43,14 +43,12 @@ command line:
 Once Toolchest is configured, you can do the same with the corresponding
 Toolchest function:
 
-``` python
-import toolchest_client as tc
-tc.your_tool(
-    YOUR_CUSTOM_TOOL_ARGS,
-    input_path="path/to/your/input",
-    output_path="path/to/your/output",
-)
-```
+>>> import toolchest_client as tc
+>>> tc.your_tool(
+...     YOUR_CUSTOM_TOOL_ARGS,
+...     input_path="path/to/input",
+...     output_path="path/to/output",
+... )
 
 Here, `your_tool` is the name of the command that you would use, and
 `YOUR_CUSTOM_TOOL_ARGS` is a string containing all the arguments that you would

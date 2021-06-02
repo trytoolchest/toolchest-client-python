@@ -34,9 +34,9 @@ def cutadapt(cutadapt_args, **kwargs):
     :param output_path: Path (client-side) where the output file will be downloaded.
 
     .. note:: Do **NOT** include the output path (`-o output_path`) or the
-    input path (`input_path` at the end) in the passed `cutadapt_args`. Inputs
-    and outputs will be automatically handled by the Toolchest backend, and
-    including these arguments will lead to errors or undesired output.
+      input path (`input_path` at the end) in the passed `cutadapt_args`. Inputs
+      and outputs will be automatically handled by the Toolchest backend, and
+      including these arguments will lead to errors or undesired output.
 
     Usage::
 
@@ -46,6 +46,7 @@ def cutadapt(cutadapt_args, **kwargs):
         ...     input_path="./path/to/input",
         ...     output_path="./path/to/output",
         ... )
+
     """
 
     _validate_tool_kwargs(**kwargs)

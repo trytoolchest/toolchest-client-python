@@ -13,15 +13,13 @@ servers.
 
 Using a tool in Toolchest is as simple as:
 
-``` python
-import toolchest_client as tc
-tc.set_key(YOUR_TOOLCHEST_KEY)
-tc.cutadapt(
-  YOUR_CUSTOM_TOOL_ARGS,
-  input_path="path/to/input",
-  output_path="path/to/output",
-)
-```
+    >>> import toolchest_client as tc
+    >>> tc.set_key(YOUR_TOOLCHEST_KEY)
+    >>> tc.cutadapt(
+    ...     YOUR_CUSTOM_TOOL_ARGS,
+    ...     input_path="path/to/input",
+    ...     output_path="path/to/output",
+    ... )
 
 .. _tools:
 
@@ -53,12 +51,6 @@ For specific function-related info and documentation, see here.
     :maxdepth: 2
 
     api
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-
 
 Indices and tables
 ==================
