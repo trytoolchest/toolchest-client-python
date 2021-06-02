@@ -6,14 +6,53 @@
 Toolchest Client Documentation
 =======================================================
 
-.. automodule:: toolchest_client.tools
-    :members:
+**Toolchest** is an API for bioinformatic data analysis.
+It allows you to abstract away the costliness of running tools on your
+own resources by running the same jobs on secure, powerful remote
+servers.
 
-.. automodule:: toolchest_client.auth
-    :members:
+Using a tool in Toolchest is as simple as:
 
-.. automodule:: toolchest_client.query
-    :members:
+``` python
+import toolchest_client as tc
+tc.set_key(YOUR_TOOLCHEST_KEY)
+tc.cutadapt(
+  YOUR_CUSTOM_TOOL_ARGS,
+  input_path="path/to/input",
+  output_path="path/to/output",
+)
+```
+
+.. _tools:
+
+Tools
+-----
+
+Toolchest currently supports the following tools:
+- Cutadapt (`cutadapt`)
+- Kraken2 (`kraken2`)
+
+
+User Guide
+----------
+
+Info on installing and getting started can be found here.
+
+.. toctree::
+    :maxdepth: 2
+
+    user/install
+    user/quickstart
+
+API Documentation
+-----------------
+
+For specific function-related info and documentation, see here.
+
+.. toctree::
+    :maxdepth: 2
+
+    api
 
 .. toctree::
    :maxdepth: 2

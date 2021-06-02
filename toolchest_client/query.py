@@ -13,6 +13,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from .auth import get_key
+from .exceptions import DataLimitError
 from .status import Status
 
 class Query():
@@ -180,6 +181,13 @@ class Query():
             response.raise_for_status()
         except HTTPError:
             print("Job status update failed.")
+
+            # Check if there are errors.
+            response_body = response.json()
+            if "success" in response_body:
+                if not response_body["success"]:
+                    raise DataLimitError(response_body["error"])
+
             raise
 
         return response
