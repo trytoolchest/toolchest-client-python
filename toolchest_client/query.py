@@ -185,9 +185,9 @@ class Query():
             # Check if there are errors.
             response_body = response.json()
             if "success" in response_body:
+                # Failures are currently assumed to be solely due to data limits.
                 if not response_body["success"]:
-                    raise DataLimitError(response_body["error"])
-
+                    raise DataLimitError(response_body["error"]) from None
             raise
 
         return response
