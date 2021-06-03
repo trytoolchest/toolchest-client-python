@@ -61,4 +61,4 @@ Toolchest backend, and including these arguments will lead to undesired output.
 For a full list of available tools, see :ref:`this list <tools>`.
 
 Not all functionalities of available tools can be used. See the
-relevant `in-depth tool documentation <api>` for details.
+relevant :ref:`in-depth tool documentation <api>` for details.
