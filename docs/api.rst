@@ -48,4 +48,4 @@ function handles the actual functionality of a Query.
 
 .. autoclass:: toolchest_client.query.Query
 
-.. autofunction:: toolchest_client.query.run_query
+.. autofunction:: toolchest_client.query.Query.run_query
