@@ -1,6 +1,6 @@
 .. _api:
 
-Developer API Interface Docmuentation
+API Interface Developer Docs
 =======================================
 
 This page contains in-depth documentation on the Toolchest client API.
@@ -47,3 +47,5 @@ Each query to Toolchest is handled by a `Query` object. The `run_query`
 function handles the actual functionality of a Query.
 
 .. autoclass:: toolchest_client.query.Query
+
+.. autofunction:: toolchest_client.query.run_query

@@ -27,8 +27,9 @@ Tools
 -----
 
 Toolchest currently supports the following tools:
-- Cutadapt (`cutadapt`)
-- Kraken2 (`kraken2`)
+
+* Cutadapt (`cutadapt`)
+* Kraken2 (`kraken2`)
 
 
 User Guide
@@ -51,10 +52,3 @@ For specific function-related info and documentation, see here.
     :maxdepth: 2
 
     api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

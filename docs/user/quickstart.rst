@@ -11,10 +11,10 @@ First, make sure that:
 * The Toolchest client is up-to-date
 * You have an :ref:`authentication key <config>`
 
+.. _config:
+
 Configuring Your Client
 -----------------------
-
-.. _config:
 
 Toolchest requires an authentication key in order to process queries.
 
