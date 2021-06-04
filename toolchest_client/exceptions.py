@@ -6,7 +6,7 @@ This module contains custom exceptions used for the Toolchest client.
 """
 
 class ToolchestException(OSError):
-    """There was an ambiguous exception that occured during your
+    """There was an unknown exception that occurred during your
     Toolchest job.
     """
 

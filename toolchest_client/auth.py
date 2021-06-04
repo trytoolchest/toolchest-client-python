@@ -2,19 +2,19 @@
 toolchest_client.auth
 ~~~~~~~~~~~~~~~~~~~~~
 
-This module contains functions for configuring the Toolchest authorization key.
+This module contains functions for configuring the Toolchest API key.
 
 """
 
 import os
 
 def get_key():
-    """Retrieves the Toolchest authorization key, if it is configured."""
+    """Retrieves the Toolchest API key, if it is set."""
 
     try:
         key = os.environ["TOOLCHEST_KEY"]
     except KeyError as e:
-        print("Key not found. Please set env var TOOLCHEST_KEY to your specified Toolchest authentication key.")
+        print("Key not found. Please set environment variable TOOLCHEST_KEY to your Toolchest API key.")
         print("Function call:")
         print("    toolchest_client.set_key(YOUR_KEY_HERE)")
         return e
@@ -28,8 +28,8 @@ def set_key(key):
 
     Usage::
 
-        >>> import toolchest_client as tc
-        >>> tc.set_key(YOUR_KEY_HERE)
+        >>> import toolchest_client as toolchest
+        >>> toolchest.set_key(YOUR_KEY_HERE)
 
     """
 
