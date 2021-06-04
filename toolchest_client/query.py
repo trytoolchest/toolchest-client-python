@@ -192,15 +192,19 @@ class Query():
 
         return response
 
+    def _pretty_print_job_status(self, job_status):
+        pretty_status = ''
+        for index, word in enumerate(job_status.split('_')):
+            pretty_status += word.title() if index == 0 else f" {word}"
+        print(pretty_status)
+
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
-
         status = self._get_job_status()
-        print(status)
         while status != Status.READY_TO_TRANSFER_TO_CLIENT.value:
-            time.sleep(self.WAIT_FOR_JOB_DELAY)
             status = self._get_job_status()
-            print(status)
+            self._pretty_print_job_status(status)
+            time.sleep(self.WAIT_FOR_JOB_DELAY)
 
     def _get_job_status(self):
         """Gets status of current job (tasks)."""

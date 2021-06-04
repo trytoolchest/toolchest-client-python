@@ -133,3 +133,6 @@ demo.py
 demo-import.py
 src/demo.py
 toolchest_client/demo.py
+
+# JetBrains
+.idea/

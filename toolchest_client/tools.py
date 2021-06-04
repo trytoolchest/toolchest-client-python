@@ -24,7 +24,7 @@ def run_tool(tool, version, **kwargs):
     q = Query()
     q.run_query(tool, version, **kwargs)
 
-def cutadapt(cutadapt_args, **kwargs):
+def cutadapt(tool_args, **kwargs):
     """Runs Cutadapt via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
@@ -40,9 +40,9 @@ def cutadapt(cutadapt_args, **kwargs):
 
     Usage::
 
-        >>> import toolchest_client as tc
-        >>> tc.cutadapt(
-        ...     "-a AACCGGTT",
+        >>> import toolchest_client as toolchest
+        >>> toolchest.cutadapt(
+        ...     tool_args="-a AACCGGTT",
         ...     input_path="./path/to/input",
         ...     output_path="./path/to/output",
         ... )
@@ -53,27 +53,28 @@ def cutadapt(cutadapt_args, **kwargs):
     run_tool(
         "cutadapt",
         Version.CUTADAPT.value,
-        tool_args=cutadapt_args,
+        tool_args=tool_args,
         input_name="input.fastq",
         output_name="output.fastq",
         **kwargs
     )
 
 def kraken2(kraken2_args="", **kwargs):
-    """Runs Kraken2 via Toolchest.
+    """Runs Kraken 2 via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
-    :param kraken2_args: (optional) Additional arguments to be passed to Kraken2.
+    :param kraken2_args: (optional) Additional arguments to be passed to Kraken 2.
     :param input_path: Path (client-side) of file to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
 
     Usage::
 
-        >>> import toolchest_client as tc
-        >>> tc.kraken2(
-        ...     input_path="./path/to/input",
-        ...     output_path="./path/to/output",
+        >>> import toolchest_client as toolchest
+        >>> toolchest.kraken2(
+        ...     tool_args="",
+        ...     input_path="./path/to/input.fastq",
+        ...     output_path="./path/to/output.txt",
         ... )
     """
 

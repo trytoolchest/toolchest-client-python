@@ -8,28 +8,28 @@ servers.
 This package contains the **Python** client for using Toolchest. 
 For the **R** client, [see here](https://github.com/trytoolchest/toolchest-client-r).
 
+## Installation
+
+The Toolchest client is available on TestPyPI (and will be made available on PyPI shortly):
+``` shell
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple toolchest-client
+```
+
 ## Usage
 
 Using a tool in Toolchest is as simple as:
 
 ``` python
-import toolchest_client as tc
-tc.set_key(YOUR_TOOLCHEST_KEY)
-tc.cutadapt(
-  YOUR_CUSTOM_TOOL_ARGS,
-  input_path="path/to/input",
-  output_path="path/to/output",
+import toolchest_client as toolchest
+toolchest.set_key("YOUR_TOOLCHEST_KEY")
+toolchest.kraken2(
+  tool_args="",
+  input_path="path/to/input.fastq",
+  output_path="path/to/output.fastq",
 )
 ```
 
 For a list of available tools, see the documentation. (Link to be added soon)
-
-## Installation
-
-The Toolchest client is available on TestPyPI (and will be made available on PyPI shortly):
-``` shell
-$ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple toolchest-client
-```
 
 ## Configuration
 
@@ -37,8 +37,8 @@ To use Toolchest, you must have an authentication key stored
 in the `TOOLCHEST_KEY` environment variable.
 
 ``` python
-import toolchest_client as tc
-tc.set_key(YOUR_TOOLCHEST_KEY) # or a file path containing the key
+import toolchest_client as toolchest
+toolchest.set_key("YOUR_TOOLCHEST_KEY") # or a file path containing the key
 ```
 
 Contact Toolchest if:
