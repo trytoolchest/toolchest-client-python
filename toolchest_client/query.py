@@ -30,7 +30,11 @@ class Query():
     PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
     # Period (in seconds) between requests when waiting for job(s) to finish executing.
-    WAIT_FOR_JOB_DELAY = 15
+    WAIT_FOR_JOB_DELAY = 1
+    # Multiple of seconds used when pretty printing job status to output.
+    PRINTED_TIME_INTERVAL = 5
+    # Buffer on print statements for job status updates, to make carriage returns pretty.
+    JOB_STATUS_BUFFER = " "*50
 
     def run_query(self, tool_name, tool_version,
             tool_args=None, input_name="input", output_name="output",
@@ -90,7 +94,7 @@ class Query():
 
         print("Executing job...")
         self._wait_for_job()
-        print("Job complete!")
+        print("Job complete!" + self.JOB_STATUS_BUFFER)
 
         print("Downloading...")
         self._download(output_path)
@@ -180,7 +184,7 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status update failed.")
+            print("Job status update failed." + self.JOB_STATUS_BUFFER)
 
             # Check if there are errors.
             response_body = response.json()
@@ -192,19 +196,32 @@ class Query():
 
         return response
 
-    def _pretty_print_job_status(self, job_status):
+    def _pretty_print_job_status(self, job_status, elapsed_time):
         pretty_status = ''
         for index, word in enumerate(job_status.split('_')):
             pretty_status += word.title() if index == 0 else f" {word}"
-        print(pretty_status)
+        status_line = "".join([
+            "Job status: ",
+            pretty_status,
+            " (",
+            str(int(elapsed_time) // self.PRINTED_TIME_INTERVAL * self.PRINTED_TIME_INTERVAL),
+            "s)",
+            self.JOB_STATUS_BUFFER,
+        ])
+        print(status_line, end="\r")
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
         status = self._get_job_status()
+        start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT.value:
             status = self._get_job_status()
-            self._pretty_print_job_status(status)
-            time.sleep(self.WAIT_FOR_JOB_DELAY)
+
+            elapsed_time = time.time() - start_time
+            self._pretty_print_job_status(status, elapsed_time)
+
+            leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
+            time.sleep(leftover_delay)
 
     def _get_job_status(self):
         """Gets status of current job (tasks)."""
