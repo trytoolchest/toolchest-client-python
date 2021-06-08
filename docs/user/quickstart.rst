@@ -26,8 +26,8 @@ Contact Toolchest if:
 
 Once you have an authentication key, configure your client as follows:
 
-    >>> import toolchest_client as tc
-    >>> tc.set_key(YOUR_TOOLCHEST_KEY)
+    >>> import toolchest_client as toolchest
+    >>> toolchest.set_key(YOUR_TOOLCHEST_KEY)
 
 The variable `YOUR_TOOLCHEST_KEY` can be either a string containing your
 key or a path to a file containing the key (and nothing else).
@@ -43,9 +43,9 @@ command line:
 Once Toolchest is configured, you can do the same with the corresponding
 Toolchest function:
 
->>> import toolchest_client as tc
->>> tc.your_tool(
-...     YOUR_CUSTOM_TOOL_ARGS,
+>>> import toolchest_client as toolchest
+>>> toolchest.your_tool(
+...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
 ...     input_path="path/to/input",
 ...     output_path="path/to/output",
 ... )

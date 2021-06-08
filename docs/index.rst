@@ -13,10 +13,10 @@ servers.
 
 Using a tool in Toolchest is as simple as:
 
-    >>> import toolchest_client as tc
-    >>> tc.set_key(YOUR_TOOLCHEST_KEY)
-    >>> tc.cutadapt(
-    ...     YOUR_CUSTOM_TOOL_ARGS,
+    >>> import toolchest_client as toolchest
+    >>> toolchest.set_key("YOUR_TOOLCHEST_KEY")
+    >>> toolchest.cutadapt(
+    ...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
     ...     input_path="path/to/input",
     ...     output_path="path/to/output",
     ... )
