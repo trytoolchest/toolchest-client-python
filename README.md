@@ -5,7 +5,7 @@ It allows you to abstract away the costliness of running tools on your
 own resources by running the same jobs on secure, powerful remote
 servers.
 
-This package contains the **Python** client for using Toolchest. 
+This package contains the **Python** client for using Toolchest.
 For the **R** client, [see here](https://github.com/trytoolchest/toolchest-client-r).
 
 ## Installation
@@ -29,11 +29,11 @@ toolchest.kraken2(
 )
 ```
 
-For a list of available tools, see the documentation. (Link to be added soon)
+For a list of available tools, see the [documentation](https://toolchest-python-client.readthedocs.io/en/latest/).
 
 ## Configuration
 
-To use Toolchest, you must have an authentication key stored 
+To use Toolchest, you must have an authentication key stored
 in the `TOOLCHEST_KEY` environment variable.
 
 ``` python
