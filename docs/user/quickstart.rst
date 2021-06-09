@@ -7,8 +7,12 @@ This page gives an intro on how to get started with the Toolchest client.
 
 First, make sure that:
 
-* The Toolchest client is :ref:`installed <install>`
-* The Toolchest client is up-to-date
+* The Toolchest client is :ref:`installed <install>`, which you can do via::
+
+    $ pip install toolchest-client
+
+* The Toolchest client is up-to-date (be sure to use the latest version,
+  currently **0.2.0**)
 * You have an :ref:`authentication key <config>`
 
 .. _config:
@@ -32,11 +36,20 @@ Once you have an authentication key, configure your client as follows:
 The variable `YOUR_TOOLCHEST_KEY` can be either a string containing your
 key or a path to a file containing the key (and nothing else).
 
+Sample Data
+-----------
+
+To use Toolchest tools, you will need an input file. All currently accessible
+tools require FASTQ (`.fastq`) formatted files as input.
+
+A sample input file (15MB) can be downloaded
+`at this link <https://toolchest-public-examples.s3.amazonaws.com/example_metagenomics.fastq>`_.
+
 Using Tools
 -----------
 
 To use a data analysis tool, you would probably run a command like this on the
-command line:
+command line::
 
     $ your_tool YOUR_CUSTOM_TOOL_ARGS
 
