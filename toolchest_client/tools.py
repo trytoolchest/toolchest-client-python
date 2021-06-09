@@ -29,7 +29,7 @@ def cutadapt(tool_args, **kwargs):
 
     (Currently, only single .fastq inputs are supported.)
 
-    :param cutadapt_args: Additional arguments to be passed to Cutadapt.
+    :param tool_args: Additional arguments to be passed to Cutadapt.
     :param input_path: Path (client-side) of file to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
 
@@ -59,12 +59,12 @@ def cutadapt(tool_args, **kwargs):
         **kwargs
     )
 
-def kraken2(kraken2_args="", **kwargs):
+def kraken2(tool_args="", **kwargs):
     """Runs Kraken 2 via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
-    :param kraken2_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param input_path: Path (client-side) of file to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
 
@@ -82,7 +82,7 @@ def kraken2(kraken2_args="", **kwargs):
     run_tool(
         "kraken2",
         Version.KRAKEN2.value,
-        tool_args=kraken2_args,
+        tool_args=tool_args,
         input_name="input.fastq",
         output_name="output.txt",
         **kwargs
