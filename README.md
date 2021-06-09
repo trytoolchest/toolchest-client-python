@@ -10,9 +10,9 @@ For the **R** client, [see here](https://github.com/trytoolchest/toolchest-clien
 
 ## Installation
 
-The Toolchest client is available on TestPyPI (and will be made available on PyPI shortly):
+The Toolchest client is available [on PyPI](https://pypi.org/project/toolchest-client):
 ``` shell
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple toolchest-client
+pip install toolchest-client
 ```
 
 ## Usage
