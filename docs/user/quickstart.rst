@@ -22,9 +22,11 @@ Configuring Your Client
 
 Toolchest requires an authentication key in order to process queries.
 
-Contact Toolchest if:
+You can obtain a key by signing up for a trial of Toolchest
+`at this link <https://airtable.com/shrKzQNuDHrGkEAI2>`_.
 
-* you need a key
+`Contact Toolchest <noah@trytoolchest.com>`_ if:
+
 * you've forgotten your key
 * the key is producing authentication errors.
 
