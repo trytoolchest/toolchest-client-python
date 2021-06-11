@@ -25,7 +25,7 @@ class Query():
     """
 
     # Base URLs used by the server API.
-    BASE_URL = "http://toolchest.us-east-1.elasticbeanstalk.com"
+    BASE_URL = "https://api.toolche.st"
     PIPELINE_ROUTE = "/pipeline-segment-instances"
     PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
