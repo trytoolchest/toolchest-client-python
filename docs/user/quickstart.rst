@@ -45,7 +45,7 @@ To use Toolchest tools, you will need an input file. All currently accessible
 tools require FASTQ (`.fastq`) formatted files as input.
 
 A sample input file (~50MB) can be downloaded
-`at this link <https://toolchest-public-examples.s3.amazonaws.com/example_metagenomics.fastq>`_.
+`at this link <https://toolchest-demo-data.s3.amazonaws.com/example.fastq>`_.
 
 Using Tools
 -----------
