@@ -24,6 +24,26 @@ def run_tool(tool, version, **kwargs):
     q = Query()
     q.run_query(tool, version, **kwargs)
 
+def bowtie2(tool_args="", **kwargs):
+    """Runs Bowtie 2 (for alignment) via Toolchest.
+
+    :param tool_args: Additional arguments to be passed to Bowtie 2.
+    :param input_path: Path (client-side) of file to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    """
+
+    _validate_tool_kwargs(**kwargs)
+    run_tool(
+        "bowtie2",
+        Version.BOWTIE2.value,
+        tool_args=tool_args,
+        input_name="input.fastq",
+        output_name="output.txt",
+        **kwargs
+    )
+
+
 def cutadapt(tool_args, **kwargs):
     """Runs Cutadapt via Toolchest.
 
