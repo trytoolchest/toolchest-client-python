@@ -16,7 +16,7 @@ jobs:
             PYPI_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo pypi || echo testpypi)
             PYPI_ACCESS_TOKEN=$([[ $PYPI_ENVIRONMENT = pypi ]] && echo $PYPI_PROD_TOKEN || echo $PYPI_TEST_TOKEN)
             poetry config pypi-token.$PYPI_ENVIRONMENT $PYPI_ACCESS_TOKEN
-            poetry publish --build -r $DEPLOY_ENVIRONMENT
+            poetry publish --build -r $PYPI_ENVIRONMENT
 workflows:
   deploy:
     jobs:
