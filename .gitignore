@@ -136,3 +136,6 @@ toolchest_client/demo.py
 
 # JetBrains
 .idea/
+
+# Emacs
+*~

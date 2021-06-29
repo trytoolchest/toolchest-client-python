@@ -1,6 +1,38 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
+[tool.poetry]
+name = "toolchest-client"
+version = "0.3.0"
+description = "Python client for Toolchest"
+authors = [
+    "Bryce Cai <bcai@trytoolchest.com>",
+    "Noah Lebovic <nlebovic@trytoolchest.com",
 ]
-build-backend = "setuptools.build_meta"
+license = "AGPL-3.0-only"
+readme = "README.md"
+homepage = "https://github.com/trytoolchest/toolchest-client-python"
+repository = "https://github.com/trytoolchest/toolchest-client-python"
+documentation = "https://toolchest-python-client.readthedocs.io/en/latest/"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+packages = [
+    { include = "toolchest_client" },
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/trytoolchest/toolchest-client-python/issues"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+requests = "^2.25.1"
+
+[tool.poetry.dev-dependencies]
+
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/legacy/"
+secondary = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
