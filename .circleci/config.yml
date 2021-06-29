@@ -1,0 +1,29 @@
+version: 2.1
+orbs:
+  python: circleci/python@1.4.0
+jobs:
+  deploy-to-pypi:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Build and publish to PyPI
+          command: |
+            cd ~/repo
+            PYPI_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo pypi || echo testpypi)
+            PYPI_ACCESS_TOKEN=$([[ $PYPI_ENVIRONMENT = pypi ]] && echo $PYPI_PROD_TOKEN || echo $PYPI_TEST_TOKEN)
+            poetry config pypi-token.$PYPI_ENVIRONMENT $PYPI_ACCESS_TOKEN
+            poetry publish --build -r $PYPI_ENVIRONMENT
+workflows:
+  deploy:
+    jobs:
+      - deploy-to-pypi:
+          filters:
+            branches:
+              only:
+                - main
+                - staging
+                - feature/circleci
