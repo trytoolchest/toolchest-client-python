@@ -26,4 +26,3 @@ workflows:
               only:
                 - main
                 - staging
-                - feature/circleci
