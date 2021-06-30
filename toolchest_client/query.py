@@ -36,14 +36,17 @@ class Query():
     # Buffer on print statements for job status updates, to make carriage returns pretty.
     JOB_STATUS_BUFFER = " "*50
 
-    def run_query(self, tool_name, tool_version,
-            tool_args=None, input_name="input", output_name="output",
+    def run_query(self, tool_name, tool_version, tool_args=None,
+            database_name=None, database_version=None,
+            input_name="input", output_name="output",
             input_path=None, output_path=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
         :param tool_version: Version of tool to be used.
         :param tool_args: Tool-specific arguments to be passed to the tool.
+        :param database_name: Name of database to be used.
+        :param database_version: Version of database to be used.
         :param input_name: (optional) Internal name of file inputted to the tool.
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_path: Path (client-side) of file to be passed in as input.
@@ -76,6 +79,8 @@ class Query():
             tool_name,
             tool_version,
             tool_args,
+            database_name,
+            database_version,
             input_name,
             output_name,
         )
@@ -124,8 +129,9 @@ class Query():
             raise ValueError("output name must be non-empty")
         # TODO: complete implementing argument checking
 
-    def _send_initial_request(self, tool_name, tool_version,
-            tool_args, input_name, output_name):
+    def _send_initial_request(self, tool_name, tool_version, tool_args,
+            database_name, database_version,
+            input_name, output_name):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -134,8 +140,9 @@ class Query():
         create_body = {
             "tool_name": tool_name,
             "tool_version": tool_version,
-            "database_name": None,
-            "database_version": None,
+            "custom_tool_args": tool_args,
+            "database_name": database_name,
+            "database_version": database_version,
             "input_file_name": input_name,
             "output_file_name": output_name,
         }
