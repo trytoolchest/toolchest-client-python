@@ -30,7 +30,7 @@ requests = "^2.25.1"
 
 [[tool.poetry.source]]
 name = "prod-pypi"
-url = "https://pypi.org/legacy/"
+url = "https://upload.pypi.org/legacy/"
 default = true
 
 [[tool.poetry.source]]
