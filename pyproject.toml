@@ -29,12 +29,12 @@ requests = "^2.25.1"
 [tool.poetry.dev-dependencies]
 
 [[tool.poetry.source]]
-name = "pypi"
+name = "prod-pypi"
 url = "https://pypi.org/legacy/"
 default = true
 
 [[tool.poetry.source]]
-name = "testpypi"
+name = "test-pypi"
 url = "https://test.pypi.org/legacy/"
 secondary = true
 
