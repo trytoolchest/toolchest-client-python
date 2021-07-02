@@ -16,7 +16,6 @@ def run_tool(tool, version, **kwargs):
     :param tool: Tool to be used.
     :param version: Version of tool to be used.
     :param tool_args: Tool-specific arguments to be passed to the tool.
-    :param input_name: Internal name of file inputted to the tool.
     :param output_name: Internal name of file outputted by the tool.
     :param input_path: Path (client-side) of file to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
@@ -53,7 +52,6 @@ def bowtie2(tool_args="", **kwargs):
         "bowtie2",
         Version.BOWTIE2.value,
         tool_args=tool_args,
-        input_name="input.fastq",
         output_name="output.txt",
         **kwargs
     )
@@ -89,7 +87,6 @@ def cutadapt(tool_args, **kwargs):
         "cutadapt",
         Version.CUTADAPT.value,
         tool_args=tool_args,
-        input_name="input.fastq",
         output_name="output.fastq",
         **kwargs
     )
@@ -118,7 +115,6 @@ def kraken2(tool_args="", **kwargs):
         "kraken2",
         Version.KRAKEN2.value,
         tool_args=tool_args,
-        input_name="input.fastq",
         output_name="output.txt",
         **kwargs
     )
@@ -146,7 +142,6 @@ def test(tool_args="", **kwargs):
         "test",
         Version.TEST.value,
         tool_args=tool_args,
-        input_name="input.txt",
         output_name="output.txt",
         **kwargs
     )
