@@ -30,7 +30,12 @@ python-dotenv = "^0.18.0"
 [tool.poetry.dev-dependencies]
 
 [[tool.poetry.source]]
-name = "testpypi"
+name = "prod-pypi"
+url = "https://upload.pypi.org/legacy/"
+default = true
+
+[[tool.poetry.source]]
+name = "test-pypi"
 url = "https://test.pypi.org/legacy/"
 secondary = true
 
