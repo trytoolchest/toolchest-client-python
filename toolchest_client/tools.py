@@ -121,7 +121,7 @@ def kraken2(tool_args="", **kwargs):
 
 
 def test(tool_args="", **kwargs):
-    """Run a test pipeline segment via Toolchest. A plain text file containing 'step one' is returned."
+    """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
     :param input_path: Path (client-side) of file to be passed in as input.
