@@ -9,6 +9,7 @@ from ._internal_utils import _validate_tool_kwargs
 from .query import Query
 from .version import Version
 
+
 def run_tool(tool, version, **kwargs):
     """Constructs and runs a Toolchest query.
 
@@ -23,6 +24,7 @@ def run_tool(tool, version, **kwargs):
 
     q = Query()
     q.run_query(tool, version, **kwargs)
+
 
 def bowtie2(tool_args="", **kwargs):
     """Runs Bowtie 2 (for alignment) via Toolchest.
@@ -117,6 +119,34 @@ def kraken2(tool_args="", **kwargs):
         Version.KRAKEN2.value,
         tool_args=tool_args,
         input_name="input.fastq",
+        output_name="output.txt",
+        **kwargs
+    )
+
+
+def test(tool_args="", **kwargs):
+    """Run a test pipeline segment via Toolchest. A plain text file containing 'step one' is returned."
+
+    :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
+    :param input_path: Path (client-side) of file to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.test(
+        ...     input_path="./path/to/input.txt",
+        ...     output_path="./path/to/output.txt",
+        ... )
+
+    """
+
+    _validate_tool_kwargs(**kwargs)
+    run_tool(
+        "test",
+        Version.TEST.value,
+        tool_args=tool_args,
+        input_name="input.txt",
         output_name="output.txt",
         **kwargs
     )
