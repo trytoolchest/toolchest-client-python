@@ -19,12 +19,8 @@ from .files import files_in_path
 from .status import Status
 
 
-def _validate_args(output_name, input_path, output_path):
+def _validate_args(output_name, output_path):
     """Checks if query args are correctly formatted."""
-
-    if input_path is None:
-        raise FileNotFoundError("input file path must be specified")  # temp error message
-        # TODO: implement file selection
 
     if output_path is None:
         raise FileNotFoundError("output file path must be specified")  # temp error message
@@ -68,7 +64,7 @@ class Query():
 
     def run_query(self, tool_name, tool_version, tool_args=None,
                   database_name=None, database_version=None,
-                  output_name="output", input_path=None, output_path=None):
+                  output_name="output", input_files=None, output_path=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -77,13 +73,12 @@ class Query():
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param output_name: (optional) Internal name of file outputted by the tool.
-        :param input_path: Path (client-side) to a file or directory to be passed in as input.
+        :param input_files: Path or list of paths (client-side) to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         """
 
         _validate_args(
             output_name,
-            input_path,
             output_path,
         )
 
@@ -121,7 +116,7 @@ class Query():
         ])
 
         print("Uploading...")
-        files_to_upload = files_in_path(input_path)
+        files_to_upload = files_in_path(input_files)
         print(f"Found {len(files_to_upload)} files to upload.")
         self._upload(files_to_upload)
         print("Uploaded!")
@@ -208,7 +203,6 @@ class Query():
 
         Returns the response from the PUT request.
         """
-        print('status url', self.STATUS_URL)
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,

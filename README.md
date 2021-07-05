@@ -24,7 +24,7 @@ import toolchest_client as toolchest
 toolchest.set_key("YOUR_TOOLCHEST_KEY")
 toolchest.kraken2(
   tool_args="",
-  input_path="path/to/input.fastq",
+  input_files="path/to/input.fastq",
   output_path="path/to/output.fastq",
 )
 ```
