@@ -61,7 +61,7 @@ Toolchest function:
 >>> import toolchest_client as toolchest
 >>> toolchest.your_tool(
 ...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
-...     input_path="path/to/input",
+...     inputs="path/to/input",
 ...     output_path="path/to/output",
 ... )
 
