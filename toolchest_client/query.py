@@ -15,25 +15,7 @@ from requests.exceptions import HTTPError
 
 from .auth import get_key
 from .exceptions import DataLimitError
-from .files import files_in_path
 from .status import Status
-
-
-def _validate_args(output_name, output_path):
-    """Checks if query args are correctly formatted."""
-
-    if output_path is None:
-        raise FileNotFoundError("output file path must be specified")  # temp error message
-        # TODO: implement file selection
-    try:
-        with open(output_path, "a") as f:
-            pass
-    except OSError:
-        raise OSError("output file path must be writable")
-
-    if not output_name:
-        raise ValueError("output name must be non-empty")
-    # TODO: complete implementing argument checking
 
 
 class Query():
@@ -64,7 +46,7 @@ class Query():
 
     def run_query(self, tool_name, tool_version, tool_args=None,
                   database_name=None, database_version=None,
-                  output_name="output", inputs=None, output_path=None):
+                  output_name="output", input_files=None, output_path=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -73,14 +55,9 @@ class Query():
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param output_name: (optional) Internal name of file outputted by the tool.
-        :param inputs: Path or list of paths (client-side) to be passed in as input.
+        :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         """
-
-        _validate_args(
-            output_name,
-            output_path,
-        )
 
         # Retrieve and validate Toolchest auth key.
         self.HEADERS["Authorization"] = f"Key {get_key()}"
@@ -116,9 +93,8 @@ class Query():
         ])
 
         print("Uploading...")
-        files_to_upload = files_in_path(inputs)
-        print(f"Found {len(files_to_upload)} files to upload.")
-        self._upload(files_to_upload)
+        print(f"Found {len(input_files)} files to upload.")
+        self._upload(input_files)
         print("Uploaded!")
 
         print("Executing job...")

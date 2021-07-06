@@ -1,34 +1,17 @@
 """
-toolchest_client.tools
+toolchest_client.tools.api
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains the API for using Toolchest tools.
 """
 
-from ._internal_utils import _validate_tool_kwargs
-from .query import Query
-from .version import Version
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test
 
 
-def run_tool(tool, version, **kwargs):
-    """Constructs and runs a Toolchest query.
-
-    :param tool: Tool to be used.
-    :param version: Version of tool to be used.
-    :param tool_args: Tool-specific arguments to be passed to the tool.
-    :param output_name: Internal name of file outputted by the tool.
-    :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
-    """
-
-    q = Query()
-    q.run_query(tool, version, **kwargs)
-
-
-def bowtie2(tool_args="", **kwargs):
+def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
-    :param tool_args: Additional arguments to be passed to Bowtie 2.
+    :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
     :param database_name: Name of database to use for Bowtie 2 alignment.
     :param database_version: Version of database to use for Bowtie 2 alignment.
     :type database_version: str
@@ -47,24 +30,26 @@ def bowtie2(tool_args="", **kwargs):
 
     """
 
-    _validate_tool_kwargs(**kwargs)
-    run_tool(
-        "bowtie2",
-        Version.BOWTIE2.value,
+    instance = Bowtie2(
         tool_args=tool_args,
-        output_name="output.txt",
-        **kwargs
+        output_name='output.txt',
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version
     )
+    instance.run()
 
 
-def cutadapt(tool_args, **kwargs):
+def cutadapt(inputs, output_path, tool_args):
     """Runs Cutadapt via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
-    :param tool_args: Additional arguments to be passed to Cutadapt.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
+    :param tool_args: Additional arguments to be passed to Cutadapt.
+
 
     .. note:: Do **NOT** include the output path (`-o output_path`) or the
       input path (`inputs` at the end) in the passed `cutadapt_args`. Inputs
@@ -82,23 +67,23 @@ def cutadapt(tool_args, **kwargs):
 
     """
 
-    _validate_tool_kwargs(**kwargs)
-    run_tool(
-        "cutadapt",
-        Version.CUTADAPT.value,
+    instance = Cutadapt(
         tool_args=tool_args,
-        output_name="output.fastq",
-        **kwargs
+        output_name='output.fastq',
+        inputs=inputs,
+        output_path=output_path,
     )
+    instance.run()
 
-def kraken2(tool_args="", **kwargs):
+
+def kraken2(inputs, output_path, tool_args=""):
     """Runs Kraken 2 via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
-    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
 
     Usage::
 
@@ -110,17 +95,16 @@ def kraken2(tool_args="", **kwargs):
         ... )
     """
 
-    _validate_tool_kwargs(**kwargs)
-    run_tool(
-        "kraken2",
-        Version.KRAKEN2.value,
+    instance = Kraken2(
         tool_args=tool_args,
-        output_name="output.txt",
-        **kwargs
+        output_name='output.txt',
+        inputs=inputs,
+        output_path=output_path,
     )
+    instance.run()
 
 
-def test(tool_args="", **kwargs):
+def test(inputs, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
@@ -137,11 +121,10 @@ def test(tool_args="", **kwargs):
 
     """
 
-    _validate_tool_kwargs(**kwargs)
-    run_tool(
-        "test",
-        Version.TEST.value,
+    instance = Test(
         tool_args=tool_args,
-        output_name="output.txt",
-        **kwargs
+        output_name='output.txt',
+        inputs=inputs,
+        output_path=output_path,
     )
+    instance.run()
