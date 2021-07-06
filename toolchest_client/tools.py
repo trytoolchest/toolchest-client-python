@@ -17,7 +17,7 @@ def run_tool(tool, version, **kwargs):
     :param version: Version of tool to be used.
     :param tool_args: Tool-specific arguments to be passed to the tool.
     :param output_name: Internal name of file outputted by the tool.
-    :param input_files: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
     """
 
@@ -32,7 +32,7 @@ def bowtie2(tool_args="", **kwargs):
     :param database_name: Name of database to use for Bowtie 2 alignment.
     :param database_version: Version of database to use for Bowtie 2 alignment.
     :type database_version: str
-    :param input_files: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
 
     Usage::
@@ -41,7 +41,7 @@ def bowtie2(tool_args="", **kwargs):
         >>> toolchest.bowtie2(
         ...     database_name="DB_name",
         ...     database_version="version_number",
-        ...     input_files="./path/to/input",
+        ...     inputs="./path/to/input",
         ...     output_path="./path/to/output",
         ... )
 
@@ -63,11 +63,11 @@ def cutadapt(tool_args, **kwargs):
     (Currently, only single .fastq inputs are supported.)
 
     :param tool_args: Additional arguments to be passed to Cutadapt.
-    :param input_files: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
 
     .. note:: Do **NOT** include the output path (`-o output_path`) or the
-      input path (`input_files` at the end) in the passed `cutadapt_args`. Inputs
+      input path (`inputs` at the end) in the passed `cutadapt_args`. Inputs
       and outputs will be automatically handled by the Toolchest backend, and
       including these arguments will lead to errors or undesired output.
 
@@ -76,7 +76,7 @@ def cutadapt(tool_args, **kwargs):
         >>> import toolchest_client as toolchest
         >>> toolchest.cutadapt(
         ...     tool_args="-a AACCGGTT",
-        ...     input_files="./path/to/input",
+        ...     inputs="./path/to/input",
         ...     output_path="./path/to/output",
         ... )
 
@@ -97,7 +97,7 @@ def kraken2(tool_args="", **kwargs):
     (Currently, only single .fastq inputs are supported.)
 
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
-    :param input_files: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
 
     Usage::
@@ -105,7 +105,7 @@ def kraken2(tool_args="", **kwargs):
         >>> import toolchest_client as toolchest
         >>> toolchest.kraken2(
         ...     tool_args="",
-        ...     input_files="./path/to/input.fastq",
+        ...     inputs="./path/to/input.fastq",
         ...     output_path="./path/to/output.txt",
         ... )
     """
@@ -124,14 +124,14 @@ def test(tool_args="", **kwargs):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
-    :param input_files: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
 
     Usage::
 
         >>> import toolchest_client as toolchest
         >>> toolchest.test(
-        ...     input_files="./path/to/input.txt",
+        ...     inputs="./path/to/input.txt",
         ...     output_path="./path/to/output.txt",
         ... )
 

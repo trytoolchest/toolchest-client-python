@@ -64,7 +64,7 @@ class Query():
 
     def run_query(self, tool_name, tool_version, tool_args=None,
                   database_name=None, database_version=None,
-                  output_name="output", input_files=None, output_path=None):
+                  output_name="output", inputs=None, output_path=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -73,7 +73,7 @@ class Query():
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param output_name: (optional) Internal name of file outputted by the tool.
-        :param input_files: Path or list of paths (client-side) to be passed in as input.
+        :param inputs: Path or list of paths (client-side) to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         """
 
@@ -116,7 +116,7 @@ class Query():
         ])
 
         print("Uploading...")
-        files_to_upload = files_in_path(input_files)
+        files_to_upload = files_in_path(inputs)
         print(f"Found {len(files_to_upload)} files to upload.")
         self._upload(files_to_upload)
         print("Uploaded!")

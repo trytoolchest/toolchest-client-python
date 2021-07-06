@@ -17,7 +17,7 @@ Using a tool in Toolchest is as simple as:
     >>> toolchest.set_key("YOUR_TOOLCHEST_KEY")
     >>> toolchest.cutadapt(
     ...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
-    ...     input_files="path/to/input",
+    ...     inputs="path/to/input",
     ...     output_path="path/to/output",
     ... )
 
