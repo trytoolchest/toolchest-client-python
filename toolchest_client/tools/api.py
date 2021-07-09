@@ -93,6 +93,7 @@ def kraken2(inputs, output_path, tool_args=""):
         ...     inputs="./path/to/input.fastq",
         ...     output_path="./path/to/output.txt",
         ... )
+
     """
 
     instance = Kraken2(
