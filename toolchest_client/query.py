@@ -7,6 +7,7 @@ tools. These queries are handled by the Toolchest (server) API.
 """
 
 import os
+import ntpath
 import time
 
 import requests
@@ -15,6 +16,7 @@ from requests.exceptions import HTTPError
 from .auth import get_key
 from .exceptions import DataLimitError
 from .status import Status
+
 
 class Query():
     """A Toolchest query.
@@ -25,7 +27,7 @@ class Query():
     """
 
     # Base URLs used by the server API.
-    BASE_URL = "https://api.toolche.st"
+    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
     PIPELINE_ROUTE = "/pipeline-segment-instances"
     PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
@@ -34,12 +36,17 @@ class Query():
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
     # Buffer on print statements for job status updates, to make carriage returns pretty.
-    JOB_STATUS_BUFFER = " "*50
+    JOB_STATUS_BUFFER = " " * 50
+
+    def __init__(self):
+        self.HEADERS = dict()
+        self.PIPELINE_SEGMENT_ID = ''
+        self.PIPELINE_SEGMENT_URL = ''
+        self.STATUS_URL = ''
 
     def run_query(self, tool_name, tool_version, tool_args=None,
-            database_name=None, database_version=None,
-            input_name="input", output_name="output",
-            input_path=None, output_path=None):
+                  database_name=None, database_version=None,
+                  output_name="output", input_files=None, output_path=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -47,22 +54,13 @@ class Query():
         :param tool_args: Tool-specific arguments to be passed to the tool.
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
-        :param input_name: (optional) Internal name of file inputted to the tool.
         :param output_name: (optional) Internal name of file outputted by the tool.
-        :param input_path: Path (client-side) of file to be passed in as input.
+        :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         """
 
-        self._validate_args(
-            input_name,
-            output_name,
-            input_path,
-            output_path,
-        )
-
         # Retrieve and validate Toolchest auth key.
-        key = get_key()
-        self.HEADERS = {"Authorization": "Key " + key}
+        self.HEADERS["Authorization"] = f"Key {get_key()}"
         validation_response = requests.get(
             self.BASE_URL,
             headers=self.HEADERS,
@@ -81,20 +79,22 @@ class Query():
             tool_args,
             database_name,
             database_version,
-            input_name,
             output_name,
         )
         create_content = create_response.json()
-        self.PIPELINE_SEG_ID = create_content["id"]
-        self.STATUS_URL = "/".join([
+        self.PIPELINE_SEGMENT_ID = create_content["id"]
+        self.PIPELINE_SEGMENT_URL = "/".join([
             self.PIPELINE_URL,
-            self.PIPELINE_SEG_ID,
+            self.PIPELINE_SEGMENT_ID
+        ])
+        self.STATUS_URL = "/".join([
+            self.PIPELINE_SEGMENT_URL,
             "status",
         ])
-        self.UPLOAD_URL = create_content["input_file_upload_location"]
 
         print("Uploading...")
-        self._upload(input_path)
+        print(f"Found {len(input_files)} files to upload.")
+        self._upload(input_files)
         print("Uploaded!")
 
         print("Executing job...")
@@ -105,33 +105,8 @@ class Query():
         self._download(output_path)
         print("Downloaded!")
 
-    def _validate_args(self, input_name, output_name, input_path, output_path):
-        """Checks if query args are correctly formatted."""
-
-        if input_path is None:
-            raise FileNotFoundError("input file path must be specified") # temp error message
-            # TODO: implement file selection
-        elif not os.path.isfile(input_path):
-            raise FileNotFoundError("input file path must be a valid file")
-
-        if output_path is None:
-            raise FileNotFoundError("output file path must be specified") # temp error message
-            # TODO: implement file selection
-        try:
-            with open(output_path, "a") as f:
-                pass
-        except OSError:
-            raise OSError("output file path must be writable")
-
-        if not input_name:
-            raise ValueError("input name must be non-empty")
-        if not output_name:
-            raise ValueError("output name must be non-empty")
-        # TODO: complete implementing argument checking
-
     def _send_initial_request(self, tool_name, tool_version, tool_args,
-            database_name, database_version,
-            input_name, output_name):
+                              database_name, database_version, output_name):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -143,7 +118,6 @@ class Query():
             "custom_tool_args": tool_args,
             "database_name": database_name,
             "database_version": database_version,
-            "input_file_name": input_name,
             "output_file_name": output_name,
         }
 
@@ -160,20 +134,43 @@ class Query():
 
         return create_response
 
-    def _upload(self, input_path):
-        """Uploads the file at ``input_path`` to Toolchest."""
+    def _add_input_file(self, input_file_path):
+        add_input_file_url = "/".join([
+            self.PIPELINE_SEGMENT_URL,
+            'input-files'
+        ])
+        file_name = ntpath.basename(input_file_path)
+
+        response = requests.post(
+            add_input_file_url,
+            headers=self.HEADERS,
+            json={"file_name": file_name},
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(f"Failed to upload file at {input_file_path}")
+            raise
+        return response.json().get("input_file_upload_location")
+
+    def _upload(self, input_file_paths):
+        """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT.value)
 
-        upload_response = requests.put(
-            self.UPLOAD_URL,
-            data=open(input_path, "rb")
-        )
-        try:
-            upload_response.raise_for_status()
-        except HTTPError:
-            print("Input file upload failed.")
-            raise
+        for file_path in input_file_paths:
+            print(f"Uploading {file_path}")
+            upload_url = self._add_input_file(file_path)
+
+            upload_response = requests.put(
+                upload_url,
+                data=open(file_path, "rb")
+            )
+            try:
+                upload_response.raise_for_status()
+            except HTTPError:
+                print(f"Input file upload failed for file at {file_path}")
+                raise
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT.value)
 
@@ -182,7 +179,6 @@ class Query():
 
         Returns the response from the PUT request.
         """
-
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
@@ -272,7 +268,7 @@ class Query():
         """Gets URL for downloading output of query task(s)."""
 
         response = requests.get(
-            "/".join([self.PIPELINE_URL, self.PIPELINE_SEG_ID, "downloads"]),
+            "/".join([self.PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
             headers=self.HEADERS,
         )
         try:
