@@ -8,7 +8,7 @@ This module contains the API for using Toolchest tools.
 from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test
 
 
-def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
+def bowtie2(tool_args="", inputs, output_path, database_name, database_version):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
@@ -41,15 +41,14 @@ def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
     instance.run()
 
 
-def cutadapt(inputs, output_path, tool_args):
+def cutadapt(tool_args, inputs, output_path):
     """Runs Cutadapt via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
+    :param tool_args: Additional arguments to be passed to Cutadapt.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
-    :param tool_args: Additional arguments to be passed to Cutadapt.
-
 
     .. note:: Do **NOT** include the output path (`-o output_path`) or the
       input path (`inputs` at the end) in the passed `cutadapt_args`. Inputs
@@ -76,14 +75,14 @@ def cutadapt(inputs, output_path, tool_args):
     instance.run()
 
 
-def kraken2(inputs, output_path, tool_args=""):
+def kraken2(tool_args="", inputs, output_path):
     """Runs Kraken 2 via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
 
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
-    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
 
     Usage::
 
@@ -104,7 +103,7 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def test(inputs, output_path, tool_args=""):
+def test(tool_args="", inputs, output_path):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
