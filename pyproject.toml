@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.5.0"
+version = "0.5.1"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bcai@trytoolchest.com>",
@@ -30,9 +30,13 @@ python-dotenv = "^0.18.0"
 [tool.poetry.dev-dependencies]
 
 [[tool.poetry.source]]
+name = "pypi-public"
+url = "https://pypi.org/simple/"
+
+[[tool.poetry.source]]
 name = "prod-pypi"
 url = "https://upload.pypi.org/legacy/"
-default = true
+secondary = true
 
 [[tool.poetry.source]]
 name = "test-pypi"
