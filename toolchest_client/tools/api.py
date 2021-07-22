@@ -105,7 +105,7 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def test(test_arg, test_arg_two, output_path, tool_args=""):
+def test(inputs, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
@@ -125,11 +125,7 @@ def test(test_arg, test_arg_two, output_path, tool_args=""):
     instance = Test(
         tool_args=tool_args,
         output_name='output.txt',
-        inputs=[test_arg, test_arg_two],
-        input_prefix_mapping={
-            test_arg: "-1",
-            test_arg_two: "-2",
-        },
+        inputs=inputs,
         output_path=output_path,
     )
     instance.run()
