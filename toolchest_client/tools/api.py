@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
@@ -105,7 +105,7 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def test(inputs, output_path, tool_args=""):
+def test(test_arg, test_arg_two, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
@@ -125,7 +125,47 @@ def test(inputs, output_path, tool_args=""):
     instance = Test(
         tool_args=tool_args,
         output_name='output.txt',
-        inputs=inputs,
+        inputs=[test_arg, test_arg_two],
+        input_prefix_mapping={
+            test_arg: "-1",
+            test_arg_two: "-2",
+        },
+        output_path=output_path,
+    )
+    instance.run()
+
+
+def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_args=""):
+    """Runs Bowtie 2 (for alignment) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
+    :param read_one: (optional) Path to the file containing R1 short reads.
+    :param read_two: (optional) Path to the file containing R2 short reads.
+    :param long_reads: (optional) Path to the file containing long reads.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.unicycler(
+        ... read_one="./r1.fastq",
+        ... read_two="./r2.fastq",
+        ... long_reads="./long_reads.fasta",
+        ... tool_args="--mode bold"
+        ... output_path="scratch"
+        ... )
+
+    """
+
+    instance = Unicycler(
+        tool_args=tool_args,
+        output_name='output.txt',
+        input_prefix_mapping={
+            read_one: "-1",
+            read_two: "-2",
+            long_reads: "-l",
+        },
+        inputs=[read_one, read_two, long_reads],
         output_path=output_path,
     )
     instance.run()

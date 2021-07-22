@@ -13,13 +13,19 @@ from ..files import files_in_path
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  output_path, inputs, min_inputs, max_inputs,
-                 database_name=None, database_version=None):
+                 database_name=None, database_version=None,
+                 input_prefix_mapping=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
         self.output_path = output_path
         self.inputs = inputs
+        # input_prefix_mapping is a dict in the shape of:
+        # {
+        #   "./path_to_file.txt": "-prefix",
+        # }
+        self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
         self.min_inputs = min_inputs
         self.max_inputs = max_inputs
@@ -34,7 +40,7 @@ class Tool:
         if num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {num_input_files} found.")
-        if num_input_files > self.min_inputs:
+        if num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {num_input_files} found.")
 
@@ -71,5 +77,6 @@ class Tool:
             database_version=self.database_version,
             output_name=self.output_name,
             input_files=self.input_files,
+            input_prefix_mapping=self.input_prefix_mapping,
             output_path=self.output_path,
         )

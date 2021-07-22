@@ -11,7 +11,7 @@ class Test(Tool):
     """
     The test implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path):
+    def __init__(self, tool_args, output_name, inputs, input_prefix_mapping, output_path):
         super().__init__(
             tool_name="test",
             tool_version="0.1.0",
@@ -19,6 +19,7 @@ class Test(Tool):
             output_name=output_name,
             output_path=output_path,
             inputs=inputs,
+            input_prefix_mapping=input_prefix_mapping,
             min_inputs=1,
             max_inputs=100,  # this limit is completely arbitrary
         )
