@@ -12,7 +12,7 @@ class Unicycler(Tool):
     The unicycler implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 output_path, database_name, database_version):
+                 output_path):
         super().__init__(
             tool_name="unicycler",
             tool_version="0.4.9",  # todo: allow unicycler version to be set by the user
@@ -23,6 +23,4 @@ class Unicycler(Tool):
             input_prefix_mapping=input_prefix_mapping,
             min_inputs=1,
             max_inputs=3,
-            database_name=database_name,
-            database_version=database_version,
         )
