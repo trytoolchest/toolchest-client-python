@@ -44,8 +44,8 @@ class Query():
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
 
-    def run_query(self, tool_name, tool_version, tool_args=None,
-                  database_name=None, database_version=None,
+    def run_query(self, tool_name, tool_version, input_prefix_mapping,
+                  tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None, output_path=None):
         """Executes a query to the Toolchest API.
 
@@ -94,7 +94,7 @@ class Query():
 
         print("Uploading...")
         print(f"Found {len(input_files)} files to upload.")
-        self._upload(input_files)
+        self._upload(input_files, input_prefix_mapping)
         print("Uploaded!")
 
         print("Executing job...")
@@ -134,7 +134,7 @@ class Query():
 
         return create_response
 
-    def _add_input_file(self, input_file_path):
+    def _add_input_file(self, input_file_path, input_prefix):
         add_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_URL,
             'input-files'
@@ -144,7 +144,10 @@ class Query():
         response = requests.post(
             add_input_file_url,
             headers=self.HEADERS,
-            json={"file_name": file_name},
+            json={
+                "file_name": file_name,
+                "tool_prefix": input_prefix,
+            },
         )
         try:
             response.raise_for_status()
@@ -153,14 +156,17 @@ class Query():
             raise
         return response.json().get("input_file_upload_location")
 
-    def _upload(self, input_file_paths):
+    def _upload(self, input_file_paths, input_prefix_mapping):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT.value)
 
         for file_path in input_file_paths:
             print(f"Uploading {file_path}")
-            upload_url = self._add_input_file(file_path)
+            upload_url = self._add_input_file(
+                input_file_path=file_path,
+                input_prefix=input_prefix_mapping.get(file_path)
+            )
 
             upload_response = requests.put(
                 upload_url,
