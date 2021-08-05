@@ -14,7 +14,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from .auth import get_key
-from .exceptions import DataLimitError
+from .exceptions import DataLimitError, ToolchestJobError
 from .status import Status
 
 
@@ -194,13 +194,7 @@ class Query():
             response.raise_for_status()
         except HTTPError:
             print("Job status update failed." + self.JOB_STATUS_BUFFER)
-
-            # Check if there are errors.
-            response_body = response.json()
-            if "success" in response_body:
-                # Failures are currently assumed to be solely due to data limits.
-                if not response_body["success"]:
-                    raise DataLimitError(response_body["error"]) from None
+            self._raise_for_failed_jobs(response)
             raise
 
         return response
@@ -243,9 +237,24 @@ class Query():
             response.raise_for_status()
         except HTTPError:
             print("Job status retrieval failed.")
+            self._raise_for_failed_jobs(response)
             raise
 
         return response.json()["status"]
+
+    def _raise_for_failed_jobs(self, response):
+        """Raises an error if a job fails during execution, as indicated by the request response.
+
+        Note: When a job is marked as failed, any requests for current status
+        will have a NOT OK status code.
+        """
+        # Check if there are errors.
+        response_body = response.json()
+        if "success" in response_body:
+            # Failures are currently raised as the catch-all ToolchestException exception.
+            if not response_body["success"]:
+                print(response_body)
+                raise ToolchestJobError(response_body["error"]) from None
 
     def _download(self, output_path):
         """Downloads output to ``output_path``."""

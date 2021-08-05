@@ -11,6 +11,6 @@ load_dotenv(find_dotenv(".env"))
 builtins.print = functools.partial(print, flush=True)
 
 from .auth import get_key, set_key
-from .exceptions import ToolchestException, DataLimitError
+from .exceptions import ToolchestException, DataLimitError, ToolchestJobError
 from .query import Query
 from .tools.api import bowtie2, cutadapt, kraken2, test, unicycler
