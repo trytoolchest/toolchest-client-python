@@ -180,15 +180,19 @@ class Query():
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT.value)
 
-    def _update_status(self, new_status):
+    def _update_status(self, new_status, additional_params=None):
         """Updates the internal status of the query's task(s).
 
         Returns the response from the PUT request.
         """
+        update_json = {"status": new_status}
+        if additional_params:
+            update_json.update(additional_params)
+
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
-            json={"status": new_status},
+            json=update_json,
         )
         try:
             response.raise_for_status()
@@ -269,13 +273,16 @@ class Query():
             try:
                 r.raise_for_status()
             except HTTPError:
-                print("Output download failed.")
+                error_message = "Output download failed."
+                self._update_status(Status.FAILED.value, {"error_message": error_message})
+                print(error_message)
                 raise
 
             # Writes streamed output data from response to the output file.
             with open(output_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
+            # TODO: catch errors when writing
 
         self._update_status(Status.TRANSFERRED_TO_CLIENT.value)
 
@@ -289,7 +296,9 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Download URL retrieval failed.")
+            error_message = "Download URL retrieval failed."
+            self._update_status(Status.FAILED.value, {"error_message": error_message})
+            print(error_message)
             raise
 
         # TODO: add support for multiple download files
