@@ -183,14 +183,14 @@ class Query():
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
-    def _update_status(self, new_status, additional_params=None):
+    def _update_status(self, new_status, extra_params=None):
         """Updates the internal status of the query's task(s).
 
         Returns the response from the PUT request.
         """
         update_json = {"status": new_status}
-        if additional_params:
-            update_json.update(additional_params)
+        if extra_params:
+            update_json.update(extra_params)
 
         response = requests.put(
             self.STATUS_URL,
