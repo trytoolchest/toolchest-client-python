@@ -44,6 +44,7 @@ class Query():
         self.PIPELINE_SEGMENT_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
+        self.mark_as_failed = False
         atexit.register(self._mark_as_failed_at_exit)
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
@@ -93,6 +94,7 @@ class Query():
             self.PIPELINE_SEGMENT_URL,
             "status",
         ])
+        self.mark_as_failed = True
 
         print("Uploading...")
         print(f"Found {len(input_files)} files to upload.")
@@ -215,6 +217,7 @@ class Query():
         is caught before the initial request to the API is sent).
         """
         self._update_status(Status.FAILED, {"error_message": error_message})
+        self.mark_as_failed = False
         if force_raise:
             raise ToolchestException(error_message) from None
         else:
@@ -231,6 +234,13 @@ class Query():
         if "success" in response_body:
             # Failures are currently raised as the catch-all ToolchestException exception.
             if not response_body["success"]:
+                # TODO: remove this check once the data error auto-updates status to failed
+                if self._get_job_status() != Status.FAILED:
+                    self._update_status(
+                        Status.FAILED,
+                        {"error_message": response_body["error"]},
+                    )
+                    self.mark_as_failed = False
                 raise ToolchestJobError(response_body["error"]) from None
 
     def _pretty_print_job_status(self, job_status, elapsed_time):
@@ -272,7 +282,7 @@ class Query():
         except HTTPError:
             print("Job status retrieval failed.")
             self._raise_for_failed_job(response)
-            raise
+            return Status.FAILED
 
         return response.json()["status"]
 
@@ -316,14 +326,15 @@ class Query():
         return response.json()[0]["signed_url"]
 
     def _mark_as_failed_at_exit(self):
-        """Upon exit, marks job as failed if it has not been completed."""
+        """Upon exit, marks job as failed if it has started but is not marked as completed/failed."""
 
         # TODO: look at putting this function inside the __init__?
         # otherwise, each Query instance persists until exit
 
-        status = self._get_job_status()
-        if status != Status.TRANSFERRED_TO_CLIENT:
-            self._raise_for_failed_client(
-                "Client exited before job completion.",
-                force_raise=False,
-            )
+        if self.STATUS_URL != '' and self.mark_as_failed:
+            status = self._get_job_status()
+            if status != Status.TRANSFERRED_TO_CLIENT and status != Status.FAILED:
+                self._raise_for_failed_client(
+                    "Client exited before job completion.",
+                    force_raise=False,
+                )
