@@ -282,6 +282,7 @@ class Query():
         except HTTPError:
             print("Job status retrieval failed.")
             self._raise_for_failed_job(response)
+            # Assumes that job status has been set to failed if response status code is NOT OK.
             return Status.FAILED
 
         return response.json()["status"]
