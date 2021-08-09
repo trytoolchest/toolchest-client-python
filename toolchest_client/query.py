@@ -6,6 +6,7 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
+import atexit
 import os
 import ntpath
 import time
@@ -43,6 +44,7 @@ class Query():
         self.PIPELINE_SEGMENT_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
+        atexit.register(self._mark_as_failed_at_exit)
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
@@ -202,10 +204,10 @@ class Query():
 
         return response
 
-    def _raise_for_failed_client(self, error_message):
+    def _raise_for_failed_client(self, error_message, force_raise=True):
         """Updates the internal status of the query's task(s) to 'failed'.
 
-        Prints error message and raises a ToolchestException.
+        Prints error message or raises a ToolchestException, based on force_raise.
 
         Note: This function is invoked for failures that occur on the client-side,
         such as errors occurring while uploading input and downloading output.
@@ -213,9 +215,23 @@ class Query():
         is caught before the initial request to the API is sent).
         """
         self._update_status(Status.FAILED.value, {"error_message": error_message})
-        print(error_message)
-        raise ToolchestException(error_message) from None
+        if force_raise:
+            raise ToolchestException(error_message) from None
+        else:
+            print(error_message)
 
+    def _raise_for_failed_job(self, response):
+        """Raises an error if a job fails during execution, as indicated by the request response.
+
+        Note: When a job is marked as failed, any requests for current status
+        will have a NOT OK status code.
+        """
+        # Check if there are errors, currently indicated with the "success" descriptor.
+        response_body = response.json()
+        if "success" in response_body:
+            # Failures are currently raised as the catch-all ToolchestException exception.
+            if not response_body["success"]:
+                raise ToolchestJobError(response_body["error"]) from None
 
     def _pretty_print_job_status(self, job_status, elapsed_time):
         pretty_status = ''
@@ -260,20 +276,6 @@ class Query():
 
         return response.json()["status"]
 
-    def _raise_for_failed_job(self, response):
-        """Raises an error if a job fails during execution, as indicated by the request response.
-
-        Note: When a job is marked as failed, any requests for current status
-        will have a NOT OK status code.
-        """
-        # Check if there are errors, currently indicated with the "success" descriptor.
-        response_body = response.json()
-        if "success" in response_body:
-            # Failures are currently raised as the catch-all ToolchestException exception.
-            if not response_body["success"]:
-                print(response_body)
-                raise ToolchestJobError(response_body["error"]) from None
-
     def _download(self, output_path):
         """Downloads output to ``output_path``."""
 
@@ -312,3 +314,16 @@ class Query():
         # TODO: add support for multiple download files
 
         return response.json()[0]["signed_url"]
+
+    def _mark_as_failed_at_exit(self):
+        """Upon exit, marks job as failed if it has not been completed."""
+
+        # TODO: look at putting this function inside the __init__?
+        # otherwise, each Query instance persists until exit
+
+        status = self._get_job_status()
+        if status != Status.TRANSFERRED_TO_CLIENT.value:
+            self._raise_for_failed_client(
+                "Client exited before job completion.",
+                force_raise=False,
+            )
