@@ -331,7 +331,7 @@ class Query():
         # TODO: look at putting this function inside the __init__?
         # otherwise, each Query instance persists until exit
 
-        if self.STATUS_URL != '' and self.mark_as_failed:
+        if self.mark_as_failed:
             status = self._get_job_status()
             if status != Status.TRANSFERRED_TO_CLIENT and status != Status.FAILED:
                 self._raise_for_failed_client(
