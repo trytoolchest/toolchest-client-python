@@ -161,7 +161,7 @@ class Query():
     def _upload(self, input_file_paths, input_prefix_mapping):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
-        self._update_status(Status.TRANSFERRING_FROM_CLIENT.value)
+        self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
         for file_path in input_file_paths:
             print(f"Uploading {file_path}")
@@ -179,7 +179,7 @@ class Query():
             except HTTPError:
                 self._raise_for_failed_client(f"Input file upload failed for file at {file_path}.")
 
-        self._update_status(Status.TRANSFERRED_FROM_CLIENT.value)
+        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
     def _update_status(self, new_status, additional_params=None):
         """Updates the internal status of the query's task(s).
@@ -214,7 +214,7 @@ class Query():
         It is not invoked if the query is not noted internally (i.e., an error
         is caught before the initial request to the API is sent).
         """
-        self._update_status(Status.FAILED.value, {"error_message": error_message})
+        self._update_status(Status.FAILED, {"error_message": error_message})
         if force_raise:
             raise ToolchestException(error_message) from None
         else:
@@ -251,7 +251,7 @@ class Query():
         """Waits for query task(s) to finish executing."""
         status = self._get_job_status()
         start_time = time.time()
-        while status != Status.READY_TO_TRANSFER_TO_CLIENT.value:
+        while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             status = self._get_job_status()
 
             elapsed_time = time.time() - start_time
@@ -281,7 +281,7 @@ class Query():
 
         download_signed_url = self._get_download_signed_url()
 
-        self._update_status(Status.TRANSFERRING_TO_CLIENT.value)
+        self._update_status(Status.TRANSFERRING_TO_CLIENT)
 
         # Dowloads output by sending a GET request.
         with requests.get(download_signed_url, stream=True) as r:
@@ -297,7 +297,7 @@ class Query():
                     f.write(chunk)
             # TODO: catch errors when writing
 
-        self._update_status(Status.TRANSFERRED_TO_CLIENT.value)
+        self._update_status(Status.TRANSFERRED_TO_CLIENT)
 
     def _get_download_signed_url(self):
         """Gets URL for downloading output of query task(s)."""
@@ -322,7 +322,7 @@ class Query():
         # otherwise, each Query instance persists until exit
 
         status = self._get_job_status()
-        if status != Status.TRANSFERRED_TO_CLIENT.value:
+        if status != Status.TRANSFERRED_TO_CLIENT:
             self._raise_for_failed_client(
                 "Client exited before job completion.",
                 force_raise=False,
