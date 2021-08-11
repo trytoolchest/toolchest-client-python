@@ -99,6 +99,7 @@ ARGUMENT_WHITELIST = {
     "kraken2": {
 
     },
+    # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
     # See https://github.com/rrwick/Unicycler#options-and-usage for details.
     "unicycler": {
