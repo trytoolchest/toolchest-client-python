@@ -147,7 +147,13 @@ ARGUMENT_WHITELIST = {
         "--discard-casava": 0,
     },
     "kraken2": {
-
+        "--quick": 0,
+        "--confidence": 1,
+        "--minimum-base-quality": 1,
+        "--use-names": 0,
+        "--gzip-compressed": 0,
+        "--bzip2-compressed": 0,
+        "--minimum-hit-groups": 1,
     },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
