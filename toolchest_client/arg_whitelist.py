@@ -93,6 +93,7 @@ ARGUMENT_WHITELIST = {
         "--seed": 1,
         "--non-deterministic": 0,
     },
+    # Docs at https://cutadapt.readthedocs.io/en/stable/guide.html
     # Paired read inputs are currently unsupported.
     "cutadapt": {
         "-a": 1,
@@ -146,6 +147,7 @@ ARGUMENT_WHITELIST = {
         "--trimmed-only": 0,
         "--discard-casava": 0,
     },
+    # Docs at https://github.com/DerrickWood/kraken2/wiki/Manual
     "kraken2": {
         "--quick": 0,
         "--confidence": 1,
