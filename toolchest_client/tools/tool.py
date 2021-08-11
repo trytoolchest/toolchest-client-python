@@ -84,8 +84,8 @@ class Tool:
                     processed_args.append(arg)
                     following_args = tool_dict[arg]
             else:
-                clean_arg = arg
-                processed_args.append(clean_arg)
+                # TODO: filter out non-escaped bash command-line characters
+                processed_args.append(arg)
                 following_args -= 1
 
         sanitized_args = " ".join(processed_args)

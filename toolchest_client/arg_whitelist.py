@@ -100,7 +100,28 @@ ARGUMENT_WHITELIST = {
 
     },
     "test": {},
+    # See https://github.com/rrwick/Unicycler#options-and-usage for details.
     "unicycler": {
-
+        "--verbosity": 1,
+        "--min_fasta_length": 1,
+        "--mode": 1,
+        "--linear_seqs": 1,
+        "--no_correct": 0,
+        "--min_kmer_frac": 1,
+        "--max_kmer_frac": 1,
+        "--kmers": 1,
+        "--kmer_count": 1,
+        "--depth_filter": 1,
+        "--largest_component": 0,
+        "--no_miniasm": 0,
+        "--no_rotate": 0,
+        "--start_gene_id": 1,
+        "--start_gene_cov": 1,
+        "--no_pilon": 0,
+        "--min_polish_size": 1,
+        "--min_component_size": 1,
+        "--min_dead_end_size": 1,
+        "--scores": 1,
+        "--low_score": 1,
     },
 }
