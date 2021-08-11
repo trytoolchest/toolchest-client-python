@@ -91,7 +91,8 @@ class Tool:
         sanitized_args = " ".join(processed_args)
         if sanitized_args != self.tool_args:
             self.tool_args = sanitized_args
-            print(f"Processing tool_args as: '{self.tool_args}'")
+            print("Processing tool_args as:")
+            print(f"\t{self.tool_args}")
 
     def run(self):
         """Constructs and runs a Toolchest query."""
