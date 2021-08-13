@@ -306,7 +306,7 @@ class Query():
             with open(output_path, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
-            # TODO: catch errors when writing
+            # TODO: output more detailed error message if write error encountered
 
         self._update_status(Status.TRANSFERRED_TO_CLIENT)
 
