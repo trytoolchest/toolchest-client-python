@@ -5,6 +5,8 @@ toolchest_client.files
 This file provides an interface to handle files and their errors.
 """
 import os
+import pathlib
+import shutil
 
 
 def assert_exists(path, must_be_file=False):
@@ -62,3 +64,67 @@ def files_in_path(files):
         more_files.extend(files_in_path(abs_sub_path))
 
     return more_files
+
+
+# todo: better define working directory location
+def open_new_output_file(current_split_number, input_basename, working_directory="./temp_toolchest", filename_prefix="input_split"):
+    if not os.path.exists(working_directory):
+        os.mkdir(working_directory)
+    current_output_file_path = f"{working_directory}/{filename_prefix}_{current_split_number}_{input_basename}"
+    return current_output_file_path, open(current_output_file_path, "w")
+
+
+# default line split of 4 to handle FASTQ and FASTA files
+def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=5 * 1024 * 1024 * 1024):
+    file_extension = pathlib.Path(input_file_path).suffix
+    if file_extension not in [".fastq", ".fasta", ".fa", ".fq", ".fna"]:
+        raise ValueError("Cannot split a non FASTQ/FASTA file for parallelization")
+
+    input_basename = os.path.basename(input_file_path)
+    current_split_number = 0
+    current_output_bytes = 0
+    current_line_number = 0
+    current_output_file_path, current_output_file = open_new_output_file(
+        current_split_number=current_split_number,
+        input_basename=input_basename
+    )
+    split_input_files = [current_output_file_path]
+    large_input_file = open(input_file_path, "r")
+
+    for line in large_input_file:
+        current_line_number += 1
+        # assume that each character is one byte (a bad assumption, but good enough for our use case)
+        bytes_in_line = len(line)
+        current_output_bytes += bytes_in_line
+        if current_output_bytes >= max_bytes and current_line_number % num_lines_in_group == 0:
+            # Time to switch output files
+            current_output_bytes = 0
+            current_output_file.close()
+            current_split_number += 1
+            current_output_file_path, current_output_file = open_new_output_file(
+                current_split_number=current_split_number,
+                input_basename=input_basename
+            )
+            split_input_files.append(current_output_file_path)
+        else:
+            # Not time to switch output files yet
+            current_output_file.write(f"{line}")
+
+    current_output_file.close()
+    large_input_file.close()
+    return split_input_files
+
+
+def sanity_check(file_path):
+    # Assert file exists and is non-zero
+    assert_exists(file_path, must_be_file=True)
+    if os.stat(file_path).st_size <= 10:
+        raise ValueError(f"File at {file_path} is suspiciously small")
+
+
+def concatenate_files(input_file_paths, output_file_path):
+    with open(output_file_path, "wb") as output_file:
+        for input_file_path in input_file_paths:
+            input_file = open(input_file_path, "rb")
+            shutil.copyfileobj(input_file, output_file)
+            input_file.close()

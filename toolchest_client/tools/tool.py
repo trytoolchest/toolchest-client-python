@@ -5,9 +5,10 @@ toolchest_client.tools.tool
 This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
+from threading import Thread
 
 from ..query import Query
-from ..files import files_in_path
+from ..files import files_in_path, split_file_by_lines, sanity_check
 from ..arg_whitelist import ARGUMENT_WHITELIST
 
 
@@ -15,7 +16,7 @@ class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
-                 input_prefix_mapping=None):
+                 input_prefix_mapping=None, parallel_enabled=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -28,22 +29,24 @@ class Tool:
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
+        self.num_input_files = None
         self.min_inputs = min_inputs
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
+        self.parallel_enabled = parallel_enabled
 
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
 
         self.input_files = files_in_path(self.inputs)
-        num_input_files = len(self.input_files)
-        if num_input_files < self.min_inputs:
+        self.num_input_files = len(self.input_files)
+        if  self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
-                             f"Minimum is {self.min_inputs}, {num_input_files} found.")
-        if num_input_files > self.max_inputs:
+                             f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
+        if  self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
-                             f"Maximum is {self.max_inputs}, {num_input_files} found.")
+                             f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
     def _validate_args(self):
         """Validates args set by tools."""
@@ -94,20 +97,71 @@ class Tool:
             print("Processing tool_args as:")
             print(f"\t{self.tool_args}")
 
+    def _merge_outputs(self, output_file_paths):
+        raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
+
     def run(self):
         """Constructs and runs a Toolchest query."""
 
         self._validate_args()
 
-        q = Query()
-        q.run_query(
-            tool_name=self.tool_name,
-            tool_version=self.tool_version,
-            tool_args=self.tool_args,
-            database_name=self.database_name,
-            database_version=self.database_version,
-            output_name=self.output_name,
-            input_files=self.input_files,
-            input_prefix_mapping=self.input_prefix_mapping,
-            output_path=self.output_path,
-        )
+        # todo: check to see if we should even run in parallel
+        if self.num_input_files == 1 and self.parallel_enabled:
+            # Split single large input file into smaller acceptable files
+            new_input_files = split_file_by_lines(
+                input_file_path=self.input_files[0],
+                max_bytes=30 * 1024 * 1024,  # todo: tool-by-tool max segment bytes for parallelization
+            )
+
+            # Set up the individual queries for parallelization
+            query_threads = []
+            temp_output_file_paths = []
+            for index, input_file in enumerate(new_input_files):
+                temp_output_file_path = f"{self.output_path}_{index}"  # todo: figure out what to do with the outputs
+                temp_output_file_paths.append(temp_output_file_path)
+                q = Query()
+                query_threads.append(
+                    Thread(target=q.run_query, kwargs={
+                        "tool_name": self.tool_name,
+                        "tool_version": self.tool_version,
+                        "tool_args": self.tool_args,
+                        "database_name": self.database_name,
+                        "database_version": self.database_version,
+                        "output_name": f"{index}_{self.output_name}",
+                        "input_files": [input_file],
+                        "input_prefix_mapping": self.input_prefix_mapping,
+                        "output_path": temp_output_file_path,
+                    })
+                )
+
+            # Invoke query for every segment of the file
+            for thread in query_threads:
+                thread.start()
+
+            # Wait on completion
+            for thread in query_threads:
+                thread.join()
+
+            # Do basic check for completion
+            for temp_output_file_path in temp_output_file_paths:
+                sanity_check(temp_output_file_path)
+
+            # Merge files
+            print(f"Merging {len(temp_output_file_paths)} output files...")
+            self._merge_outputs(temp_output_file_paths)
+            print(f"Merging of files complete")
+
+        else:
+            q = Query()
+            q.run_query(
+                tool_name=self.tool_name,
+                tool_version=self.tool_version,
+                tool_args=self.tool_args,
+                database_name=self.database_name,
+                database_version=self.database_version,
+                output_name=self.output_name,
+                input_files=self.input_files,
+                input_prefix_mapping=self.input_prefix_mapping,
+                output_path=self.output_path,
+            )
+    print("Analysis run complete!")

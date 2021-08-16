@@ -254,9 +254,9 @@ class Query():
 
         self._update_status(Status.TRANSFERRING_TO_CLIENT.value)
 
-        # Dowloads output by sending a GET request.
+        # Downloads output by sending a GET request.
         with requests.get(download_signed_url, stream=True) as r:
-            # Validates reponse of GET request.
+            # Validates response of GET request.
             try:
                 r.raise_for_status()
             except HTTPError:
