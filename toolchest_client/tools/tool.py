@@ -8,6 +8,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 
 from ..query import Query
 from ..files import files_in_path
+from ..arg_whitelist import ARGUMENT_WHITELIST
 
 
 class Tool:
@@ -62,6 +63,36 @@ class Tool:
 
         # Perform a deeper input validation
         self._validate_inputs()
+
+        # Perform a deeper tool_args validation
+        self._validate_tool_args()
+
+    def _validate_tool_args(self):
+        """Validates and sanitizes user-provided custom tool_args.
+
+        Currently, this is processed as an argument whitelist: argument tags
+        are kept only if they appear as an accepted tag.
+        """
+
+        tool_dict = ARGUMENT_WHITELIST[self.tool_name]
+
+        processed_args = []
+        following_args = 0
+        for arg in self.tool_args.split():
+            if following_args == 0:
+                if arg in tool_dict:
+                    processed_args.append(arg)
+                    following_args = tool_dict[arg]
+            else:
+                # TODO: filter out non-escaped bash command-line characters
+                processed_args.append(arg)
+                following_args -= 1
+
+        sanitized_args = " ".join(processed_args)
+        if sanitized_args != self.tool_args:
+            self.tool_args = sanitized_args
+            print("Processing tool_args as:")
+            print(f"\t{self.tool_args}")
 
     def run(self):
         """Constructs and runs a Toolchest query."""
