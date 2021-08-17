@@ -105,6 +105,33 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
+def star(output_path, read_one=None, read_two=None, tool_args=""):
+    """Runs STAR (for alignment) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to STAR.
+    :param read_one: (optional) Path to the file containing R1 short reads.
+    :param read_two: (optional) Path to the file containing R2 short reads.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.star(
+        ... read_one="./r1.fastq",
+        ... read_two="./r2.fastq",
+        ... tool_args="--mode bold",
+        ... output_path="scratch"
+        ... )
+
+    """
+
+    instance = STAR(
+        tool_args=tool_args,
+        output_name='output.zip',
+        inputs=[read_one, read_two],
+        output_path=output_path,
+    )
+
 def test(inputs, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
@@ -132,9 +159,9 @@ def test(inputs, output_path, tool_args=""):
 
 
 def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_args=""):
-    """Runs Bowtie 2 (for alignment) via Toolchest.
+    """Runs Unicycler (for alignment) via Toolchest.
 
-    :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
+    :param tool_args: (optional) Additional arguments to be passed to Unicycler.
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param long_reads: (optional) Path to the file containing long reads.
@@ -147,7 +174,7 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
         ... read_one="./r1.fastq",
         ... read_two="./r2.fastq",
         ... long_reads="./long_reads.fasta",
-        ... tool_args="--mode bold"
+        ... tool_args="--mode bold",
         ... output_path="scratch"
         ... )
 
