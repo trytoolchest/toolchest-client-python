@@ -105,7 +105,7 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def star(output_path, read_one=None, read_two=None, tool_args=""):
+def STAR(output_path, read_one=None, read_two=None, tool_args=""):
     """Runs STAR (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to STAR.
@@ -116,11 +116,11 @@ def star(output_path, read_one=None, read_two=None, tool_args=""):
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.star(
-        ... read_one="./r1.fastq",
-        ... read_two="./r2.fastq",
-        ... tool_args="--mode bold",
-        ... output_path="scratch"
+        >>> toolchest.STAR(
+        ...     read_one="./r1.fastq",
+        ...     read_two="./r2.fastq",
+        ...     tool_args="--mode bold",
+        ...     output_path="scratch"
         ... )
 
     """
@@ -151,7 +151,7 @@ def test(inputs, output_path, tool_args=""):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.txt',
+        output_name='Aligned.out.sam',
         inputs=inputs,
         output_path=output_path,
     )
@@ -171,11 +171,11 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
 
         >>> import toolchest_client as toolchest
         >>> toolchest.unicycler(
-        ... read_one="./r1.fastq",
-        ... read_two="./r2.fastq",
-        ... long_reads="./long_reads.fasta",
-        ... tool_args="--mode bold",
-        ... output_path="scratch"
+        ...     read_one="./r1.fastq",
+        ...     read_two="./r2.fastq",
+        ...     long_reads="./long_reads.fasta",
+        ...     tool_args="--mode bold",
+        ...     output_path="scratch"
         ... )
 
     """

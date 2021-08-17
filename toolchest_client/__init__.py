@@ -13,4 +13,4 @@ builtins.print = functools.partial(print, flush=True)
 from .auth import get_key, set_key
 from .exceptions import ToolchestException, DataLimitError
 from .query import Query
-from .tools.api import bowtie2, cutadapt, kraken2, star, test, unicycler
+from .tools.api import bowtie2, cutadapt, kraken2, STAR, test, unicycler
