@@ -127,7 +127,7 @@ def STAR(output_path, read_one=None, read_two=None, tool_args=""):
 
     instance = STAR(
         tool_args=tool_args,
-        output_name='output.zip',
+        output_name='Aligned.out.sam',
         inputs=[read_one, read_two],
         output_path=output_path,
     )
@@ -151,7 +151,7 @@ def test(inputs, output_path, tool_args=""):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='Aligned.out.sam',
+        output_name='output.txt',
         inputs=inputs,
         output_path=output_path,
     )
