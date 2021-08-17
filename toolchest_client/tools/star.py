@@ -19,6 +19,6 @@ class STAR(Tool):
             output_name=output_name,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=2,
+            min_inputs=1,
             max_inputs=2,
         )
