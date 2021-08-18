@@ -12,3 +12,6 @@ class ToolchestException(OSError):
 
 class DataLimitError(ToolchestException):
     """Data limit for Toolchest exceeded."""
+
+class ToolchestJobError(ToolchestException):
+    """An error occurred when running the job instance."""
