@@ -76,7 +76,7 @@ def cutadapt(inputs, output_path, tool_args):
     instance.run()
 
 
-def kraken2(inputs, output_path, tool_args=""):
+def kraken2(inputs, output_path, database_name="standard", database_version="1", tool_args=""):
     """Runs Kraken 2 via Toolchest.
 
     (Currently, only single .fastq inputs are supported.)
@@ -84,6 +84,9 @@ def kraken2(inputs, output_path, tool_args=""):
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
+    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
+    :type database_version: str
 
     Usage::
 
@@ -101,6 +104,8 @@ def kraken2(inputs, output_path, tool_args=""):
         output_name='output.txt',
         inputs=inputs,
         output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,        
     )
     instance.run()
 
