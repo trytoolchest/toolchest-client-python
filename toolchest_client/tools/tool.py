@@ -134,13 +134,21 @@ class Tool:
                     })
                 )
 
+            print(f"Starting {len(query_threads)} new Toolchest instances...")
+
             # Invoke query for every segment of the file
             for thread in query_threads:
                 thread.start()
 
+            print(f"Finished starting Toolchest run."
+                  f"Because this is a parallel run, progress will not be updated in real time."
+                  f"Expect at most 30 minutes of runtime...")
+
             # Wait on completion
             for thread in query_threads:
                 thread.join()
+
+            print("Finished execution of parallel segments. Checking output...")
 
             # Do basic check for completion
             for temp_output_file_path in temp_output_file_paths:
