@@ -134,6 +134,10 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
         database_version=database_version,
         tool_args=tool_args,
         output_name='Aligned.out.sam',
+        input_prefix_mapping={
+            read_one: None,
+            read_two: None,
+        }
         inputs=[read_one, read_two],
         output_path=output_path,
     )
