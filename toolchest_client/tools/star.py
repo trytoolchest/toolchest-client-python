@@ -13,7 +13,7 @@ class STAR(Tool):
     """
     def __init__(self, tool_args, output_name, inputs, output_path):
         super().__init__(
-            tool_name="star",
+            tool_name="STAR",
             tool_version="2.7.9a",
             tool_args=tool_args,
             output_name=output_name,
