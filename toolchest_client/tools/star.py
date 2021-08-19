@@ -22,5 +22,5 @@ class STAR(Tool):
             min_inputs=1,
             max_inputs=2,
             database_name=database_name,
-            database_version=database_version,            
+            database_version=database_version,
         )
