@@ -11,8 +11,8 @@ class STAR(Tool):
     """
     The STAR implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version):
+    def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
+                 output_path, database_name, database_version):
         super().__init__(
             tool_name="STAR",
             tool_version="2.7.9a",
@@ -20,6 +20,7 @@ class STAR(Tool):
             output_name=output_name,
             output_path=output_path,
             inputs=inputs,
+            input_prefix_mapping=input_prefix_mapping,            
             min_inputs=1,
             max_inputs=2,
             database_name=database_name,
