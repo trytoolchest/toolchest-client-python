@@ -7,6 +7,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import copy
 import datetime
+import os
 from threading import Thread
 import time
 
@@ -116,11 +117,13 @@ class Tool:
                 status_counts[thread_status] = status_counts[thread_status] + 1
             else:
                 status_counts[thread_status] = 1
+
+        job_or_jobs = "job" if len(self.query_threads) == 1 else "jobs"
         status_count = ""
         for status_name in status_counts:
-            status_count += f"| {status_counts[status_name]} jobs {status_name} "
+            status_count += f"| {status_counts[status_name]} {job_or_jobs} {status_name} "
 
-        job_count = f"Running {len(self.query_threads)} jobs"
+        job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
         jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
 
         print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
@@ -160,10 +163,13 @@ class Tool:
 
         # Set up the individual queries for parallelization
         # Note that this is relying on a result from the generator, so these are slightly staggered
+        temp_input_file_paths = [] # this is not a generator, unlike adjusted_input_files
         temp_output_file_paths = []
         for index, input_file in enumerate(adjusted_input_files):
             temp_output_file_path = f"{self.output_path}_{index}"
-            temp_output_file_paths.append(temp_output_file_path)
+            if should_run_in_parallel:
+                temp_input_file_paths.append(input_file)
+                temp_output_file_paths.append(temp_output_file_path)
             q = Query()
 
             # Deep copy to make thread safe
@@ -176,7 +182,7 @@ class Tool:
                 "output_name": f"{index}_{self.output_name}",
                 "input_files": [input_file],
                 "input_prefix_mapping": self.input_prefix_mapping,
-                "output_path": temp_output_file_path,
+                "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
                 "suppress_logs": True,
             })
 
@@ -196,15 +202,21 @@ class Tool:
 
         print("Finished execution of parallel segments. Checking output...")
 
-        # Do basic check for completion
-        for temp_output_file_path in temp_output_file_paths:
-            sanity_check(temp_output_file_path)
-
-        # Merge files
+        # Do basic check for completion, merge output files, delete temporary files
         if should_run_in_parallel:
+            for temp_output_file_path in temp_output_file_paths:
+                sanity_check(temp_output_file_path)
             print(f"Merging {len(temp_output_file_paths)} output files...")
             self._merge_outputs(temp_output_file_paths)
-            print(f"Merging of files complete")
+            print("Merging of files complete.")
+            print("Deleting temporary files...")
+            temporary_file_paths = temp_input_file_paths + temp_output_file_paths
+            for temporary_file_path in temporary_file_paths:
+                print(f"Deleting {temporary_file_path}...")
+                os.remove(temporary_file_path)
+            print("Temporary files deleted.")
+        else:
+            sanity_check(self.output_path)
 
         print("Analysis run complete!")
 

@@ -136,6 +136,7 @@ def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=5 * 102
 
     current_output_file.close()
     large_input_file.close()
+    yield current_output_file_path
 
 
 def sanity_check(file_path):
