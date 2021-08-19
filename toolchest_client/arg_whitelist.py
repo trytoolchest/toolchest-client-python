@@ -157,6 +157,8 @@ ARGUMENT_WHITELIST = {
         "--bzip2-compressed": 0,
         "--minimum-hit-groups": 1,
     },
+    # TODO: add STAR arguments to whitelist
+    "STAR": {},
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
     # See https://github.com/rrwick/Unicycler#options-and-usage for details.
