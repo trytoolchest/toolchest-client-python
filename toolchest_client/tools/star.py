@@ -3,11 +3,15 @@ toolchest_client.tools.STAR
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This is the STAR implementation of the Tool class.
+
+Note: This tool is named STARInstance to differentiate it from
+the STAR function called by the user, which is given in all caps
+to be in line with the command-line argument.
 """
 from . import Tool
 
 
-class STAR(Tool):
+class STARInstance(Tool):
     """
     The STAR implementation of the Tool class.
     """
@@ -20,7 +24,7 @@ class STAR(Tool):
             output_name=output_name,
             output_path=output_path,
             inputs=inputs,
-            input_prefix_mapping=input_prefix_mapping,            
+            input_prefix_mapping=input_prefix_mapping,
             min_inputs=1,
             max_inputs=2,
             database_name=database_name,

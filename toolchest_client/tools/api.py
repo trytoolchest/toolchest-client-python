@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STAR, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
@@ -130,9 +130,7 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
 
     """
 
-    instance = STAR(
-        database_name=database_name,
-        database_version=database_version,
+    instance = STARInstance(
         tool_args=tool_args,
         output_name='Aligned.out.sam',
         input_prefix_mapping={
@@ -141,6 +139,8 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
         },
         inputs=[read_one, read_two],
         output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,
     )
 
 def test(inputs, output_path, tool_args=""):
