@@ -117,7 +117,7 @@ def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=5 * 102
 
     for line in large_input_file:
         current_line_number += 1
-        # assume that each character is one byte (a bad assumption, but good enough for our use case)
+        # Assume that each character is one byte (inaccurate, but good enough for our use case)
         bytes_in_line = len(line)
         current_output_bytes += bytes_in_line
         if current_output_bytes >= max_bytes and current_line_number % num_lines_in_group == 0:

@@ -126,8 +126,6 @@ class Tool:
         print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
 
     def _wait_for_threads_to_finish(self):
-        # Print status updates because we're disabling the actual status updates
-        # Check if thread fails
         elapsed_seconds = 0
         for thread in self.query_threads:
             increment_seconds = 5
@@ -137,10 +135,9 @@ class Tool:
                 time.sleep(increment_seconds)
         print("")
 
-        # Ensure safely that all threads are complete
+        # Double check all threads are complete for safety
         for thread in self.query_threads:
             thread.join()
-
 
     def run(self):
         """Constructs and runs a Toolchest query."""

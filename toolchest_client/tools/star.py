@@ -31,7 +31,7 @@ class STARInstance(Tool):
             database_name=database_name,
             database_version=database_version,
             parallel_enabled=True,
-            max_input_bytes_per_node=5 * 1024 * 1024 # * 1024,
+            max_input_bytes_per_node=5 * 1024 * 1024 * 1024,
         )
 
     def _merge_outputs(self, output_file_paths):
