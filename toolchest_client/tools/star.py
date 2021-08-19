@@ -9,6 +9,7 @@ the STAR function called by the user, which is given in all caps
 to be in line with the command-line argument.
 """
 from . import Tool
+from ..files import merge_sam_files
 
 
 class STARInstance(Tool):
@@ -29,4 +30,9 @@ class STARInstance(Tool):
             max_inputs=2,
             database_name=database_name,
             database_version=database_version,
+            parallel_enabled=True,
+            max_input_bytes_per_node=5 * 1024 * 1024 # * 1024,
         )
+
+    def _merge_outputs(self, output_file_paths):
+        merge_sam_files(output_file_paths, self.output_path)

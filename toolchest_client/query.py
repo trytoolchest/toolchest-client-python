@@ -6,20 +6,20 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
-import contextlib
 import atexit
-import datetime
-import os
+import logging
 import ntpath
+import os
+import sys
+import threading
 import time
 
 import requests
 from requests.exceptions import HTTPError
 
 from .auth import get_key
-from .exceptions import DataLimitError, ToolchestJobError
+from .exceptions import ToolchestJobError, ToolchestException
 from .status import Status
-
 
 class Query():
     """A Toolchest query.
@@ -47,11 +47,14 @@ class Query():
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
+        self.logger = logging.getLogger(__name__)
+        self.log_level = logging.INFO
         atexit.register(self._mark_as_failed_at_exit)
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
-                  output_name="output", input_files=None, output_path=None):
+                  output_name="output", input_files=None, output_path=None,
+                  suppress_logs=False, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -62,57 +65,60 @@ class Query():
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
+        :param suppress_logs: Sets log level to DEBUG rather than INFO.
         """
+        thread_name = threading.current_thread().getName()
+        if thread_statuses is None:
+            thread_statuses = dict()
+        thread_statuses[thread_name] = "Initialized"
 
-        # temp suppress stdout
-        with open(os.devnull, 'w') as devnull:
-            with contextlib.redirect_stdout(devnull):
-                # Retrieve and validate Toolchest auth key.
-                self.HEADERS["Authorization"] = f"Key {get_key()}"
-                validation_response = requests.get(
-                    self.BASE_URL,
-                    headers=self.HEADERS,
-                )
-                try:
-                    validation_response.raise_for_status()
-                except HTTPError:
-                    print("Invalid Toolchest auth key. Please check the key value or contact Toolchest.")
-                    raise
+        if suppress_logs:
+            self.logger = logging.getLogger(f"{__name__}_${input_files}")
+            self.log_level = logging.DEBUG
 
-                # Create pipeline segment and task(s).
-                # Retrieve query ID and upload URL from initial response.
-                create_response = self._send_initial_request(
-                    tool_name,
-                    tool_version,
-                    tool_args,
-                    database_name,
-                    database_version,
-                    output_name,
-                )
-                create_content = create_response.json()
-                self.PIPELINE_SEGMENT_ID = create_content["id"]
-                self.PIPELINE_SEGMENT_URL = "/".join([
-                    self.PIPELINE_URL,
-                    self.PIPELINE_SEGMENT_ID
-                ])
-                self.STATUS_URL = "/".join([
-                    self.PIPELINE_SEGMENT_URL,
-                    "status",
-                ])
-                self.mark_as_failed = True
+        # Retrieve and validate Toolchest auth key.
+        self.HEADERS["Authorization"] = f"Key {get_key()}"
+        validation_response = requests.get(
+            self.BASE_URL,
+            headers=self.HEADERS,
+        )
+        try:
+            validation_response.raise_for_status()
+        except HTTPError:
+            print("Invalid Toolchest auth key. Please check the key value or contact Toolchest.", file=sys.stderr)
+            raise
 
-                print("Uploading...")
-                print(f"Found {len(input_files)} files to upload.")
-                self._upload(input_files, input_prefix_mapping)
-                print("Uploaded!")
+        # Create pipeline segment and task(s).
+        # Retrieve query ID and upload URL from initial response.
+        create_response = self._send_initial_request(
+            tool_name,
+            tool_version,
+            tool_args,
+            database_name,
+            database_version,
+            output_name,
+        )
+        create_content = create_response.json()
+        self.PIPELINE_SEGMENT_ID = create_content["id"]
+        self.PIPELINE_SEGMENT_URL = "/".join([
+            self.PIPELINE_URL,
+            self.PIPELINE_SEGMENT_ID
+        ])
+        self.STATUS_URL = "/".join([
+            self.PIPELINE_SEGMENT_URL,
+            "status",
+        ])
+        self.mark_as_failed = True
 
-                print("Executing job...")
-                self._wait_for_job()
-                print("Job complete!" + self.JOB_STATUS_BUFFER)
+        thread_statuses[thread_name] = "uploading"
+        self._upload(input_files, input_prefix_mapping)
 
-                print("Downloading...")
-                self._download(output_path)
-                print("Downloaded!")
+        thread_statuses[thread_name] = "executing"
+        self._wait_for_job()
+
+        thread_statuses[thread_name] = "downloading"
+        self._download(output_path)
+        thread_statuses[thread_name] = "complete"
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name):
@@ -138,7 +144,7 @@ class Query():
         try:
             create_response.raise_for_status()
         except HTTPError:
-            print("Query creation failed.")
+            print("Query creation failed.", file=sys.stderr)
             raise
 
         return create_response
@@ -161,7 +167,7 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to upload file at {input_file_path}")
+            print(f"Failed to upload file at {input_file_path}", file=sys.stderr)
             raise
         return response.json().get("input_file_upload_location")
 
@@ -183,7 +189,8 @@ class Query():
             )
             try:
                 upload_response.raise_for_status()
-            except HTTPError:
+            except HTTPError as e:
+                # todo: this isn't propagating as a failure
                 self._raise_for_failed_client(f"Input file upload failed for file at {file_path}.")
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
@@ -205,7 +212,7 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status update failed." + self.JOB_STATUS_BUFFER)
+            print("Job status update failed." + self.JOB_STATUS_BUFFER, file=sys.stderr)
             self._raise_for_failed_job(response)
             raise
 
@@ -226,7 +233,7 @@ class Query():
         if force_raise:
             raise ToolchestException(error_message) from None
         else:
-            print(error_message)
+            print(error_message, file=sys.stderr)
 
     def _raise_for_failed_job(self, response):
         """Raises an error if a job fails during execution, as indicated by the request response.
@@ -248,21 +255,6 @@ class Query():
                     self.mark_as_failed = False
                 raise ToolchestJobError(response_body["error"]) from None
 
-    def _pretty_print_job_status(self, job_status, elapsed_time):
-        pretty_status = ''
-        for index, word in enumerate(job_status.split('_')):
-            pretty_status += word.title() if index == 0 else f" {word}"
-        elapsed_intervals = int(elapsed_time) // self.PRINTED_TIME_INTERVAL * self.PRINTED_TIME_INTERVAL
-        status_line = "".join([
-            "Job status: ",
-            pretty_status,
-            " (",
-            str(datetime.timedelta(seconds=elapsed_intervals)),
-            ")",
-            self.JOB_STATUS_BUFFER,
-        ])
-        print(status_line, end="\r")
-
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
         status = self._get_job_status()
@@ -271,8 +263,6 @@ class Query():
             status = self._get_job_status()
 
             elapsed_time = time.time() - start_time
-            self._pretty_print_job_status(status, elapsed_time)
-
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
 
@@ -286,7 +276,7 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status retrieval failed.")
+            print("Job status retrieval failed.", file=sys.stderr)
             self._raise_for_failed_job(response)
             # Assumes that job status has been set to failed if response status code is NOT OK.
             return Status.FAILED

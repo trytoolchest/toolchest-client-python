@@ -5,18 +5,24 @@ toolchest_client.tools.tool
 This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
+import copy
+import datetime
 from threading import Thread
+import time
 
 from ..query import Query
-from ..files import files_in_path, split_file_by_lines, sanity_check
+from ..files import files_in_path, split_file_by_lines, sanity_check, check_file_size
 from ..arg_whitelist import ARGUMENT_WHITELIST
+
+FIVE_GIGABYTES = 5 * 1024 * 1024 * 1024
 
 
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
-                 input_prefix_mapping=None, parallel_enabled=False):
+                 input_prefix_mapping=None, parallel_enabled=False,
+                 max_input_bytes_per_node=FIVE_GIGABYTES):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -35,16 +41,19 @@ class Tool:
         self.database_name = database_name
         self.database_version = database_version
         self.parallel_enabled = parallel_enabled
+        self.max_input_bytes_per_node = max_input_bytes_per_node
+        self.query_threads = []
+        self.query_thread_statuses = dict()
 
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
 
         self.input_files = files_in_path(self.inputs)
         self.num_input_files = len(self.input_files)
-        if  self.num_input_files < self.min_inputs:
+        if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
-        if  self.num_input_files > self.max_inputs:
+        if self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
@@ -100,76 +109,105 @@ class Tool:
     def _merge_outputs(self, output_file_paths):
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
+    def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
+        status_counts = {}
+        for thread_name, thread_status in self.query_thread_statuses.items():
+            if status_counts.get(thread_status):
+                status_counts[thread_status] = status_counts[thread_status] + 1
+            else:
+                status_counts[thread_status] = 1
+        status_count = ""
+        for status_name in status_counts:
+            status_count += f"| {status_counts[status_name]} jobs {status_name} "
+
+        job_count = f"Running {len(self.query_threads)} jobs"
+        jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
+
+        print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
+
+    def _wait_for_threads_to_finish(self):
+        # Print status updates because we're disabling the actual status updates
+        # Check if thread fails
+        elapsed_seconds = 0
+        for thread in self.query_threads:
+            increment_seconds = 5
+            while thread.isAlive():
+                self._pretty_print_pipeline_segment_status(elapsed_seconds)
+                elapsed_seconds += increment_seconds
+                time.sleep(increment_seconds)
+        print("")
+
+        # Ensure safely that all threads are complete
+        for thread in self.query_threads:
+            thread.join()
+
+
     def run(self):
         """Constructs and runs a Toolchest query."""
-
+        # todo: better propagate and handle errors for parallel runs
         self._validate_args()
 
-        # todo: check to see if we should even run in parallel
-        if self.num_input_files == 1 and self.parallel_enabled:
-            # Split single large input file into smaller acceptable files
-            new_input_files = split_file_by_lines(
+        print(f"Found {self.num_input_files} files to upload.")
+
+        should_run_in_parallel = self.parallel_enabled \
+            and self.num_input_files == 1 \
+            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node
+
+        adjusted_input_files = self.input_files
+        if should_run_in_parallel:
+            # Split single large input file into smaller acceptable files if parallelizing
+            adjusted_input_files = split_file_by_lines(
                 input_file_path=self.input_files[0],
-                max_bytes=30 * 1024 * 1024,  # todo: tool-by-tool max segment bytes for parallelization
+                max_bytes=self.max_input_bytes_per_node,
             )
 
-            # Set up the individual queries for parallelization
-            query_threads = []
-            temp_output_file_paths = []
-            for index, input_file in enumerate(new_input_files):
-                temp_output_file_path = f"{self.output_path}_{index}"  # todo: figure out what to do with the outputs
-                temp_output_file_paths.append(temp_output_file_path)
-                q = Query()
-                query_threads.append(
-                    Thread(target=q.run_query, kwargs={
-                        "tool_name": self.tool_name,
-                        "tool_version": self.tool_version,
-                        "tool_args": self.tool_args,
-                        "database_name": self.database_name,
-                        "database_version": self.database_version,
-                        "output_name": f"{index}_{self.output_name}",
-                        "input_files": [input_file],
-                        "input_prefix_mapping": self.input_prefix_mapping,
-                        "output_path": temp_output_file_path,
-                    })
-                )
+        # Set up the individual queries for parallelization
+        # Note that this is relying on a result from the generator, so these are slightly staggered
+        temp_output_file_paths = []
+        for index, input_file in enumerate(adjusted_input_files):
+            temp_output_file_path = f"{self.output_path}_{index}"
+            temp_output_file_paths.append(temp_output_file_path)
+            q = Query()
 
-            print(f"Starting {len(query_threads)} new Toolchest instances...")
+            # Deep copy to make thread safe
+            query_args = copy.deepcopy({
+                "tool_name": self.tool_name,
+                "tool_version": self.tool_version,
+                "tool_args": self.tool_args,
+                "database_name": self.database_name,
+                "database_version": self.database_version,
+                "output_name": f"{index}_{self.output_name}",
+                "input_files": [input_file],
+                "input_prefix_mapping": self.input_prefix_mapping,
+                "output_path": temp_output_file_path,
+                "suppress_logs": True,
+            })
 
-            # Invoke query for every segment of the file
-            for thread in query_threads:
-                thread.start()
+            # Add non-distinct dictionary for status updates
+            query_args["thread_statuses"] = self.query_thread_statuses
 
-            print(f"Finished starting Toolchest run."
-                  f"Because this is a parallel run, progress will not be updated in real time."
-                  f"Expect at most 30 minutes of runtime...")
+            new_thread = Thread(target=q.run_query, kwargs=query_args)
+            self.query_threads.append(new_thread)
 
-            # Wait on completion
-            for thread in query_threads:
-                thread.join()
+            print(f"Spawning job #{len(self.query_threads)}...")
+            new_thread.start()
+            time.sleep(15)
 
-            print("Finished execution of parallel segments. Checking output...")
+        print(f"Finished spawning jobs.")
 
-            # Do basic check for completion
-            for temp_output_file_path in temp_output_file_paths:
-                sanity_check(temp_output_file_path)
+        self._wait_for_threads_to_finish()
 
-            # Merge files
+        print("Finished execution of parallel segments. Checking output...")
+
+        # Do basic check for completion
+        for temp_output_file_path in temp_output_file_paths:
+            sanity_check(temp_output_file_path)
+
+        # Merge files
+        if should_run_in_parallel:
             print(f"Merging {len(temp_output_file_paths)} output files...")
             self._merge_outputs(temp_output_file_paths)
             print(f"Merging of files complete")
 
-        else:
-            q = Query()
-            q.run_query(
-                tool_name=self.tool_name,
-                tool_version=self.tool_version,
-                tool_args=self.tool_args,
-                database_name=self.database_name,
-                database_version=self.database_version,
-                output_name=self.output_name,
-                input_files=self.input_files,
-                input_prefix_mapping=self.input_prefix_mapping,
-                output_path=self.output_path,
-            )
-    print("Analysis run complete!")
+        print("Analysis run complete!")
+
