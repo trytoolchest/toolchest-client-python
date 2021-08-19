@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STAR, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
