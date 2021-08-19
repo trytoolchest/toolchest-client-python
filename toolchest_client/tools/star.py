@@ -1,5 +1,5 @@
 """
-toolchest_client.tools.star
+toolchest_client.tools.STAR
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This is the STAR implementation of the Tool class.
