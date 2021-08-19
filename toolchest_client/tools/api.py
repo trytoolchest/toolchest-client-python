@@ -142,6 +142,7 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
         database_name=database_name,
         database_version=database_version,
     )
+    instance.run()
 
 def test(inputs, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
