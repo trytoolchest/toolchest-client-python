@@ -8,6 +8,7 @@ tools. These queries are handled by the Toolchest (server) API.
 
 import contextlib
 import atexit
+import datetime
 import os
 import ntpath
 import time
@@ -251,12 +252,13 @@ class Query():
         pretty_status = ''
         for index, word in enumerate(job_status.split('_')):
             pretty_status += word.title() if index == 0 else f" {word}"
+        elapsed_intervals = int(elapsed_time) // self.PRINTED_TIME_INTERVAL * self.PRINTED_TIME_INTERVAL
         status_line = "".join([
             "Job status: ",
             pretty_status,
             " (",
-            str(int(elapsed_time) // self.PRINTED_TIME_INTERVAL * self.PRINTED_TIME_INTERVAL),
-            "s)",
+            str(datetime.timedelta(seconds=elapsed_intervals)),
+            ")",
             self.JOB_STATUS_BUFFER,
         ])
         print(status_line, end="\r")

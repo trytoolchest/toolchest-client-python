@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
@@ -51,10 +51,9 @@ def cutadapt(inputs, output_path, tool_args):
     :param tool_args: Additional arguments to be passed to Cutadapt.
 
 
-    .. note:: Do **NOT** include the output path (`-o output_path`) or the
-      input path (`inputs` at the end) in the passed `cutadapt_args`. Inputs
-      and outputs will be automatically handled by the Toolchest backend, and
-      including these arguments will lead to errors or undesired output.
+    .. note:: Inputs and outputs should be specified in `inputs` and `output_path`.
+      These will be automatically handled by the Toolchest backend. Input/output
+      arguments supplied in `tool_args` (e.g., `-o`) will be ignored.
 
     Usage::
 
@@ -110,6 +109,49 @@ def kraken2(inputs, output_path, database_name="standard", database_version="1",
     instance.run()
 
 
+def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args=""):
+    """Runs STAR (for alignment) via Toolchest.
+
+    :param database_name: Name of database to use for STAR alignment.
+    :param database_version: Version of database to use for STAR alignment (defaults to 1).
+    :type database_version: str
+    :param tool_args: (optional) Additional arguments to be passed to STAR.
+    :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
+    :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.STAR(
+        ...     database_name="DB_name",
+        ...     read_one="./r1.fastq",
+        ...     read_two="./r2.fastq",
+        ...     tool_args="--mode bold",
+        ...     output_path="scratch"
+        ... )
+
+    """
+
+    inputs = [read_one]
+    if read_two != None:
+        inputs.append(read_two)
+    instance = STARInstance(
+        tool_args=tool_args,
+        output_name='Aligned.out.sam',
+        input_prefix_mapping={
+            read_one: None,
+            read_two: None,
+        },
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,
+    )
+    instance.run()
+
 def test(inputs, output_path, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
@@ -137,9 +179,9 @@ def test(inputs, output_path, tool_args=""):
 
 
 def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_args=""):
-    """Runs Bowtie 2 (for alignment) via Toolchest.
+    """Runs Unicycler (for alignment) via Toolchest.
 
-    :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
+    :param tool_args: (optional) Additional arguments to be passed to Unicycler.
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param long_reads: (optional) Path to the file containing long reads.
@@ -149,11 +191,11 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
 
         >>> import toolchest_client as toolchest
         >>> toolchest.unicycler(
-        ... read_one="./r1.fastq",
-        ... read_two="./r2.fastq",
-        ... long_reads="./long_reads.fasta",
-        ... tool_args="--mode bold"
-        ... output_path="scratch"
+        ...     read_one="./r1.fastq",
+        ...     read_two="./r2.fastq",
+        ...     long_reads="./long_reads.fasta",
+        ...     tool_args="--mode bold",
+        ...     output_path="scratch"
         ... )
 
     """
