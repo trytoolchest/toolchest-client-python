@@ -138,7 +138,7 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
         input_prefix_mapping={
             read_one: None,
             read_two: None,
-        }
+        },
         inputs=[read_one, read_two],
         output_path=output_path,
     )
