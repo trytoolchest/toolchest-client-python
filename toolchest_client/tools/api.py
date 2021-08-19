@@ -104,15 +104,15 @@ def kraken2(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def STAR(output_path, database_name, database_version="1", read_one=None, read_two=None, tool_args=""):
+def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args=""):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
     :param database_version: Version of database to use for STAR alignment (defaults to 1).
     :type database_version: str
     :param tool_args: (optional) Additional arguments to be passed to STAR.
-    :param read_one: (optional) Path to the file containing R1 short reads.
-    :param read_two: (optional) Path to the file containing R2 short reads.
+    :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
+    :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
     :param output_path: Path (client-side) where the output file will be downloaded.
 
     .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
@@ -130,6 +130,9 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
 
     """
 
+    inputs = [read_one]
+    if read_two != None:
+        inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
         output_name='Aligned.out.sam',
@@ -137,7 +140,7 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
             read_one: None,
             read_two: None,
         },
-        inputs=[read_one, read_two],
+        inputs=inputs,
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
