@@ -51,10 +51,9 @@ def cutadapt(inputs, output_path, tool_args):
     :param tool_args: Additional arguments to be passed to Cutadapt.
 
 
-    .. note:: Do **NOT** include the output path (`-o output_path`) or the
-      input path (`inputs` at the end) in the passed `cutadapt_args`. Inputs
-      and outputs will be automatically handled by the Toolchest backend, and
-      including these arguments will lead to errors or undesired output.
+    .. note:: Inputs and outputs should be specified in `inputs` and `output_path`.
+      These will be automatically handled by the Toolchest backend. Input/output
+      arguments supplied in `tool_args` (e.g., `-o`) will be ignored.
 
     Usage::
 
@@ -115,6 +114,8 @@ def STAR(output_path, database_name, database_version="1", read_one=None, read_t
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param output_path: Path (client-side) where the output file will be downloaded.
+
+    .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
 
     Usage::
 
