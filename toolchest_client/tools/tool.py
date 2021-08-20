@@ -131,6 +131,8 @@ class Tool:
         job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
         jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
 
+        # Jupyter notebooks don't support the canonical "clear-to-end-of-line" escape sequence
+        print(f"\r{' ' * 120}", end="")
         print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
 
     def _wait_for_threads_to_finish(self):
