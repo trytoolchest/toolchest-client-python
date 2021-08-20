@@ -12,7 +12,7 @@ First, make sure that:
     $ pip install toolchest-client
 
 * The Toolchest client is up-to-date (be sure to use the latest version,
-  currently **0.3.0**)
+  currently **0.7.9**)
 * You have an :ref:`authentication key <config>`
 
 .. _config:
@@ -41,8 +41,7 @@ key or a path to a file containing the key (and nothing else).
 Sample Data
 -----------
 
-To use Toolchest tools, you will need an input file. All currently accessible
-tools require FASTQ (`.fastq`) formatted files as input.
+To use Toolchest tools, you will need input files.
 
 A sample input file (~50MB) can be downloaded
 `at this link <https://toolchest-demo-data.s3.amazonaws.com/example.fastq>`_.
@@ -67,7 +66,7 @@ Toolchest function:
 
 Here, `your_tool` is the name of the command that you would use, and
 `YOUR_CUSTOM_TOOL_ARGS` is a string containing all the arguments that you would
-normally pass to the tool.
+normally pass to the tool, outside of input and output filepath arguments.
 
 Note that `YOUR_CUSTOM_TOOL_ARGS` should **not** include any arguments related
 to the input and output file paths; these will be automatically handled by the
@@ -76,4 +75,5 @@ Toolchest backend, and including these arguments will lead to undesired output.
 For a full list of available tools, see :ref:`this list <tools>`.
 
 Not all functionalities of available tools can be used. See the
-relevant :ref:`in-depth tool documentation <api>` for details.
+relevant :ref:`in-depth tool documentation <api>` or contact Toolchest
+for details.
