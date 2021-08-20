@@ -108,9 +108,14 @@ class Tool:
             print(f"\t{self.tool_args}")
 
     def _merge_outputs(self, output_file_paths):
+        """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
     def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
+        """Prints output of each job, supporting multiple simultaneous jobs.
+
+        Looks like: Running 2 jobs | Duration: 0:03:15 | 1 jobs complete | 1 jobs downloading
+        """
         status_counts = {}
         for thread_name, thread_status in self.query_thread_statuses.items():
             if status_counts.get(thread_status):
@@ -129,6 +134,7 @@ class Tool:
         print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
 
     def _wait_for_threads_to_finish(self):
+        """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
         elapsed_seconds = 0
         for thread in self.query_threads:
             increment_seconds = 5
@@ -142,6 +148,33 @@ class Tool:
         for thread in self.query_threads:
             thread.join()
 
+    def _generate_jobs(self, should_run_in_parallel):
+        """Generates staggered jobs for both parallel and non-parallel runs.
+
+        Each job is simply an array containing the input file paths for the job, as the rest
+        of the context is shared amongst jobs (e.g. tool, database, prefix mapping, etc.).
+
+        Note that this is a generator.
+        """
+
+        if should_run_in_parallel:
+            adjusted_input_file_paths = split_file_by_lines(
+                input_file_path=self.input_files[0],
+                max_bytes=self.max_input_bytes_per_node,
+            )
+            for file_path in adjusted_input_file_paths:
+                # This is assuming only one input file per parallel run.
+                # This will need to be changed once we support multiple input files for parallelization.
+                yield [file_path]
+        else:
+            # Make sure we're below plan/multi-part limit for non-splittable files
+            for file_path in self.input_files:
+                check_file_size(file_path, max_size_bytes=FIVE_GIGABYTES)
+            # Note that for a tool like Unicycler, this would look like:
+            # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
+            # As there are multiple input files required for the job
+            yield self.input_files
+
     def run(self):
         """Constructs and runs a Toolchest query."""
         # todo: better propagate and handle errors for parallel runs
@@ -153,26 +186,17 @@ class Tool:
             and self.num_input_files == 1 \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node
 
-        adjusted_input_files = self.input_files
-        if should_run_in_parallel:
-            # Split single large input file into smaller acceptable files if parallelizing
-            adjusted_input_files = split_file_by_lines(
-                input_file_path=self.input_files[0],
-                max_bytes=self.max_input_bytes_per_node,
-            )
-        else:
-            # Make sure we're below plan/multi-part limit for non-splittable files
-            for file_path in self.input_files:
-                check_file_size(file_path, max_size_bytes=FIVE_GIGABYTES)
+        jobs = self._generate_jobs(should_run_in_parallel)
 
         # Set up the individual queries for parallelization
         # Note that this is relying on a result from the generator, so these are slightly staggered
-        temp_input_file_paths = [] # this is not a generator, unlike adjusted_input_files
+        temp_input_file_paths = []  # this is not a generator, unlike adjusted_input_files
         temp_output_file_paths = []
-        for index, input_file in enumerate(adjusted_input_files):
+        for index, input_files in enumerate(jobs):
+            # Add split files for merging and later deletion, if running in parallel
             temp_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
-                temp_input_file_paths.append(input_file)
+                temp_input_file_paths += input_files
                 temp_output_file_paths.append(temp_output_file_path)
             q = Query()
 
@@ -183,8 +207,8 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
-                "output_name": f"{index}_{self.output_name}",
-                "input_files": [input_file],
+                "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
+                "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
             })
