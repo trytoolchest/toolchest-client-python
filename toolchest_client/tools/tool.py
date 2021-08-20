@@ -177,6 +177,7 @@ class Tool:
 
     def run(self):
         """Constructs and runs a Toolchest query."""
+        print("Beginning Toolchest analysis run.")
         # todo: better propagate and handle errors for parallel runs
         self._validate_args()
 

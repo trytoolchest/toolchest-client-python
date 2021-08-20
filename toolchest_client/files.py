@@ -100,6 +100,7 @@ def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=4.5 * 1
     :param num_lines_in_group: Number of contiguous lines which cannot be split from one another.
     :param max_bytes: Maximum size of each new file.
     """
+    print(f"Creating file splits for {input_file_path}...")
     file_extension = pathlib.Path(input_file_path).suffix
     if file_extension not in [".fastq", ".fasta", ".fa", ".fq", ".fna"]:
         raise ValueError("Cannot split a non FASTQ/FASTA file for parallelization")
@@ -115,7 +116,6 @@ def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=4.5 * 1
     large_input_file = open(input_file_path, "r")
 
     for line in large_input_file:
-        print(f"Creating new file split for {input_file_path}...")
         current_line_number += 1
         # Assume that each character is one byte (inaccurate, but good enough for our use case)
         bytes_in_line = len(line)
