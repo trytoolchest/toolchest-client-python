@@ -132,7 +132,7 @@ class Tool:
         elapsed_seconds = 0
         for thread in self.query_threads:
             increment_seconds = 5
-            while thread.isAlive():
+            while thread.is_alive():
                 self._pretty_print_pipeline_segment_status(elapsed_seconds)
                 elapsed_seconds += increment_seconds
                 time.sleep(increment_seconds)
