@@ -7,7 +7,6 @@ tools. These queries are handled by the Toolchest (server) API.
 """
 
 import atexit
-import logging
 import ntpath
 import os
 import sys
@@ -47,14 +46,12 @@ class Query():
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
-        self.logger = logging.getLogger(__name__)
-        self.log_level = logging.INFO
         atexit.register(self._mark_as_failed_at_exit)
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None, output_path=None,
-                  suppress_logs=False, thread_statuses=None):
+                  thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -65,16 +62,12 @@ class Query():
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
-        :param suppress_logs: Sets log level to DEBUG rather than INFO.
+        :param thread_statuses: Statuses of all threads, shared between threads.
         """
         thread_name = threading.current_thread().getName()
         if thread_statuses is None:
             thread_statuses = dict()
         thread_statuses[thread_name] = "Initialized"
-
-        if suppress_logs:
-            self.logger = logging.getLogger(f"{__name__}_${input_files}")
-            self.log_level = logging.DEBUG
 
         # Retrieve and validate Toolchest auth key.
         self.HEADERS["Authorization"] = f"Key {get_key()}"

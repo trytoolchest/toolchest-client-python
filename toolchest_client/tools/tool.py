@@ -187,7 +187,6 @@ class Tool:
                 "input_files": [input_file],
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
-                "suppress_logs": True,
             })
 
             # Add non-distinct dictionary for status updates
