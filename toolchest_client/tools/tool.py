@@ -190,7 +190,7 @@ class Tool:
 
         # Set up the individual queries for parallelization
         # Note that this is relying on a result from the generator, so these are slightly staggered
-        temp_input_file_paths = []  # this is not a generator, unlike adjusted_input_files
+        temp_input_file_paths = []
         temp_output_file_paths = []
         for index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
@@ -221,7 +221,6 @@ class Tool:
 
             print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
-            time.sleep(15)
 
         print(f"Finished spawning jobs.")
 
