@@ -60,7 +60,6 @@ def files_in_path(files):
 
     # If it's a path is to a single file, return a list containing just the path to that file
     if os.path.isfile(files):
-        check_file_size(files, max_size_bytes=5 * 1024 * 1024 * 1024)
         return [files]
 
     # If it's a directory, return a list of paths to all files in the directory

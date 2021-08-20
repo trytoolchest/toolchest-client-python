@@ -160,6 +160,10 @@ class Tool:
                 input_file_path=self.input_files[0],
                 max_bytes=self.max_input_bytes_per_node,
             )
+        else:
+            # Make sure we're below plan/multi-part limit for non-splittable files
+            for file_path in self.input_files:
+                check_file_size(file_path, max_size_bytes=FIVE_GIGABYTES)
 
         # Set up the individual queries for parallelization
         # Note that this is relying on a result from the generator, so these are slightly staggered
