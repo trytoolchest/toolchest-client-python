@@ -92,7 +92,7 @@ def open_new_output_file(
     return current_output_file_path, open(current_output_file_path, "w")
 
 
-def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=5 * 1024 * 1024 * 1024):
+def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=4.5 * 1024 * 1024 * 1024):
     """Splits files by line. Defaults to splitting files by four line groups to support
     FASTA and FASTQ files. Note that this is a generator.
 

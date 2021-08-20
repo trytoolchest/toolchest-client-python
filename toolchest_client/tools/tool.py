@@ -15,7 +15,7 @@ from ..query import Query
 from ..files import files_in_path, split_file_by_lines, sanity_check, check_file_size
 from ..arg_whitelist import ARGUMENT_WHITELIST
 
-FIVE_GIGABYTES = 5 * 1024 * 1024 * 1024
+FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
 
 
 class Tool:
@@ -23,7 +23,7 @@ class Tool:
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
-                 max_input_bytes_per_node=FIVE_GIGABYTES):
+                 max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -169,7 +169,7 @@ class Tool:
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
             for file_path in self.input_files:
-                check_file_size(file_path, max_size_bytes=FIVE_GIGABYTES)
+                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
             # Note that for a tool like Unicycler, this would look like:
             # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
             # As there are multiple input files required for the job
