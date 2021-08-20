@@ -222,6 +222,7 @@ class Tool:
 
             print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
+            time.sleep(5)
 
         print(f"Finished spawning jobs.")
 
