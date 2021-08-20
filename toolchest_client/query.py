@@ -20,6 +20,7 @@ from .auth import get_key
 from .exceptions import ToolchestJobError, ToolchestException
 from .status import Status
 
+
 class Query():
     """A Toolchest query.
 
