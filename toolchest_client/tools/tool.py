@@ -8,6 +8,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 import copy
 import datetime
 import os
+import sys
 from threading import Thread
 import time
 
@@ -111,6 +112,16 @@ class Tool:
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
+    def _system_supports_parallel_execution(self):
+        """Checks if parallel execution is supported on the platform.
+
+        Right now, this blindly rejects anything other than Linux or macOS.
+        Windows is not currently supported, because pysam requires htslib
+        """
+        if sys.platform not in {'linux', 'darwin'}:
+            raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
+        return True
+
     def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
         """Prints output of each job, supporting multiple simultaneous jobs.
 
@@ -187,7 +198,8 @@ class Tool:
 
         should_run_in_parallel = self.parallel_enabled \
             and self.num_input_files == 1 \
-            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node
+            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
+            and self._system_supports_parallel_execution()
 
         jobs = self._generate_jobs(should_run_in_parallel)
 
