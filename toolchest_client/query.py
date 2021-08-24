@@ -319,6 +319,9 @@ class Query():
     def _mark_as_failed_at_exit(self):
         """Upon exit, marks job as failed if it has started but is not marked as completed/failed."""
 
+        print("at atexit")
+        return
+
         # TODO: look at putting this function inside the __init__?
         # otherwise, each Query instance persists until exit
 
