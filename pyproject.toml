@@ -29,6 +29,8 @@ python-dotenv = "^0.18.0"
 pysam = { version = "^0.16.0", markers = "sys_platform == 'linux' or sys_platform == 'darwin'" }
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+boto3 = "^1.18.29"
 
 [[tool.poetry.source]]
 name = "pypi-public"

@@ -17,7 +17,50 @@ jobs:
             PYPI_ACCESS_TOKEN=$([[ $PYPI_ENVIRONMENT = prod-pypi ]] && echo $PYPI_PROD_TOKEN || echo $PYPI_TEST_TOKEN)
             poetry config pypi-token.$PYPI_ENVIRONMENT $PYPI_ACCESS_TOKEN
             poetry publish --build -r $PYPI_ENVIRONMENT
+  unit-tests:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run unit tests
+          command: |
+            cd ~/repo
+            poetry install
+            pytest -v -m "not integration"
+  integration-tests:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - aws-cli/setup:
+          profile-name: aws-cli
+          aws-access-key-id: AWS_ACCESS_KEY_ID
+          aws-secret-access-key: AWS_SECRET_ACCESS_KEY
+          aws-region: AWS_DEFAULT_REGION
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run integration tests
+          command: |
+            cd ~/repo
+            poetry install
+            pytest -v -m integration
+
 workflows:
+  test:
+    jobs:
+      - unit-tests
+      - integration-tests:
+          filters:
+            branches:
+              only:
+                - main
+                - staging
+                - devops/test-scaffolding
+
   deploy:
     jobs:
       - deploy-to-pypi:
