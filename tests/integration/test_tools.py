@@ -4,13 +4,14 @@ import hash
 import os
 import s3
 
-if os.environ["DEPLOY_ENVIRONMENT"] == "staging":
+if os.environ.get("DEPLOY_ENVIRONMENT") == "staging":
     os.environ["BASE_URL"] = os.environ["TOOLCHEST_STAGING_URL"]
 
 import toolchest_client as toolchest
 
-toolchest_api_key = os.environ["TOOLCHEST_API_KEY"]
-toolchest.set_key(toolchest_api_key)
+toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
+if toolchest_api_key:
+    toolchest.set_key(toolchest_api_key)
 
 
 @pytest.mark.integration
