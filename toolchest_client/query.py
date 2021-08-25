@@ -183,51 +183,49 @@ class Query():
                 upload_response.raise_for_status()
             except HTTPError as e:
                 # todo: this isn't propagating as a failure
-                self._raise_for_failed_client(f"Input file upload failed for file at {file_path}.")
+                self._update_status_to_failed(
+                    f"Input file upload failed for file at {file_path}.",
+                    force_raise=True
+                )
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
-    def _update_status(self, new_status, extra_params=None):
+    def _update_status(self, new_status):
         """Updates the internal status of the query's task(s).
 
         Returns the response from the PUT request.
         """
-        update_json = {"status": new_status}
-        if extra_params:
-            update_json.update(extra_params)
-
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
-            json=update_json,
+            json={"status": new_status},
         )
         try:
             response.raise_for_status()
         except HTTPError:
             print("Job status update failed.", file=sys.stderr)
-            self._raise_for_failed_job(response)
-            raise
+            self._raise_for_failed_response(response)
 
         return response
 
-    def _raise_for_failed_client(self, error_message, force_raise=True):
+    def _update_status_to_failed(self, error_message, force_raise=False, print_msg=True):
         """Updates the internal status of the query's task(s) to 'failed'.
 
-        Prints error message or raises a ToolchestException, based on force_raise.
-
-        Note: This function is invoked for failures that occur on the client-side,
-        such as errors occurring while uploading input and downloading output.
-        It is not invoked if the query is not noted internally (i.e., an error
-        is caught before the initial request to the API is sent).
+        Includes options to print an error message or raise a ToolchestException.
+        To be called when the job fails.
         """
-        self._update_status(Status.FAILED, {"error_message": error_message})
+        requests.put(
+            self.STATUS_URL,
+            headers=self.HEADERS,
+            json={"status": Status.FAILED, "error_message": error_message},
+        )
         self.mark_as_failed = False
         if force_raise:
             raise ToolchestException(error_message) from None
-        else:
+        if print_msg:
             print(error_message, file=sys.stderr)
 
-    def _raise_for_failed_job(self, response):
+    def _raise_for_failed_response(self, response):
         """Raises an error if a job fails during execution, as indicated by the request response.
 
         Note: When a job is marked as failed, any requests for current status
@@ -239,10 +237,10 @@ class Query():
             # Failures are currently raised as the catch-all ToolchestException exception.
             if not response_body["success"]:
                 # TODO: remove this check once the data error auto-updates status to failed
-                if self._get_job_status() != Status.FAILED:
-                    self._update_status(
-                        Status.FAILED,
-                        {"error_message": response_body["error"]},
+                if self.mark_as_failed:
+                    self._update_status_to_failed(
+                        response_body["error"],
+                        print_msg=False,
                     )
                     self.mark_as_failed = False
                 raise ToolchestJobError(response_body["error"]) from None
@@ -269,9 +267,9 @@ class Query():
             response.raise_for_status()
         except HTTPError:
             print("Job status retrieval failed.", file=sys.stderr)
-            self._raise_for_failed_job(response)
-            # Assumes that job status has been set to failed if response status code is NOT OK.
-            return Status.FAILED
+            # Assumes a job has already been marked as failed if failure is detected after execution begins.
+            self.mark_as_failed = False
+            self._raise_for_failed_response(response)
 
         return response.json()["status"]
 
@@ -288,7 +286,10 @@ class Query():
             try:
                 r.raise_for_status()
             except HTTPError:
-                self._raise_for_failed_client("Output download failed.")
+                self._update_status_to_failed(
+                    "Output download failed.",
+                    force_raise=True,
+                )
 
             # Writes streamed output data from response to the output file.
             with open(output_path, "wb") as f:
@@ -308,7 +309,10 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            self._raise_for_failed_client("Download URL retrieval failed.")
+            self._update_status_to_failed(
+                "Download URL retrieval failed.",
+                force_raise=True,
+            )
 
         # TODO: add support for multiple download files
 
@@ -322,8 +326,7 @@ class Query():
 
         if self.mark_as_failed:
             status = self._get_job_status()
-            if status != Status.TRANSFERRED_TO_CLIENT and status != Status.FAILED:
-                self._raise_for_failed_client(
-                    "Client exited before job completion.",
-                    force_raise=False,
-                )
+            self._update_status_to_failed(
+                "Client exited before job completion.",
+            )
+            self.mark_as_failed = False
