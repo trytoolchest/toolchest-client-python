@@ -7,7 +7,6 @@ This file provides an interface to handle files and their errors.
 import multiprocessing
 import os
 import pathlib
-import pysam
 import shutil
 
 
@@ -168,6 +167,9 @@ def merge_sam_files(input_file_paths, output_file_path):
     :param input_file_paths: Paths to the files which are to be merged with samtools.
     :param output_file_path: Path to the merged output file.
     """
+    # Only import pysam – an optional dependency – if absolutely needed
+    import pysam
+
     # This cause problems if run on a shared machine with non-available cores
     num_cores = multiprocessing.cpu_count()
 
