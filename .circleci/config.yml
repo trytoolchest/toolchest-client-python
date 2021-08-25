@@ -50,20 +50,13 @@ jobs:
           name: Run integration tests
           command: |
             cd ~/repo
-            DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
+            export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
             poetry install
             poetry run pytest -v -m integration
-# Only run on known branches for now to prevent against key exfiltrating
 workflows:
   test:
     jobs:
-      - unit-tests:
-          filters:
-            branches:
-              only:
-                - main
-                - staging
-                - devops/test-scaffolding
+      - unit-tests
       - integration-tests:
           filters:
             branches:
