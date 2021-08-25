@@ -63,7 +63,6 @@ workflows:
               only:
                 - main
                 - staging
-                - devops/test-scaffolding
   deploy:
     jobs:
       - deploy-to-pypi:
