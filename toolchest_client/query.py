@@ -38,8 +38,6 @@ class Query():
     WAIT_FOR_JOB_DELAY = 1
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
-    # Write blanks to end of line to make carriage returns pretty.
-    JOB_STATUS_BUFFER = "\x1b[0K"
 
     def __init__(self):
         self.HEADERS = dict()
@@ -205,7 +203,7 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status update failed." + self.JOB_STATUS_BUFFER, file=sys.stderr)
+            print("Job status update failed.", file=sys.stderr)
             self._raise_for_failed_response(response)
 
         return response
