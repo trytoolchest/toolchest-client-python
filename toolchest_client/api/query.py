@@ -242,7 +242,6 @@ class Query():
                         response_body["error"],
                         print_msg=False,
                     )
-                    self.mark_as_failed = False
                 raise ToolchestJobError(response_body["error"]) from None
 
     def _wait_for_job(self):
@@ -298,6 +297,7 @@ class Query():
             # TODO: output more detailed error message if write error encountered
 
         self._update_status(Status.TRANSFERRED_TO_CLIENT)
+        self.mark_as_failed = False
 
     def _get_download_signed_url(self):
         """Gets URL for downloading output of query task(s)."""
@@ -325,8 +325,6 @@ class Query():
         # otherwise, each Query instance persists until exit
 
         if self.mark_as_failed:
-            status = self._get_job_status()
             self._update_status_to_failed(
                 "Client exited before job completion.",
             )
-            self.mark_as_failed = False
