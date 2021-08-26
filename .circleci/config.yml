@@ -17,7 +17,52 @@ jobs:
             PYPI_ACCESS_TOKEN=$([[ $PYPI_ENVIRONMENT = prod-pypi ]] && echo $PYPI_PROD_TOKEN || echo $PYPI_TEST_TOKEN)
             poetry config pypi-token.$PYPI_ENVIRONMENT $PYPI_ACCESS_TOKEN
             poetry publish --build -r $PYPI_ENVIRONMENT
+  unit-tests:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run unit tests
+          command: |
+            cd ~/repo
+            poetry install
+            poetry run pytest -v -m "not integration"
+  integration-tests:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Create AWS credentials manually
+          command: |
+            mkdir ~/.aws
+            touch ~/.aws/config
+            chmod 600 ~/.aws/config
+            echo "[profile circleci]" > ~/.aws/config
+            echo "aws_access_key_id=$AWS_ACCESS_KEY_ID" >> ~/.aws/config
+            echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ~/.aws/config
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run integration tests
+          command: |
+            cd ~/repo
+            export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
+            poetry install
+            poetry run pytest -v -m integration
 workflows:
+  test:
+    jobs:
+      - unit-tests
+      - integration-tests:
+          filters:
+            branches:
+              only:
+                - main
+                - staging
   deploy:
     jobs:
       - deploy-to-pypi:
