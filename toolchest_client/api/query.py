@@ -45,7 +45,7 @@ class Query():
         self.STATUS_URL = ''
         self.mark_as_failed = False
         self.thread_name = ''
-        self.thread_statuses = dict()
+        self.thread_statuses = None
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
@@ -199,7 +199,7 @@ class Query():
         Updates the shared thread status.
         """
         is_done = new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
-        is_interrupting = self.thread_statuses.get(self.thread_name) != ThreadStatus.INTERRUPTING
+        is_interrupting = self.thread_statuses.get(self.thread_name) == ThreadStatus.INTERRUPTING
         if not is_interrupting or is_done:
             self.thread_statuses[self.thread_name] = new_status
 
