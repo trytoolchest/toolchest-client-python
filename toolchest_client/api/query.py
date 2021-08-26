@@ -16,8 +16,8 @@ import time
 import requests
 from requests.exceptions import HTTPError
 
-from .auth import get_key
-from .exceptions import ToolchestJobError, ToolchestException
+from toolchest_client.api.auth import get_key
+from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
 from .status import Status
 
 

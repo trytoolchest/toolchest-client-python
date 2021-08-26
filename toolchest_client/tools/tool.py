@@ -12,9 +12,9 @@ import sys
 from threading import Thread
 import time
 
-from ..query import Query
-from ..files import files_in_path, split_file_by_lines, sanity_check, check_file_size
-from ..arg_whitelist import ARGUMENT_WHITELIST
+from toolchest_client.api.query import Query
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
+from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
 
