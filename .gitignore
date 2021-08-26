@@ -139,3 +139,6 @@ toolchest_client/demo.py
 
 # Emacs
 *~
+
+# Default temporary directory for splitting input files
+temp_toolchest*

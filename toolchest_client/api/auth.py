@@ -8,6 +8,7 @@ This module contains functions for configuring the Toolchest API key.
 
 import os
 
+
 def get_key():
     """Retrieves the Toolchest API key, if it is set."""
 
@@ -19,6 +20,7 @@ def get_key():
         print("    toolchest_client.set_key(YOUR_KEY_HERE)")
         return e
     return key
+
 
 def set_key(key):
     """Sets the Toolchest auth key (env var TOOLCHEST_KEY) to the given value.
