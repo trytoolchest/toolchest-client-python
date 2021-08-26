@@ -8,12 +8,16 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 import copy
 import datetime
 import os
+import signal
+import sys
 from threading import Thread
 import time
 
-from ..query import Query
-from ..files import files_in_path, split_file_by_lines, sanity_check, check_file_size
-from ..arg_whitelist import ARGUMENT_WHITELIST
+from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.status import ThreadStatus
+from toolchest_client.api.query import Query
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
+from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
 
@@ -45,6 +49,9 @@ class Tool:
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
+        self.terminating = False
+        signal.signal(signal.SIGTERM, self._handle_termination)
+        signal.signal(signal.SIGINT, self._handle_termination)
 
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
@@ -111,6 +118,16 @@ class Tool:
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
+    def _system_supports_parallel_execution(self):
+        """Checks if parallel execution is supported on the platform.
+
+        Right now, this blindly rejects anything other than Linux or macOS.
+        Windows is not currently supported, because pysam requires htslib
+        """
+        if sys.platform not in {'linux', 'darwin'}:
+            raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
+        return True
+
     def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
         """Prints output of each job, supporting multiple simultaneous jobs.
 
@@ -131,19 +148,58 @@ class Tool:
         job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
         jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
 
-        # Jupyter notebooks don't support the canonical "clear-to-end-of-line" escape sequence
-        print(f"\r{' ' * 120}", end="")
-        print(f"\r{job_count} | {jobs_duration} {status_count}", end="\x1b[0K")
+        # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
+        max_length = 120
+        status_message = f"\r{job_count} | {jobs_duration} {status_count}"
+        print(f"{status_message}{(max_length - len(status_message)) * ' '}", end="\r")
 
-    def _wait_for_threads_to_finish(self):
+    def _handle_termination(self, signal_number, *_):
+        """
+        Handles termination by killing threads.
+
+        If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
+        """
+        if self.terminating:
+            raise InterruptedError(f"Toolchest client force killed")
+        self.terminating = True
+        self._kill_query_threads()
+        raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
+
+    def _kill_query_threads(self):
+        """
+        Sends a signal to threads to terminate.
+
+        Query threads occasionally check the flag for termination, so they may take a while to terminate.
+        """
+        for thread in self.query_threads:
+            thread_name = thread.getName()
+            thread_status = self.query_thread_statuses.get(thread_name)
+            if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
+                self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
+
+        self._wait_for_threads_to_finish(check_health=False)
+
+    def _check_thread_health(self):
+        """Checks for any thread that has ended without reaching a "complete" state, and propagates errors"""
+        for thread in self.query_threads:
+            thread_name = thread.getName()
+            thread_status = self.query_thread_statuses.get(thread_name)
+            if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
+                self._kill_query_threads()
+                raise ToolchestException(f"A job irrecoverably failed. See logs above for details.")
+
+    def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
         elapsed_seconds = 0
         for thread in self.query_threads:
             increment_seconds = 5
             while thread.is_alive():
+                if check_health:
+                    self._check_thread_health()
                 self._pretty_print_pipeline_segment_status(elapsed_seconds)
                 elapsed_seconds += increment_seconds
                 time.sleep(increment_seconds)
+            self._pretty_print_pipeline_segment_status(elapsed_seconds)
         print("")
 
         # Double check all threads are complete for safety
@@ -187,7 +243,8 @@ class Tool:
 
         should_run_in_parallel = self.parallel_enabled \
             and self.num_input_files == 1 \
-            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node
+            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
+            and self._system_supports_parallel_execution()
 
         jobs = self._generate_jobs(should_run_in_parallel)
 

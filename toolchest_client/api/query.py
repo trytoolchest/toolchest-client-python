@@ -6,7 +6,6 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
-import atexit
 import ntpath
 import os
 import sys
@@ -16,9 +15,9 @@ import time
 import requests
 from requests.exceptions import HTTPError
 
-from .auth import get_key
-from .exceptions import ToolchestJobError, ToolchestException
-from .status import Status
+from toolchest_client.api.auth import get_key
+from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
+from .status import Status, ThreadStatus
 
 
 class Query():
@@ -38,8 +37,6 @@ class Query():
     WAIT_FOR_JOB_DELAY = 1
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
-    # Write blanks to end of line to make carriage returns pretty.
-    JOB_STATUS_BUFFER = "\x1b[0K"
 
     def __init__(self):
         self.HEADERS = dict()
@@ -47,7 +44,8 @@ class Query():
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
-        atexit.register(self._mark_as_failed_at_exit)
+        self.thread_name = ''
+        self.thread_statuses = None
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
@@ -65,10 +63,9 @@ class Query():
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
-        thread_name = threading.current_thread().getName()
-        if thread_statuses is None:
-            thread_statuses = dict()
-        thread_statuses[thread_name] = "Initialized"
+        self.thread_name = threading.current_thread().getName()
+        self.thread_statuses = thread_statuses
+        self._check_if_should_terminate()
 
         # Retrieve and validate Toolchest auth key.
         self.HEADERS["Authorization"] = f"Key {get_key()}"
@@ -93,6 +90,9 @@ class Query():
             output_name,
         )
         create_content = create_response.json()
+
+        self._update_thread_status(ThreadStatus.INITIALIZED)
+
         self.PIPELINE_SEGMENT_ID = create_content["id"]
         self.PIPELINE_SEGMENT_URL = "/".join([
             self.PIPELINE_URL,
@@ -104,15 +104,17 @@ class Query():
         ])
         self.mark_as_failed = True
 
-        thread_statuses[thread_name] = "uploading"
+        self._check_if_should_terminate()
+        self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping)
+        self._check_if_should_terminate()
 
-        thread_statuses[thread_name] = "executing"
+        self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        thread_statuses[thread_name] = "downloading"
+        self._update_thread_status(ThreadStatus.DOWNLOADING)
         self._download(output_path)
-        thread_statuses[thread_name] = "complete"
+        self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name):
@@ -185,51 +187,63 @@ class Query():
                 upload_response.raise_for_status()
             except HTTPError as e:
                 # todo: this isn't propagating as a failure
-                self._raise_for_failed_client(f"Input file upload failed for file at {file_path}.")
+                self._update_status_to_failed(
+                    f"Input file upload failed for file at {file_path}.",
+                    force_raise=True
+                )
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
-    def _update_status(self, new_status, extra_params=None):
-        """Updates the internal status of the query's task(s).
+    def _update_thread_status(self, new_status):
+        """
+        Updates the shared thread status.
+        """
+        is_done = new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
+        is_interrupting = self.thread_statuses.get(self.thread_name) == ThreadStatus.INTERRUPTING
+        if not is_interrupting or is_done:
+            self.thread_statuses[self.thread_name] = new_status
+
+    def _update_status(self, new_status):
+        """Updates the internal (API) status of the query's task(s).
 
         Returns the response from the PUT request.
         """
-        update_json = {"status": new_status}
-        if extra_params:
-            update_json.update(extra_params)
 
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
-            json=update_json,
+            json={"status": new_status},
         )
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status update failed." + self.JOB_STATUS_BUFFER, file=sys.stderr)
-            self._raise_for_failed_job(response)
-            raise
+            print("Job status update failed.", file=sys.stderr)
+            self._raise_for_failed_response(response)
 
         return response
 
-    def _raise_for_failed_client(self, error_message, force_raise=True):
+    def _update_status_to_failed(self, error_message, force_raise=False, print_msg=True):
         """Updates the internal status of the query's task(s) to 'failed'.
 
-        Prints error message or raises a ToolchestException, based on force_raise.
-
-        Note: This function is invoked for failures that occur on the client-side,
-        such as errors occurring while uploading input and downloading output.
-        It is not invoked if the query is not noted internally (i.e., an error
-        is caught before the initial request to the API is sent).
+        Includes options to print an error message or raise a ToolchestException.
+        To be called when the job fails.
         """
-        self._update_status(Status.FAILED, {"error_message": error_message})
+        # Mark thread as failed
+        self._update_thread_status(ThreadStatus.FAILED)
+
+        # Mark pipeline segment instance as failed
+        requests.put(
+            self.STATUS_URL,
+            headers=self.HEADERS,
+            json={"status": Status.FAILED, "error_message": error_message},
+        )
         self.mark_as_failed = False
         if force_raise:
             raise ToolchestException(error_message) from None
-        else:
+        if print_msg:
             print(error_message, file=sys.stderr)
 
-    def _raise_for_failed_job(self, response):
+    def _raise_for_failed_response(self, response):
         """Raises an error if a job fails during execution, as indicated by the request response.
 
         Note: When a job is marked as failed, any requests for current status
@@ -241,12 +255,11 @@ class Query():
             # Failures are currently raised as the catch-all ToolchestException exception.
             if not response_body["success"]:
                 # TODO: remove this check once the data error auto-updates status to failed
-                if self._get_job_status() != Status.FAILED:
-                    self._update_status(
-                        Status.FAILED,
-                        {"error_message": response_body["error"]},
+                if self.mark_as_failed:
+                    self._update_status_to_failed(
+                        response_body["error"],
+                        print_msg=False,
                     )
-                    self.mark_as_failed = False
                 raise ToolchestJobError(response_body["error"]) from None
 
     def _wait_for_job(self):
@@ -254,6 +267,7 @@ class Query():
         status = self._get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
+            self._check_if_should_terminate()
             status = self._get_job_status()
 
             elapsed_time = time.time() - start_time
@@ -271,9 +285,9 @@ class Query():
             response.raise_for_status()
         except HTTPError:
             print("Job status retrieval failed.", file=sys.stderr)
-            self._raise_for_failed_job(response)
-            # Assumes that job status has been set to failed if response status code is NOT OK.
-            return Status.FAILED
+            # Assumes a job has already been marked as failed if failure is detected after execution begins.
+            self.mark_as_failed = False
+            self._raise_for_failed_response(response)
 
         return response.json()["status"]
 
@@ -290,7 +304,10 @@ class Query():
             try:
                 r.raise_for_status()
             except HTTPError:
-                self._raise_for_failed_client("Output download failed.")
+                self._update_status_to_failed(
+                    "Output download failed.",
+                    force_raise=True,
+                )
 
             # Writes streamed output data from response to the output file.
             with open(output_path, "wb") as f:
@@ -299,6 +316,7 @@ class Query():
             # TODO: output more detailed error message if write error encountered
 
         self._update_status(Status.TRANSFERRED_TO_CLIENT)
+        self.mark_as_failed = False
 
     def _get_download_signed_url(self):
         """Gets URL for downloading output of query task(s)."""
@@ -310,7 +328,10 @@ class Query():
         try:
             response.raise_for_status()
         except HTTPError:
-            self._raise_for_failed_client("Download URL retrieval failed.")
+            self._update_status_to_failed(
+                "Download URL retrieval failed.",
+                force_raise=True,
+            )
 
         # TODO: add support for multiple download files
 
@@ -323,9 +344,16 @@ class Query():
         # otherwise, each Query instance persists until exit
 
         if self.mark_as_failed:
-            status = self._get_job_status()
-            if status != Status.TRANSFERRED_TO_CLIENT and status != Status.FAILED:
-                self._raise_for_failed_client(
-                    "Client exited before job completion.",
-                    force_raise=False,
-                )
+            self._update_status_to_failed(
+                "Client exited before job completion.",
+            )
+
+    def _check_if_should_terminate(self):
+        """Checks for flag set by parent process to see if it should terminate self."""
+        thread_status = self.thread_statuses.get(self.thread_name)
+        if thread_status == ThreadStatus.INTERRUPTING:
+            self._update_status_to_failed(
+                error_message="Terminating due to failure in sibling thread or parent process",
+                force_raise=False,
+                print_msg=False
+            )

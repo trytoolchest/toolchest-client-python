@@ -12,7 +12,7 @@ First, make sure that:
     $ pip install toolchest-client
 
 * The Toolchest client is up-to-date (be sure to use the latest version,
-  currently **0.7.9**)
+  currently **0.7.13**)
 * You have an :ref:`authentication key <config>`
 
 .. _config:

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.7.9"
+version = "0.7.13"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bcai@trytoolchest.com>",
@@ -26,9 +26,11 @@ packages = [
 python = "^3.6"
 requests = "^2.25.1"
 python-dotenv = "^0.18.0"
-pysam = "^0.16.0"
+pysam = { version = "^0.16.0", markers = "sys_platform == 'linux' or sys_platform == 'darwin'" }
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+boto3 = "^1.18.29"
 
 [[tool.poetry.source]]
 name = "pypi-public"
