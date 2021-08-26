@@ -325,7 +325,6 @@ class Query():
         # otherwise, each Query instance persists until exit
 
         if self.mark_as_failed:
-            status = self._get_job_status()
             self._update_status_to_failed(
                 "Client exited before job completion.",
             )
