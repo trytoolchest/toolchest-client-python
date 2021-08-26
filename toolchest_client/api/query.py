@@ -6,7 +6,6 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
-import atexit
 import ntpath
 import os
 import sys
@@ -18,7 +17,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
-from .status import Status
+from .status import Status, ThreadStatus
 
 
 class Query():
@@ -45,7 +44,8 @@ class Query():
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
-        atexit.register(self._mark_as_failed_at_exit)
+        self.thread_name = ''
+        self.thread_statuses = dict()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   tool_args=None, database_name=None, database_version=None,
@@ -63,10 +63,9 @@ class Query():
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
-        thread_name = threading.current_thread().getName()
-        if thread_statuses is None:
-            thread_statuses = dict()
-        thread_statuses[thread_name] = "Initialized"
+        self.thread_name = threading.current_thread().getName()
+        self.thread_statuses = thread_statuses
+        self._check_if_should_terminate()
 
         # Retrieve and validate Toolchest auth key.
         self.HEADERS["Authorization"] = f"Key {get_key()}"
@@ -91,6 +90,9 @@ class Query():
             output_name,
         )
         create_content = create_response.json()
+
+        self._update_thread_status(ThreadStatus.INITIALIZED)
+
         self.PIPELINE_SEGMENT_ID = create_content["id"]
         self.PIPELINE_SEGMENT_URL = "/".join([
             self.PIPELINE_URL,
@@ -102,15 +104,17 @@ class Query():
         ])
         self.mark_as_failed = True
 
-        thread_statuses[thread_name] = "uploading"
+        self._check_if_should_terminate()
+        self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping)
+        self._check_if_should_terminate()
 
-        thread_statuses[thread_name] = "executing"
+        self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        thread_statuses[thread_name] = "downloading"
+        self._update_thread_status(ThreadStatus.DOWNLOADING)
         self._download(output_path)
-        thread_statuses[thread_name] = "complete"
+        self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name):
@@ -190,11 +194,21 @@ class Query():
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
+    def _update_thread_status(self, new_status):
+        """
+        Updates the shared thread status.
+        """
+        is_done = new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
+        is_interrupting = self.thread_statuses.get(self.thread_name) != ThreadStatus.INTERRUPTING
+        if not is_interrupting or is_done:
+            self.thread_statuses[self.thread_name] = new_status
+
     def _update_status(self, new_status):
-        """Updates the internal status of the query's task(s).
+        """Updates the internal (API) status of the query's task(s).
 
         Returns the response from the PUT request.
         """
+
         response = requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
@@ -214,6 +228,10 @@ class Query():
         Includes options to print an error message or raise a ToolchestException.
         To be called when the job fails.
         """
+        # Mark thread as failed
+        self._update_thread_status(ThreadStatus.FAILED)
+
+        # Mark pipeline segment instance as failed
         requests.put(
             self.STATUS_URL,
             headers=self.HEADERS,
@@ -249,6 +267,7 @@ class Query():
         status = self._get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
+            self._check_if_should_terminate()
             status = self._get_job_status()
 
             elapsed_time = time.time() - start_time
@@ -327,4 +346,14 @@ class Query():
         if self.mark_as_failed:
             self._update_status_to_failed(
                 "Client exited before job completion.",
+            )
+
+    def _check_if_should_terminate(self):
+        """Checks for flag set by parent process to see if it should terminate self."""
+        thread_status = self.thread_statuses.get(self.thread_name)
+        if thread_status == ThreadStatus.INTERRUPTING:
+            self._update_status_to_failed(
+                error_message="Terminating due to failure in sibling thread or parent process",
+                force_raise=False,
+                print_msg=False
             )

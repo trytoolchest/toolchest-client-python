@@ -8,10 +8,13 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 import copy
 import datetime
 import os
+import signal
 import sys
 from threading import Thread
 import time
 
+from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST
@@ -46,6 +49,9 @@ class Tool:
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
+        self.terminating = False
+        signal.signal(signal.SIGTERM, self._handle_termination)
+        signal.signal(signal.SIGINT, self._handle_termination)
 
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
@@ -147,12 +153,49 @@ class Tool:
         status_message = f"\r{job_count} | {jobs_duration} {status_count}"
         print(f"{status_message}{(max_length - len(status_message)) * ' '}", end="\r")
 
-    def _wait_for_threads_to_finish(self):
+    def _handle_termination(self, signal_number, *_):
+        """
+        Handles termination by killing threads.
+
+        If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
+        """
+        if self.terminating:
+            raise InterruptedError(f"Toolchest client force killed")
+        self.terminating = True
+        self._kill_query_threads()
+        raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
+
+    def _kill_query_threads(self):
+        """
+        Sends a signal to threads to terminate.
+
+        Query threads occasionally check the flag for termination, so they may take a while to terminate.
+        """
+        for thread in self.query_threads:
+            thread_name = thread.getName()
+            thread_status = self.query_thread_statuses.get(thread_name)
+            if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
+                self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
+
+        self._wait_for_threads_to_finish(check_health=False)
+
+    def _check_thread_health(self):
+        """Checks for any thread that has ended without reaching a "complete" state, and propagates errors"""
+        for thread in self.query_threads:
+            thread_name = thread.getName()
+            thread_status = self.query_thread_statuses.get(thread_name)
+            if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
+                self._kill_query_threads()
+                raise ToolchestException(f"A job irrecoverably failed. See logs above for details.")
+
+    def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
         elapsed_seconds = 0
         for thread in self.query_threads:
             increment_seconds = 5
             while thread.is_alive():
+                if check_health:
+                    self._check_thread_health()
                 self._pretty_print_pipeline_segment_status(elapsed_seconds)
                 elapsed_seconds += increment_seconds
                 time.sleep(increment_seconds)
