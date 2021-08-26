@@ -199,6 +199,7 @@ class Tool:
                 self._pretty_print_pipeline_segment_status(elapsed_seconds)
                 elapsed_seconds += increment_seconds
                 time.sleep(increment_seconds)
+            self._pretty_print_pipeline_segment_status(elapsed_seconds)
         print("")
 
         # Double check all threads are complete for safety
