@@ -64,7 +64,7 @@ def test_unicycler_paired_end_with_long_reads():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == 100
+    assert hash.unordered(output_file_path) == 1388941116
 
 
 @pytest.mark.expensive_integration
@@ -86,7 +86,7 @@ def test_star_hg38():
         database_name='GRCh38',
     )
 
-    assert hash.unordered(output_file_path) == 100
+    assert hash.unordered(output_file_path) == 1998634316
 
 
 @pytest.mark.expensive_integration
@@ -108,5 +108,5 @@ def test_parallel_star_hg38():
         database_name='GRCh38',
     )
 
-    assert hash.unordered(output_file_path) == 100
+    assert hash.unordered(output_file_path) == 141417110
 
