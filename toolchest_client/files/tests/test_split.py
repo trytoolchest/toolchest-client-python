@@ -1,6 +1,7 @@
 import filecmp
 import os
 import pathlib
+import pytest
 
 from .. import split_file_by_lines
 
@@ -19,6 +20,7 @@ def assert_files_eq(file_path_one, file_path_two):
     assert filecmp.cmp(file_path_one, file_path_two)
 
 
+@pytest.mark.unit
 def test_split_small_fastq():
     new_file_paths = []
     split_file_paths = split_file_by_lines(
@@ -38,6 +40,7 @@ def test_split_small_fastq():
     delete_temp_files(new_file_paths)
 
 
+@pytest.mark.unit
 def test_split_small_fastq_small_bytes():
     new_file_paths = []
     split_file_paths = split_file_by_lines(
