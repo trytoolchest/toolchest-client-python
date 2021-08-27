@@ -48,6 +48,7 @@ jobs:
           pkg-manager: poetry
       - run:
           name: Run integration tests
+          no_output_timeout: 45m
           command: |
             cd ~/repo
             export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = devops/more-integration-tests ]] && echo production || echo staging)
