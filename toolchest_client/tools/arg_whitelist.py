@@ -158,7 +158,17 @@ ARGUMENT_WHITELIST = {
         "--minimum-hit-groups": 1,
     },
     # TODO: add STAR arguments to whitelist
-    "STAR": {},
+    "STAR": {
+        "--outFilterType": 1,
+        "--outFilterMultimapNmax": 1,
+        "--alignSJoverhangMin": 1,
+        "--alignSJDBoverhangMin": 1,
+        "--outFilterMismatchNmax": 1,
+        "--outFilterMismatchNoverReadLmax": 1,
+        "--alignIntronMin": 1,
+        "--alignIntronMax": 1,
+        "--alignMatesGapMax": 1,
+    },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
     # See https://github.com/rrwick/Unicycler#options-and-usage for details.
