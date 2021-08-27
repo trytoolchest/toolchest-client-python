@@ -50,9 +50,10 @@ jobs:
           name: Run integration tests
           command: |
             cd ~/repo
-            export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
+            export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = devops/more-integration-tests ]] && echo production || echo staging)
+            PYTEST_MARKS=$([[ DEPLOY_ENVIRONMENT = production ]] && echo "integration or expensive_integration" || echo "integration")
             poetry install
-            poetry run pytest -v -m integration
+            poetry run pytest -v -m $PYTEST_MARKS
 workflows:
   test:
     jobs:
@@ -63,6 +64,7 @@ workflows:
               only:
                 - main
                 - staging
+                - devops/more-integration-tests
   deploy:
     jobs:
       - deploy-to-pypi:
