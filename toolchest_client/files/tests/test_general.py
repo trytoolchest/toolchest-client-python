@@ -15,8 +15,23 @@ def test_small_file():
         sanity_check(small_file_path)
 
 def test_files_in_path():
-    # TODO: this
-    pass
+    tmp_dir = f"{THIS_FILE_PATH}/tmp"
+    tmp1 = f"{tmp_dir}/tmp1"
+    tmp2 = f"{tmp_dir}/tmp2"
+    sub_dir = f"{tmp_dir}/sub_dir"
+    tmp3 = f"{sub_dir}/tmp3"
+    os.mkdir(tmp_dir)
+    os.mkdir(sub_dir)
+    file_paths = sorted([tmp1, tmp2, tmp3])
+    for file in file_paths:
+        open(file, "w")
+
+    assert sorted(files_in_path(tmp_dir)) == file_paths
+
+    for file in file_paths:
+        os.remove(file)
+    os.rmdir(sub_dir)
+    os.rmdir(tmp_dir)
 
 def test_file_too_large():
     with pytest.raises(ValueError):
