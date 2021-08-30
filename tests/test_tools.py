@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from tools.util import s3, hash
+from .util import s3, hash
 
 if os.environ.get("DEPLOY_ENVIRONMENT") == "staging":
     os.environ["BASE_URL"] = os.environ["TOOLCHEST_STAGING_URL"]

@@ -6,7 +6,7 @@ import pytest
 
 from .. import assert_exists, check_file_size, files_in_path, sanity_check
 
-THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
+THIS_FILE_PATH = os.path.normpath(pathlib.Path(__file__).parent.resolve())
 
 
 def test_small_file():
@@ -20,13 +20,15 @@ def test_files_in_path():
     tmp2 = f"{tmp_dir}/tmp2"
     sub_dir = f"{tmp_dir}/sub_dir"
     tmp3 = f"{sub_dir}/tmp3"
-    os.mkdir(tmp_dir)
-    os.mkdir(sub_dir)
-    file_paths = sorted([tmp1, tmp2, tmp3])
+    file_paths = [tmp1, tmp2, tmp3]
+    for dir in [tmp_dir, sub_dir]:
+        if not os.path.exists(dir):
+            os.mkdir(dir)
     for file in file_paths:
         open(file, "w")
+    file_paths = sorted([os.path.normpath(x) for x in file_paths])
 
-    assert sorted(files_in_path(tmp_dir)) == file_paths
+    assert sorted([os.path.normpath(x) for x in files_in_path(tmp_dir)]) == file_paths
 
     for file in file_paths:
         os.remove(file)
