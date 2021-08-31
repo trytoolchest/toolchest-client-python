@@ -21,19 +21,16 @@ def test_files_in_path():
     sub_dir = f"{tmp_dir}/sub_dir"
     tmp3 = f"{sub_dir}/tmp3"
     file_paths = [tmp1, tmp2, tmp3]
-    for dir in [tmp_dir, sub_dir]:
-        if not os.path.exists(dir):
-            os.mkdir(dir)
+    os.makedirs(sub_dir, exist_ok=True)
     for file in file_paths:
-        open(file, "w")
+        open(file, "w").close()
     file_paths = sorted([os.path.normpath(x) for x in file_paths])
 
     assert sorted([os.path.normpath(x) for x in files_in_path(tmp_dir)]) == file_paths
 
     for file in file_paths:
         os.remove(file)
-    os.rmdir(sub_dir)
-    os.rmdir(tmp_dir)
+    os.removedirs(sub_dir)
 
 def test_file_too_large():
     with pytest.raises(ValueError):
