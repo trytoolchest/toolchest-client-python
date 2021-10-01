@@ -7,6 +7,12 @@ This module contains functions for configuring the Toolchest API key.
 """
 
 import os
+import sys
+
+import requests
+from requests.exceptions import HTTPError
+
+from toolchest_client.api.exceptions import ToolchestKeyError
 
 
 def get_key():
@@ -41,4 +47,20 @@ def set_key(key):
     else:
         os.environ["TOOLCHEST_KEY"] = key
 
-# TODO: implement key validation
+
+def _validate_key():
+    """Validates Toolchest API key, retrieved from get_key()."""
+
+    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
+    HEADERS = {"Authorization": f"Key {get_key()}"}
+
+    validation_response = requests.get(
+        BASE_URL,
+        headers=HEADERS,
+    )
+    try:
+        validation_response.raise_for_status()
+    except HTTPError:
+        error_message = "Invalid Toolchest auth key. Please check the key value or contact Toolchest."
+        print(error_message, file=sys.stderr)
+        raise ToolchestKeyError(error_message) from None

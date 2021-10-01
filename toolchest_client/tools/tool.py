@@ -13,6 +13,7 @@ import sys
 from threading import Thread
 import time
 
+from toolchest_client.api.auth import _validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
@@ -236,6 +237,10 @@ class Tool:
     def run(self):
         """Constructs and runs a Toolchest query."""
         print("Beginning Toolchest analysis run.")
+
+        # Validate Toolchest auth key.
+        _validate_key()
+
         # todo: better propagate and handle errors for parallel runs
         self._validate_args()
 

@@ -12,6 +12,10 @@ class ToolchestException(OSError):
     """
 
 
+class ToolchestKeyError(ToolchestException):
+    """Invalid Toolchest auth key."""
+
+
 class DataLimitError(ToolchestException):
     """Data limit for Toolchest exceeded."""
 
