@@ -1,6 +1,6 @@
 """
-toolchest_client.status
-~~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.api.status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains a Status class for status updates to the Toolchest API.
 """

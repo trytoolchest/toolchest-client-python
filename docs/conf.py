@@ -14,14 +14,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
+import toolchest_client as toolchest
 
 # -- Project information -----------------------------------------------------
 
 project = 'Python Client for Toolchest'
 copyright = '2021, Toolchest Inc'
-author = 'Bryce Cai'
-version = '0.1'
-release = '0.1'
+author = 'Bryce Cai, Toolchest'
+version = toolchest.__version__
+release = toolchest.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -56,3 +57,13 @@ html_theme = 'alabaster'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+# -- Additional options and scripts ------------------------------------------
+
+def remove_module_docstring(app, what, name, obj, options, lines):
+    if what == "module" and name == "yourmodule":
+        del lines[:]
+
+def setup(app):
+    app.connect("autodoc-process-docstring", remove_module_docstring)

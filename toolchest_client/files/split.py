@@ -1,12 +1,12 @@
-import os
-import pathlib
-
 """
 toolchest_client.files.split
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Functions for splitting files
 """
+
+import os
+import pathlib
 
 
 # todo: better define working directory location

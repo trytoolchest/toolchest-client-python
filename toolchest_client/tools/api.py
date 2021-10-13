@@ -1,6 +1,6 @@
 """
 toolchest_client.tools.api
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains the API for using Toolchest tools.
 """

@@ -1,6 +1,6 @@
 """
-toolchest_client.auth
-~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.api.auth
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains functions for configuring the Toolchest API key.
 
@@ -59,6 +59,7 @@ def _validate_key():
         headers=HEADERS,
     )
     try:
+        print(validation_response)
         validation_response.raise_for_status()
     except HTTPError:
         error_message = "Invalid Toolchest auth key. Please check the key value or contact Toolchest."
