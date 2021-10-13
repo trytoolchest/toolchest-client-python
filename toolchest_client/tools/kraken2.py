@@ -1,6 +1,6 @@
 """
 toolchest_client.tools.kraken2
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the Kraken2 implementation of the Tool class.
 """

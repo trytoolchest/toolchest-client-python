@@ -1,6 +1,6 @@
 """
 toolchest_client.tools.cutadapt
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the cutadapt implementation of the Tool class.
 """

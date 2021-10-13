@@ -1,6 +1,6 @@
 """
 toolchest_client.tools.tool
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.

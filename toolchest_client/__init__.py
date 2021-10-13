@@ -4,6 +4,14 @@ import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
 
+# set __version__ module
+try:
+    # importlib.metadata is present in Python 3.8 and later
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata as importlib_metadata
+__version__ = importlib_metadata.version(__package__ or __name__)
+
 # .env load must be before imports that use environment variables
 load_dotenv(find_dotenv(".env"))
 

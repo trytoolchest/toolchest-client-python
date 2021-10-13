@@ -12,8 +12,11 @@ First, make sure that:
     $ pip install toolchest-client
 
 * The Toolchest client is up-to-date (be sure to use the latest version,
-  currently **0.7.13**)
+  currently |version|)
 * You have an :ref:`authentication key <config>`
+
+..
+  TODO: figure out how to bold the version number
 
 .. _config:
 
@@ -22,10 +25,10 @@ Configuring Your Client
 
 Toolchest requires an authentication key in order to process queries.
 
-You can obtain a key by signing up for a trial of Toolchest
-`at this link <https://airtable.com/shrKzQNuDHrGkEAI2>`_.
+You can obtain a key by `signing up for a trial of Toolchest
+<https://airtable.com/shrKzQNuDHrGkEAI2>`_.
 
-`Contact Toolchest <noah@trytoolchest.com>`_ if:
+`Contact Toolchest <founders@trytoolchest.com>`_ if:
 
 * you've forgotten your key
 * the key is producing authentication errors.
@@ -43,8 +46,8 @@ Sample Data
 
 To use Toolchest tools, you will need input files.
 
-A sample input file (~50MB) can be downloaded
-`at this link <https://toolchest-demo-data.s3.amazonaws.com/example.fastq>`_.
+A sample FASTQ input file (~50MB) can be downloaded
+`via this link <https://toolchest-demo-data.s3.amazonaws.com/example.fastq>`_.
 
 Using Tools
 -----------
