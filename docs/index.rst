@@ -15,7 +15,7 @@ Using a tool in Toolchest is as simple as:
 
     >>> import toolchest_client as toolchest
     >>> toolchest.set_key("YOUR_TOOLCHEST_KEY")
-    >>> toolchest.your_tool_name(
+    >>> toolchest.kraken2(
     ...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
     ...     inputs="path/to/input",
     ...     output_path="path/to/output",

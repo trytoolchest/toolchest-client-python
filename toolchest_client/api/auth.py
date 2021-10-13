@@ -59,7 +59,6 @@ def _validate_key():
         headers=HEADERS,
     )
     try:
-        print(validation_response)
         validation_response.raise_for_status()
     except HTTPError:
         error_message = "Invalid Toolchest auth key. Please check the key value or contact Toolchest."

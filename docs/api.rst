@@ -9,7 +9,7 @@ Tools
 -----
 
 All tools should be able to be called directly as
-`toolchest_client.your_tool()`.
+`toolchest_client.your_tool_name()`.
 
 ..
   TODO: Use automodule, especially after adding new members, but exclude the module docstring
