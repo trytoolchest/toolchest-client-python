@@ -114,7 +114,10 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     tool_args_list = tool_args.split()
     if len(inputs) == 2:
         if "--paired" not in tool_args_list:
-            tool_args = "--paired " + tool_args
+            if not tool_args:
+                tool_args = "--paired"
+            else:
+                tool_args = "--paired " + tool_args
     else:
         if "--paired" in tool_args_list:
             tool_args = tool_args_list.remove("--paired").join(" ")
