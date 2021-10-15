@@ -75,17 +75,26 @@ def cutadapt(inputs, output_path, tool_args):
     instance.run()
 
 
-def kraken2(inputs, output_path, database_name="standard", database_version="1", tool_args=""):
+def kraken2(output_path, inputs=[], database_name="standard", database_version="1",
+            tool_args="", read_one=None, read_two=None):
     """Runs Kraken 2 via Toolchest.
 
-    (Currently, only single .fastq inputs are supported.)
-
-    :param inputs: Path or list of paths (client-side) to be passed in as input.
+    :param inputs: Path or list of paths (client-side) to be passed in as input(s).
     :param output_path: Path (client-side) where the output will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
+    :param read_one: (optional) Path to read 1 of paired-read input files.
+    :param read_two: (optional) Path to read 2 of paired-read input files.
+
+    .. note:: Paired-read inputs can be provided either through `inputs` or
+     through `read_one` and `read_two`.
+
+     If using `inputs`, pass in a list of two filepaths: `['/path/to/read_1', '/path_to/read_2']`
+
+     If using `read_one` and `read_two`, these will be interpreted as the input files
+     over anything given in `inputs`.
 
     Usage::
 
@@ -97,6 +106,18 @@ def kraken2(inputs, output_path, database_name="standard", database_version="1",
         ... )
 
     """
+
+    if read_one and read_two:
+        inputs = [read_one, read_two]
+
+    # Add --paired tag if paired reads are provided. Else, remove if present.
+    tool_args_list = tool_args.split()
+    if len(inputs) == 2:
+        if "--paired" not in tool_args_list:
+            tool_args = "--paired " + tool_args
+    else:
+        if "--paired" in tool_args_list:
+            tool_args = tool_args_list.remove("--paired").join(" ")
 
     instance = Kraken2(
         tool_args=tool_args,
