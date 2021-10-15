@@ -91,7 +91,7 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     .. note:: Paired-read inputs can be provided either through `inputs` or
      through `read_one` and `read_two`.
 
-     If using `inputs`, pass in a list of two filepaths: `['/path/to/read_1', '/path_to/read_2']`
+     If using `inputs`, use a list of two filepaths: `inputs=['/path/to/read_1', '/path_to/read_2']`
 
      If using `read_one` and `read_two`, these will be interpreted as the input files
      over anything given in `inputs`.
