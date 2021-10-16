@@ -14,6 +14,8 @@ their functionalities are provided via other arguments (e.g.,
 user-provided inputs).
 """
 
+VARIABLE_ARGS = "variable"
+
 ARGUMENT_WHITELIST = {
     # See http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml for details.
     "bowtie2": {
@@ -207,6 +209,7 @@ ARGUMENT_WHITELIST = {
         "--winFlankNbins": 1,
         "--winReadCoverageRelativeMin": 1,
         "--winReadCoverageBasesMin": 1,
+        "--quantMode": VARIABLE_ARGS,
     },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
