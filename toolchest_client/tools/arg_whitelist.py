@@ -210,6 +210,8 @@ ARGUMENT_WHITELIST = {
         "--winReadCoverageRelativeMin": 1,
         "--winReadCoverageBasesMin": 1,
         "--quantMode": VARIABLE_ARGS,
+        "--quantTranscriptomeBAMcompression": 1,
+        "--quantTranscriptomeBan": 1,
     },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
