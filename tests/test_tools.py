@@ -34,10 +34,12 @@ def test_kraken2_standard():
 
     assert hash.unordered(output_file_path) == 886254946
 
-"""
+
 @pytest.mark.integration
 def test_kraken2_paired_end():
-    # Tests Kraken 2 with paired-end inputs against the std (v1) DB
+    """
+    Tests Kraken 2 with paired-end inputs against the std (v1) DB
+    """
     input_one_file_path = "./kraken_input_read1.fastq"
     input_two_file_path = "./kraken_input_read2.fastq"
     output_file_path = "./kraken_paired_output.txt"
@@ -48,15 +50,13 @@ def test_kraken2_paired_end():
         output_path=output_file_path,
     )
 
-    # TODO: add paired-end sample files
     s3.download_integration_test_input(
-        s3_file_key="key_to_read_1",
+        s3_file_key="sample_r1.fastq.gz",
         output_file_path=input_one_file_path,
     )
     s3.download_integration_test_input(
-        s3_file_key="key_to_read_2",
+        s3_file_key="sample_r2.fastq.gz",
         output_file_path=input_two_file_path,
     )
 
     assert hash.unordered(output_file_path) == 0
-"""
