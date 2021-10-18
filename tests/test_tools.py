@@ -44,12 +44,6 @@ def test_kraken2_paired_end():
     input_two_file_path = "./kraken_input_read2.fastq"
     output_file_path = "./kraken_paired_output.txt"
 
-    toolchest.kraken2(
-        read_one=input_one_file_path,
-        read_two=input_two_file_path,
-        output_path=output_file_path,
-    )
-
     s3.download_integration_test_input(
         s3_file_key="sample_r1.fastq.gz",
         output_file_path=input_one_file_path,
@@ -57,6 +51,12 @@ def test_kraken2_paired_end():
     s3.download_integration_test_input(
         s3_file_key="sample_r2.fastq.gz",
         output_file_path=input_two_file_path,
+    )
+
+    toolchest.kraken2(
+        read_one=input_one_file_path,
+        read_two=input_two_file_path,
+        output_path=output_file_path,
     )
 
     assert hash.unordered(output_file_path) == 0
