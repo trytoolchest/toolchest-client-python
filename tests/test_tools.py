@@ -59,4 +59,4 @@ def test_kraken2_paired_end():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == 1076645572
+    assert hash.unordered(output_file_path) == 1174140935
