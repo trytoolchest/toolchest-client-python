@@ -40,8 +40,8 @@ def test_kraken2_paired_end():
     """
     Tests Kraken 2 with paired-end inputs against the std (v1) DB
     """
-    input_one_file_path = "./kraken_input_read1.fastq"
-    input_two_file_path = "./kraken_input_read2.fastq"
+    input_one_file_path = "./kraken_input_read1.fastq.gz"
+    input_two_file_path = "./kraken_input_read2.fastq.gz"
     output_file_path = "./kraken_paired_output.txt"
 
     s3.download_integration_test_input(
