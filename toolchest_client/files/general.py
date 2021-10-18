@@ -1,6 +1,6 @@
 """
 toolchest_client.files.general
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 General file handling functions.
 """

@@ -1,6 +1,6 @@
 """
 toolchest_client.files.merge
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Functions for merging files
 """

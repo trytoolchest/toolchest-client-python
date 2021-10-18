@@ -1,6 +1,6 @@
 """
-toolchest_client.arg_whitelist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.tools.arg_whitelist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This contains a whitelist for custom tool_args that can currently be
 processed by Toolchest.

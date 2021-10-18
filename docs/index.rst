@@ -15,7 +15,7 @@ Using a tool in Toolchest is as simple as:
 
     >>> import toolchest_client as toolchest
     >>> toolchest.set_key("YOUR_TOOLCHEST_KEY")
-    >>> toolchest.cutadapt(
+    >>> toolchest.kraken2(
     ...     tool_args="YOUR_CUSTOM_TOOL_ARGS",
     ...     inputs="path/to/input",
     ...     output_path="path/to/output",
@@ -28,8 +28,11 @@ Tools
 
 Toolchest currently supports the following tools:
 
+* Bowtie2 (`bowtie2`)
 * Cutadapt (`cutadapt`)
 * Kraken2 (`kraken2`)
+* STAR (`STAR`)
+* Unicycler (`unicycler`)
 
 
 User Guide
