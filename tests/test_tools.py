@@ -1,7 +1,7 @@
+import os
 import pytest
 
-import os
-from tests.util import s3, hash
+from .util import s3, hash
 
 if os.environ.get("DEPLOY_ENVIRONMENT") == "staging":
     os.environ["BASE_URL"] = os.environ["TOOLCHEST_STAGING_URL"]
@@ -32,6 +32,33 @@ def test_kraken2_standard():
     )
 
     assert hash.unordered(output_file_path) == 886254946
+
+
+@pytest.mark.expensive_integration
+def test_kraken2_paired_end():
+    """
+    Tests Kraken 2 with paired-end inputs against the std (v1) DB
+    """
+    input_one_file_path = "./kraken_input_read1.fastq.gz"
+    input_two_file_path = "./kraken_input_read2.fastq.gz"
+    output_file_path = "./kraken_paired_output.txt"
+
+    s3.download_integration_test_input(
+        s3_file_key="sample_r1.fastq.gz",
+        output_file_path=input_one_file_path,
+    )
+    s3.download_integration_test_input(
+        s3_file_key="sample_r2.fastq.gz",
+        output_file_path=input_two_file_path,
+    )
+
+    toolchest.kraken2(
+        read_one=input_one_file_path,
+        read_two=input_two_file_path,
+        output_path=output_file_path,
+    )
+
+    assert hash.unordered(output_file_path) == 1174140935
 
 
 @pytest.mark.expensive_integration

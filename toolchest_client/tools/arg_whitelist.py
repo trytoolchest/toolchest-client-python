@@ -1,6 +1,6 @@
 """
-toolchest_client.arg_whitelist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.tools.arg_whitelist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This contains a whitelist for custom tool_args that can currently be
 processed by Toolchest.
@@ -156,6 +156,7 @@ ARGUMENT_WHITELIST = {
         "--gzip-compressed": 0,
         "--bzip2-compressed": 0,
         "--minimum-hit-groups": 1,
+        "--paired": 0,
     },
     # TODO: add STAR arguments to whitelist
     "STAR": {},

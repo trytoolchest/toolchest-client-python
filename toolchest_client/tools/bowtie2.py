@@ -1,6 +1,6 @@
 """
 toolchest_client.tools.bowtie2
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the bowtie2 implementation of the Tool class.
 """

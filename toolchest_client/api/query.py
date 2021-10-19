@@ -1,6 +1,6 @@
 """
-toolchest_client.query
-~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.api.query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
@@ -67,17 +67,8 @@ class Query():
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
 
-        # Retrieve and validate Toolchest auth key.
+        # Configure Toolchest auth key.
         self.HEADERS["Authorization"] = f"Key {get_key()}"
-        validation_response = requests.get(
-            self.BASE_URL,
-            headers=self.HEADERS,
-        )
-        try:
-            validation_response.raise_for_status()
-        except HTTPError:
-            print("Invalid Toolchest auth key. Please check the key value or contact Toolchest.", file=sys.stderr)
-            raise
 
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.

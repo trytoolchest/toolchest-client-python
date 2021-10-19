@@ -1,12 +1,12 @@
-import os
-import pathlib
-
 """
 toolchest_client.files.split
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Functions for splitting files
 """
+
+import os
+import pathlib
 
 
 # todo: better define working directory location
@@ -26,7 +26,7 @@ def open_new_output_file(
     if not os.path.exists(working_directory):
         os.mkdir(working_directory)
     current_output_file_path = f"{working_directory}/{filename_prefix}_{current_split_number}_{input_basename}"
-    return current_output_file_path, open(current_output_file_path, "w")
+    return current_output_file_path, open(current_output_file_path, "w", newline="\n")
 
 
 def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=4.5 * 1024 * 1024 * 1024):
