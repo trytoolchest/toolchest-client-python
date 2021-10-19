@@ -18,7 +18,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
-from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST
+from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
 
@@ -99,12 +99,22 @@ class Tool:
 
         processed_args = []
         following_args = 0
+        # process arguments individually
         for arg in self.tool_args.split():
             if following_args == 0:
+                # if no tag found, skip args until a tag is found
                 if arg in tool_dict:
                     processed_args.append(arg)
                     following_args = tool_dict[arg]
+            elif following_args == VARIABLE_ARGS:
+                # if previous tag has additional args (unknown/variable amount),
+                # append args until another tag is found
+                # TODO: filter out non-escaped bash command-line characters
+                processed_args.append(arg)
+                if arg in tool_dict:
+                    following_args = tool_dict[arg]
             else:
+                # append remaining args if previous tag has additional args
                 # TODO: filter out non-escaped bash command-line characters
                 processed_args.append(arg)
                 following_args -= 1
