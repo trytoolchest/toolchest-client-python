@@ -156,6 +156,7 @@ ARGUMENT_WHITELIST = {
         "--gzip-compressed": 0,
         "--bzip2-compressed": 0,
         "--minimum-hit-groups": 1,
+        "--paired": 0,
     },
     # TODO: add STAR arguments to whitelist
     "STAR": {},

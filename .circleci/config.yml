@@ -63,6 +63,7 @@ workflows:
               only:
                 - main
                 - staging
+                - feature/enable-kraken-paired-reads
   deploy:
     jobs:
       - deploy-to-pypi:
