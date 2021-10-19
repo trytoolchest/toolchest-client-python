@@ -116,24 +116,24 @@ def test_star_hg38():
     assert hash.unordered(output_file_path) == 1998634316
 
 
-@pytest.mark.expensive_integration
-def test_parallel_star_hg38():
-    """
-    Tests STAR against the hg38 database, with a large file
-    """
-    input_file_path = "./large.fastq"
-    output_file_path = "./parallel_star_output.sam"
-
-    s3.download_integration_test_input(
-        s3_file_key="large.fastq",
-        output_file_path=input_file_path,
-    )
-
-    toolchest.STAR(
-        read_one=input_file_path,
-        output_path=output_file_path,
-        database_name='GRCh38',
-    )
-
-    assert hash.unordered(output_file_path) == 141417110
+# @pytest.mark.expensive_integration
+# def test_parallel_star_hg38():
+#     """
+#     Tests STAR against the hg38 database, with a large file
+#     """
+#     input_file_path = "./large.fastq"
+#     output_file_path = "./parallel_star_output.sam"
+#
+#     s3.download_integration_test_input(
+#         s3_file_key="large.fastq",
+#         output_file_path=input_file_path,
+#     )
+#
+#     toolchest.STAR(
+#         read_one=input_file_path,
+#         output_path=output_file_path,
+#         database_name='GRCh38',
+#     )
+#
+#     assert hash.unordered(output_file_path) == 141417110
 
