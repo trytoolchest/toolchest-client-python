@@ -107,8 +107,10 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
 
     """
 
-    if read_one and read_two:
-        inputs = [read_one, read_two]
+    if read_one:
+        inputs = [read_one]
+    if read_two:
+        inputs.append(read_two)
 
     # Add --paired tag if paired reads are provided. Else, remove if present.
     tool_args_list = tool_args.split()
