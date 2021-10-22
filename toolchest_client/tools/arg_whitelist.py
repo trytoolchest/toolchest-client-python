@@ -1,6 +1,6 @@
 """
-toolchest_client.arg_whitelist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.tools.arg_whitelist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This contains a whitelist for custom tool_args that can currently be
 processed by Toolchest.
@@ -13,6 +13,8 @@ Note: Some tags (e.g., for inputs: "-1", "-2") are filtered out, but
 their functionalities are provided via other arguments (e.g.,
 user-provided inputs).
 """
+
+VARIABLE_ARGS = "variable"
 
 ARGUMENT_WHITELIST = {
     # See http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml for details.
@@ -156,9 +158,62 @@ ARGUMENT_WHITELIST = {
         "--gzip-compressed": 0,
         "--bzip2-compressed": 0,
         "--minimum-hit-groups": 1,
+        "--paired": 0,
     },
     # TODO: add STAR arguments to whitelist
-    "STAR": {},
+    "STAR": {
+        "--outFilterType": 1,
+        "--outFilterMultimapNmax": 1,
+        "--outFilterMismatchNmax": 1,
+        "--outFilterMismatchNoverReadLmax": 1,
+        "--alignIntronMin": 1,
+        "--alignIntronMax": 1,
+        "--alignMatesGapMax": 1,
+        "--alignSJoverhangMin": 1,
+        "--alignSJstitchMismatchNmax": 1,
+        "--alignSJDBoverhangMin": 1,
+        "--alignSplicedMateMapLmin": 1,
+        "--alignSplicedMateMapLminOverLmate": 1,
+        "--alignWindowsPerReadNmax": 1,
+        "--alignTranscriptsPerWindowNmax": 1,
+        "--alignTranscriptsPerReadNmax": 1,
+        "--alignEndsType": 1,
+        "--alignEndsProtrude": 1,
+        "--alignSoftClipAtReferenceEnds": 1,
+        "--alignInsertionFlush": 1,
+        "--runRNGseed": 1,
+        "--readFilesType": 1,
+        "--readMapNumber": 1,
+        "--readMatesLengthsIn": 1,
+        "--readStrand": 1,
+        "--scoreGap": 1,
+        "--scoreGapNoncan": 1,
+        "--scoreGapGCAG": 1,
+        "--scoreGapATAC": 1,
+        "--scoreGenomicLengthLog2scale": 1,
+        "--scoreDelOpen": 1,
+        "--scoreDelBase": 1,
+        "--scoreInsOpen": 1,
+        "--scoreInsBase": 1,
+        "--scoreStitchSJshift": 1,
+        "--seedSearchStartLmax": 1,
+        "--seedSearchStartLmaxOverLread": 1,
+        "--seedSearchLmax": 1,
+        "--seedMultimapNmax": 1,
+        "--seedPerReadNmax": 1,
+        "--seedPerWindowNmax": 1,
+        "--seedNoneLociPerWindow": 1,
+        "--seedSplitMin": 1,
+        "--winAnchorMultimapNmax": 1,
+        "--winBinNbits": 1,
+        "--winAnchorDistNbins": 1,
+        "--winFlankNbins": 1,
+        "--winReadCoverageRelativeMin": 1,
+        "--winReadCoverageBasesMin": 1,
+        "--quantMode": VARIABLE_ARGS,
+        "--quantTranscriptomeBAMcompression": 1,
+        "--quantTranscriptomeBan": 1,
+    },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
     # See https://github.com/rrwick/Unicycler#options-and-usage for details.

@@ -1,6 +1,6 @@
 """
-toolchest_client.exceptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.api.exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains custom exceptions used for the Toolchest client.
 """

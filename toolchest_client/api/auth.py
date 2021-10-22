@@ -1,6 +1,6 @@
 """
-toolchest_client.auth
-~~~~~~~~~~~~~~~~~~~~~
+toolchest_client.api.auth
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This module contains functions for configuring the Toolchest API key.
 
