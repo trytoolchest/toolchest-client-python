@@ -160,6 +160,7 @@ ARGUMENT_WHITELIST = {
         "--minimum-hit-groups": 1,
         "--paired": 0,
     },
+    "shi7": {}, # todo: add shi7 args
     # TODO: add STAR arguments to whitelist
     "STAR": {
         "--outFilterType": 1,
