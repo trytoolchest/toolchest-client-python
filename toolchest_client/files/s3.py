@@ -23,7 +23,7 @@ def assert_accessible_s3(uri):
 
     arn = convert_s3_uri_to_arn(uri)
     response = requests.get(
-        BASE_URL,
+        BASE_URL + "/validate-s3-input/",
         headers=HEADERS,
         json={"s3_arn": arn},
     )
