@@ -7,6 +7,8 @@ General file handling functions.
 
 import os
 
+from s3 import assert_accessible_s3
+
 
 def assert_exists(path, must_be_file=False):
     """Raises an error if a path does not exist.
@@ -52,10 +54,17 @@ def files_in_path(files):
             more_files.extend(files_in_path(sub_path))
         return more_files
 
+    # If it's an S3 URI, treat it as a file
+    # Check if it is accessible from a worker node
+    S3_PREFIX = "s3://"
+    if files.startswith(S3_PREFIX):
+        assert_accessible_s3(files)
+        return [files]
+
     # If it's a path to something that doesn't exist, error
     assert_exists(files, must_be_file=False)
 
-    # If it's a path is to a single file, return a list containing just the path to that file
+    # If it's a path to a single file, return a list containing just the path to that file
     if os.path.isfile(files):
         return [files]
 

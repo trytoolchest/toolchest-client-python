@@ -57,6 +57,13 @@ class Tool:
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
 
+        # If path is an S3 URI, check to see if it has permissions.
+        S3_PREFIX = "s3://"
+        is_s3 = []
+        for input in self.inputs:
+            if input.startswith(S3_PREFIX):
+                is_s3
+
         self.input_files = files_in_path(self.inputs)
         self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
