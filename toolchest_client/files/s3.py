@@ -25,7 +25,7 @@ def assert_accessible_s3(uri):
     response = requests.post(
         f"{BASE_URL}/validate-s3-input/",
         headers=HEADERS,
-        json={"arn":arn},
+        json={"arn": arn},
     )
     try:
         response.raise_for_status()
