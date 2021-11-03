@@ -22,9 +22,10 @@ def assert_accessible_s3(uri):
     HEADERS = {"Authorization": f"Key {get_key()}"}
 
     arn = convert_s3_uri_to_arn(uri)
-    response = requests.get(
-        f"{BASE_URL}/validate-s3-input/{arn}",
+    response = requests.post(
+        f"{BASE_URL}/validate-s3-input/",
         headers=HEADERS,
+        json={"arn":arn},
     )
     try:
         response.raise_for_status()
@@ -36,4 +37,6 @@ def assert_accessible_s3(uri):
 
 def convert_s3_uri_to_arn(uri):
     # TODO: this
-    return uri
+    arn = uri
+
+    return arn
