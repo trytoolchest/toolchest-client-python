@@ -154,7 +154,7 @@ def shi7(inputs, output_path, tool_args=""):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='output.txt',  # todo: add actual outputs
+        output_name='combined_seqs.fna',
         inputs=inputs,
         output_path=output_path,
     )
