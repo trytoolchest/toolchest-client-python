@@ -83,7 +83,7 @@ def test_shi7_single_end():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == 483542209
+    assert hash.unordered(output_file_path) == 1570879637
 
 @pytest.mark.integration
 def test_shi7_paired_end():
