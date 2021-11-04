@@ -214,6 +214,16 @@ ARGUMENT_WHITELIST = {
         "--quantTranscriptomeBAMcompression": 1,
         "--quantTranscriptomeBan": 1,
     },
+    "shogun_align": {
+        "-a": 1,
+        "--aligner": 1,
+    },
+    "shogun_filter": {
+        "-p": 1,
+        "--percent-id": 1,
+        "-a": 1,
+        "--alignment": 1,
+    },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},
     # See https://github.com/rrwick/Unicycler#options-and-usage for details.
