@@ -88,4 +88,4 @@ def test_shi7_paired_end():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == 1076645572
+    assert hash.unordered(output_file_path) == 483542209
