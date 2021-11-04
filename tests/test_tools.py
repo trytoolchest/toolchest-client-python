@@ -60,3 +60,32 @@ def test_kraken2_paired_end():
     )
 
     assert hash.unordered(output_file_path) == 1076645572
+
+
+@pytest.mark.integration_a
+def test_shi7_paired_end():
+    """
+    Tests shi7 with paired-end inputs
+    """
+
+    test_input_dir = "shi7_test_input"
+    os.makedirs(f"./{test_input_dir}", exist_ok=True)
+    input_one_file_path = f"./{test_input_dir}/shi7_input_R1.fastq.gz"
+    input_two_file_path = f"./{test_input_dir}/shi7_input_R2.fastq.gz"
+    output_file_path = "./combined_seqs.fna"
+
+    s3.download_integration_test_input(
+        s3_file_key="sample_r1.fastq.gz",
+        output_file_path=input_one_file_path,
+    )
+    s3.download_integration_test_input(
+        s3_file_key="sample_r2.fastq.gz",
+        output_file_path=input_two_file_path,
+    )
+
+    toolchest.shi7(
+        inputs=f"./{test_input_dir}",
+        output_path=output_file_path,
+    )
+
+    assert hash.unordered(output_file_path) == 1076645572
