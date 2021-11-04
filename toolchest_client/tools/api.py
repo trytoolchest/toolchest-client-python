@@ -135,11 +135,11 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     instance.run()
 
 
-def shogun_align(inputs, output_path, database_name, database_version="1", tool_args=""):
+def shogun_align(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: Name of database to use for Shogun alignment.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -168,11 +168,11 @@ def shogun_align(inputs, output_path, database_name, database_version="1", tool_
     instance.run()
 
 
-def shogun_filter(inputs, output_path, database_name, database_version="1", tool_args=""):
+def shogun_filter(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: Name of database to use for Shogun alignment.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -192,7 +192,7 @@ def shogun_filter(inputs, output_path, database_name, database_version="1", tool
 
     instance = ShogunFilter(
         tool_args=tool_args,
-        output_name='output.txt',  # TODO: add actual outputs
+    output_name='output.txt',  # TODO: add actual outputs
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
