@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Shi7, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
@@ -109,8 +109,8 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
 
     if read_one:
         inputs = [read_one]
-    if read_two:
-        inputs.append(read_two)
+        if read_two:
+            inputs.append(read_two)
 
     # Add --paired tag if paired reads are provided. Else, remove if present.
     tool_args_list = tool_args.split()
@@ -131,6 +131,32 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,        
+    )
+    instance.run()
+
+
+def shi7(inputs, output_path, tool_args=""):
+    """Runs shi7 via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to shi7.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shi7(
+        ...     inputs="./path/to/fastq/",
+        ...     output_path="./path/to/output.txt", # todo: fix for multiple output files
+        ... )
+
+    """
+
+    instance = Shi7(
+        tool_args=tool_args,
+        output_name='combined_seqs.fna',
+        inputs=inputs,
+        output_path=output_path,
     )
     instance.run()
 
