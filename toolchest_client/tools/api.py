@@ -136,7 +136,7 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
 
 
 def shi7(inputs, output_path, tool_args=""):
-    """Runs shi7 via Toolchest.."
+    """Runs shi7 via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to shi7.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
