@@ -24,7 +24,7 @@ class Shi7(Tool):
             max_inputs=10,  # artificially constrained at 10 for now
             parallel_enabled=True,
             group_paired_ends=True,
-            max_input_bytes_per_node=3 * 1024 * 1024 * 1024,
+            max_input_bytes_per_node=1.5 * 1024 * 1024 * 1024,
         )
 
     def _merge_outputs(self, output_file_paths):
