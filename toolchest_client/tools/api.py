@@ -5,15 +5,15 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Shi7, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
-def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
+def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=""):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
     :param database_name: Name of database to use for Bowtie 2 alignment.
-    :param database_version: Version of database to use for Bowtie 2 alignment.
+    :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
@@ -130,7 +130,7 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version,        
+        database_version=database_version,
     )
     instance.run()
 
@@ -157,6 +157,72 @@ def shi7(inputs, output_path, tool_args=""):
         output_name='combined_seqs.fna',
         inputs=inputs,
         output_path=output_path,
+    )
+    instance.run()
+
+
+def shogun_align(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+    """Runs Shogun (for alignment) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to Shogun.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_version: (optional) Version of database to use for Shogun alignment.
+    :type database_version: str
+    :param inputs: Path to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shogun_align(
+        ...     database_name="DB_name",
+        ...     database_version="version_number",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = ShogunAlign(
+        tool_args=tool_args,
+        output_name='output.txt',  # TODO: add actual outputs
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version
+    )
+    instance.run()
+
+
+def shogun_filter(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+    """Runs Shogun (for filtering human genome content) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to Shogun.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_version: (optional) Version of database to use for Shogun alignment.
+    :type database_version: str
+    :param inputs: Path to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shogun_filter(
+        ...     database_name="DB_name",
+        ...     database_version="version_number",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = ShogunFilter(
+        tool_args=tool_args,
+    output_name='output.txt',  # TODO: add actual outputs
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version
     )
     instance.run()
 
