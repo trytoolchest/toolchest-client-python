@@ -125,7 +125,7 @@ def test_shi7_paired_end():
     assert hash.unordered(output_file_path) != SHI7_SINGLE_END_HASH
 
 
-@pytest.mark.integration_a
+@pytest.mark.integration
 def test_shogun_filter_and_align():
     """
     Tests shogun (filter and align for simplicity) with a single R1 input
