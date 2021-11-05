@@ -148,7 +148,7 @@ def test_shogun_filter_and_align():
         output_path=output_file_path_filter,
     )
 
-    assert hash.unordered(output_file_path_filter) == 123
+    assert hash.unordered(output_file_path_filter) == 510167908
 
     toolchest.shogun_align(
         tool_args="",
@@ -157,6 +157,3 @@ def test_shogun_filter_and_align():
     )
 
     assert hash.unordered(output_file_path_align) == 123
-
-    print(output_file_path_filter)
-    print(output_file_path_align)
