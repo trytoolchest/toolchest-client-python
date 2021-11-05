@@ -17,7 +17,8 @@ from toolchest_client.api.auth import _validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
+    split_paired_files_by_lines
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
@@ -28,7 +29,8 @@ class Tool:
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
-                 max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES):
+                 max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
+                 group_paired_ends = False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -47,6 +49,7 @@ class Tool:
         self.database_name = database_name
         self.database_version = database_version
         self.parallel_enabled = parallel_enabled
+        self.group_paired_ends = group_paired_ends
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
@@ -226,14 +229,25 @@ class Tool:
         """
 
         if should_run_in_parallel:
-            adjusted_input_file_paths = split_file_by_lines(
-                input_file_path=self.input_files[0],
-                max_bytes=self.max_input_bytes_per_node,
-            )
-            for file_path in adjusted_input_file_paths:
-                # This is assuming only one input file per parallel run.
-                # This will need to be changed once we support multiple input files for parallelization.
-                yield [file_path]
+            if not self.group_paired_ends:
+                # Arbitrary parallelization – assume only one input file which is to be split
+                adjusted_input_file_paths = split_file_by_lines(
+                    input_file_path=self.input_files[0],
+                    max_bytes=self.max_input_bytes_per_node,
+                )
+                for _, file_path in adjusted_input_file_paths:
+                    # This is assuming only one input file per parallel run.
+                    # This will need to be changed once we support multiple input files for parallelization.
+                    yield [file_path]
+            else:
+                # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
+                input_file_paths_pairs = split_paired_files_by_lines(
+                    input_file_paths=self.input_files,
+                    max_bytes=self.max_input_bytes_per_node,
+                )
+                for input_file_path_pair in input_file_paths_pairs:
+                    yield input_file_path_pair
+
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
             for file_path in self.input_files:
@@ -256,7 +270,7 @@ class Tool:
         print(f"Found {self.num_input_files} files to upload.")
 
         should_run_in_parallel = self.parallel_enabled \
-            and self.num_input_files == 1 \
+            and self.group_paired_ends or self.num_input_files == 1 \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
             and self._system_supports_parallel_execution()
 

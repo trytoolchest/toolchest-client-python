@@ -1,0 +1,8 @@
+@test.fastq.1 BOGUS length=121
+ACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGNACTGTTCGATGN
++test.fastq.1 BOGUS length=121
+=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<<
+@test.fastq.2 BOGUS length=121
+TGTTCGATGNACTGTTCGATTGTTCGATGNACTGTTCGATTGTTCGATGNACTGTTCGATTGTTCGATGNACTGTTCGATTGTTCGATGNACTGTTCGATTGTTCGATGNACTGTTCGAT
++test.fastq.2 BOGUS length=121
+=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<=<<=====<=<==<<
