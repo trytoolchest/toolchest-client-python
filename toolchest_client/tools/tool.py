@@ -80,12 +80,11 @@ class Tool:
             raise ValueError("No input provided.")
         if self.output_path is None:
             raise ValueError("No output path provided.")
-        try:
-            with open(self.output_path, "a") as _:
-                pass
-        except OSError:
+        if not os.access(
+                os.path.dirname(self.output_path),
+                os.W_OK | os.X_OK,
+        ):
             raise OSError("Output file path must be writable.")
-
         if not self.output_name:
             raise ValueError("output name must be non-empty.")
 
