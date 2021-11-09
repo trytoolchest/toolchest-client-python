@@ -5,10 +5,11 @@ toolchest_client.files.general
 General file handling functions.
 """
 
+import shutil
 import os
 
 
-def assert_exists(path, must_be_file=False):
+def assert_exists(path, must_be_file=False, must_be_directory=False):
     """Raises an error if a path does not exist.
     Optionally, confirms that a path is to a file.
 
@@ -16,11 +17,15 @@ def assert_exists(path, must_be_file=False):
     :type path: string
     :param must_be_file: Whether the path must be to a file.
     :type must_be_file: bool
+    :param must_be_directory: Whether the path must be to a directory.
+    :type must_be_directory: bool
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"No file or directory found at {path}")
     if must_be_file and not os.path.isfile(path):
         raise ValueError(f"Directory entry at {path} is not a file")
+    if must_be_directory and not os.path.isdir(path):
+        raise ValueError(f"Directory entry at {path} is not a directory")
 
 
 def check_file_size(file_path, max_size_bytes=None):
@@ -67,6 +72,25 @@ def files_in_path(files):
         more_files.extend(files_in_path(abs_sub_path))
 
     return more_files
+
+
+def compress_files_in_path(file_path):
+    """Returns a tarred and compressed file containing the contents of a directory.
+
+    WARNING: this is NOT thread-safe, as shutil.make_archive is not thread safe.
+
+    :param file_path: A string to a directory.
+    """
+    assert_exists(file_path, must_be_directory=True)
+    temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"
+
+    zip_location = shutil.make_archive(
+        base_name=f"{temp_directory}/{os.path.basename(file_path)}",
+        format="gztar",
+        root_dir=file_path,
+    )
+
+    return zip_location
 
 
 def sanity_check(file_path):

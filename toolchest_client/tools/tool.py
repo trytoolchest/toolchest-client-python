@@ -18,7 +18,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines
+    split_paired_files_by_lines, compress_files_in_path
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
@@ -30,7 +30,7 @@ class Tool:
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
-                 group_paired_ends = False):
+                 group_paired_ends=False, compress_inputs=True):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -50,6 +50,7 @@ class Tool:
         self.database_version = database_version
         self.parallel_enabled = parallel_enabled
         self.group_paired_ends = group_paired_ends
+        self.compress_inputs = compress_inputs
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
@@ -57,11 +58,17 @@ class Tool:
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
-    def _validate_inputs(self):
+    def _validate_and_prepare_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
+        if self.compress_inputs:
+            # Input files are all .tar.gz'd together, preserving directory structure
+            self.input_files = compress_files_in_path(self.inputs)
+            self.num_input_files = 1
+        else:
+            # Input files are handled individually, destroying directory structure
+            self.input_files = files_in_path(self.inputs)
+            self.num_input_files = len(self.input_files)
 
-        self.input_files = files_in_path(self.inputs)
-        self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
@@ -69,7 +76,7 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
-    def _validate_args(self):
+    def _validate_and_prepare(self):
         """Validates args set by tools."""
 
         if self.inputs is None:
@@ -85,7 +92,7 @@ class Tool:
             raise ValueError("output name must be non-empty.")
 
         # Perform a deeper input validation
-        self._validate_inputs()
+        self._validate_and_prepare_inputs()
 
         # Perform a deeper tool_args validation
         self._validate_tool_args()
@@ -265,7 +272,7 @@ class Tool:
         _validate_key()
 
         # todo: better propagate and handle errors for parallel runs
-        self._validate_args()
+        self._validate_and_prepare()
 
         print(f"Found {self.num_input_files} files to upload.")
 

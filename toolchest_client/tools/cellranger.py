@@ -21,4 +21,5 @@ class CellRangerMkfastq(Tool):
             inputs=inputs,
             min_inputs=1,
             max_inputs=1,
+            compress_inputs=True,
         )
