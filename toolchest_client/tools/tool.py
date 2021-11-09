@@ -30,7 +30,7 @@ class Tool:
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
-                 group_paired_ends=False, compress_inputs=True):
+                 group_paired_ends=False, compress_inputs=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
