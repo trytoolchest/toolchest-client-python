@@ -21,11 +21,11 @@ def assert_accessible_s3(uri):
     BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
     HEADERS = {"Authorization": f"Key {get_key()}"}
 
-    arn = convert_s3_uri_to_arn(uri)
+    params = get_params_from_s3_uri(uri)
     response = requests.post(
         f"{BASE_URL}/validate-s3-input/",
         headers=HEADERS,
-        json={"arn": arn},
+        json=params,
     )
     try:
         response.raise_for_status()
@@ -35,8 +35,28 @@ def assert_accessible_s3(uri):
         raise ToolchestS3AccessError(error_message) from None
 
 
-def convert_s3_uri_to_arn(uri):
-    # TODO: this
-    arn = uri
+def get_params_from_s3_uri(uri):
+    """Gets the bucket name, key name/path, and ARN of an S3 object from an S3 URI.
+    Returns this info in a dict.
 
-    return arn
+    .. note: Assumes S3 bucket is located in a generic AWS region,
+      as opposed to China (`aws-cn`) or GovCloud (`aws-us-gov`).
+
+    :param uri: An S3 URI.
+    """
+
+    # Index of S3 bucket name in the URI (when split by slashes).
+    S3_BUCKET_INDEX = 2
+    uri_split = uri.split(sep="/")
+
+    arn = "arn:aws:s3:::" + "/".join(uri_split[S3_BUCKET_INDEX:])
+    bucket = uri_split[S3_BUCKET_INDEX]
+    key = "/".join(uri_split[S3_BUCKET_INDEX+1:])
+
+    params = {
+        "arn": arn,
+        "bucket": bucket,
+        "key": key,
+    }
+
+    return params
