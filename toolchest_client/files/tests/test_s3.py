@@ -14,6 +14,7 @@ def test_s3_params():
 
     assert params == target_params
 
+
 @pytest.mark.integration
 def test_public_s3_file():
     public_s3_uri = "s3://toolchest-public-examples/example.fastq"
