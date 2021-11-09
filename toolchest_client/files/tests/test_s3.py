@@ -1,4 +1,6 @@
-from .. import get_params_from_s3_uri
+import pytest
+
+from .. import assert_accessible_s3, get_params_from_s3_uri
 
 
 def test_s3_params():
@@ -11,3 +13,9 @@ def test_s3_params():
     }
 
     assert params == target_params
+
+@pytest.mark.integration
+def test_public_s3_file():
+    public_s3_uri = "s3://toolchest-public-examples/example.fastq"
+    with pytest.raises(ValueError):
+        assert_accessible_s3(public_s3_uri)
