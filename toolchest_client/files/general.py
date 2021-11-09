@@ -7,7 +7,7 @@ General file handling functions.
 
 import os
 
-from s3 import assert_accessible_s3
+from .s3 import assert_accessible_s3
 
 
 def assert_exists(path, must_be_file=False):
