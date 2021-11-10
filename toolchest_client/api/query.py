@@ -153,6 +153,7 @@ class Query():
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
                 "is_s3": file_is_in_s3,
+                "s3_uri": input_file_path if file_is_in_s3 else "",
             },
         )
         try:
