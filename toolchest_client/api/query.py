@@ -137,7 +137,9 @@ class Query():
 
         return create_response
 
-    def _add_input_file(self, input_file_path, input_prefix):
+    # Note: file_is_in_s3 is False by default for backwards compatibility.
+    # TODO: Deprecate this after confirming it doesn't affect the API.
+    def _add_input_file(self, input_file_path, input_prefix, file_is_in_s3=False):
         add_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_URL,
             'input-files'
@@ -150,6 +152,7 @@ class Query():
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
+                "is_s3": file_is_in_s3,
             },
         )
         try:
@@ -157,7 +160,9 @@ class Query():
         except HTTPError:
             print(f"Failed to upload file at {input_file_path}", file=sys.stderr)
             raise
-        return response.json().get("input_file_upload_location")
+
+        if not file_is_in_s3:
+            return response.json().get("input_file_upload_location")
 
     def _upload(self, input_file_paths, input_prefix_mapping, inputs_are_in_s3):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
@@ -166,11 +171,19 @@ class Query():
 
         for file_path, file_is_in_s3 in zip(input_file_paths, inputs_are_in_s3):
             # If the file is already in S3, there is no need to upload.
-            if not file_is_in_s3:
+            if file_is_in_s3:
+                # Registers the file in the internal DB.
+                self._add_input_file(
+                    input_file_path=file_path,
+                    input_prefix=input_prefix_mapping.get(file_path),
+                    file_is_in_s3=file_is_in_s3,
+                )
+            else:
                 print(f"Uploading {file_path}")
                 upload_url = self._add_input_file(
                     input_file_path=file_path,
-                    input_prefix=input_prefix_mapping.get(file_path)
+                    input_prefix=input_prefix_mapping.get(file_path),
+                    file_is_in_s3=file_is_in_s3,
                 )
 
                 upload_response = requests.put(
