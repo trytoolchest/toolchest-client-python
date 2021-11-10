@@ -4,6 +4,9 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
+import os
+import sys
+
 import requests
 from requests.exceptions import HTTPError
 
