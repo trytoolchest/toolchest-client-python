@@ -41,6 +41,7 @@ class Tool:
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
+        self.inputs_are_in_s3 = []
         self.num_input_files = None
         self.min_inputs = min_inputs
         self.max_inputs = max_inputs
@@ -57,14 +58,13 @@ class Tool:
     def _validate_inputs(self):
         """Validates the input files. Currently only validates the number of inputs."""
 
-        # If path is an S3 URI, check to see if it has permissions.
-        S3_PREFIX = "s3://"
-        is_s3 = []
-        for input in self.inputs:
-            if input.startswith(S3_PREFIX):
-                is_s3
-
+        # Sanitize valid paths and list all files in self.inputs.
         self.input_files = files_in_path(self.inputs)
+
+        # Note which files are S3 URIs.
+        S3_PREFIX = "s3://"
+        self.inputs_are_in_s3 = [file_path.startswith(S3_PREFIX) for file_path in self.input_files]
+
         self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
@@ -237,18 +237,21 @@ class Tool:
                 input_file_path=self.input_files[0],
                 max_bytes=self.max_input_bytes_per_node,
             )
+            PARALLEL_FILE_IS_IN_S3 = False  # S3 files are currently not parallelized.
             for file_path in adjusted_input_file_paths:
                 # This is assuming only one input file per parallel run.
                 # This will need to be changed once we support multiple input files for parallelization.
-                yield [file_path]
+                yield [file_path, PARALLEL_FILE_IS_IN_S3]
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
-            for file_path in self.input_files:
-                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
+            for file_path, file_is_in_s3 in zip(self.input_files, self.inputs_are_in_s3):
+                if not file_is_in_s3:
+                    check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
+                # If the file is already in S3, no need to check max size.
             # Note that for a tool like Unicycler, this would look like:
             # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
             # As there are multiple input files required for the job
-            yield self.input_files
+            yield self.input_files, self.inputs_are_in_s3
 
     def run(self):
         """Constructs and runs a Toolchest query."""
@@ -265,7 +268,8 @@ class Tool:
         should_run_in_parallel = self.parallel_enabled \
             and self.num_input_files == 1 \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
-            and self._system_supports_parallel_execution()
+            and self._system_supports_parallel_execution() \
+            and not any(self.inputs_are_in_s3)  # if any S3 input is present, disable parallelization
 
         jobs = self._generate_jobs(should_run_in_parallel)
 
@@ -273,7 +277,7 @@ class Tool:
         # Note that this is relying on a result from the generator, so these are slightly staggered
         temp_input_file_paths = []
         temp_output_file_paths = []
-        for index, input_files in enumerate(jobs):
+        for index, (input_files, inputs_are_in_s3) in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             temp_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
@@ -290,6 +294,7 @@ class Tool:
                 "database_version": self.database_version,
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
+                "inputs_are_in_s3": inputs_are_in_s3,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
             })
