@@ -58,8 +58,8 @@ class Tool:
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
-    def _validate_and_prepare_inputs(self):
-        """Validates the input files. Currently only validates the number of inputs."""
+    def _prepare_inputs(self):
+        """Prepares the input files."""
         if self.compress_inputs:
             # Input files are all .tar.gz'd together, preserving directory structure
             self.input_files = compress_files_in_path(self.inputs)
@@ -76,7 +76,7 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
-    def _validate_and_prepare(self):
+    def _validate_args(self):
         """Validates args set by tools."""
 
         if self.inputs is None:
@@ -90,9 +90,6 @@ class Tool:
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("output name must be non-empty.")
-
-        # Perform a deeper input validation
-        self._validate_and_prepare_inputs()
 
         # Perform a deeper tool_args validation
         self._validate_tool_args()
@@ -272,7 +269,9 @@ class Tool:
         _validate_key()
 
         # todo: better propagate and handle errors for parallel runs
-        self._validate_and_prepare()
+        self._validate_args()
+        # Prepare input files (expand paths, compress, etc)
+        self._prepare_inputs()
 
         print(f"Found {self.num_input_files} files to upload.")
 

@@ -4,7 +4,7 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
-
+from toolchest_client.files import assert_exists
 from toolchest_client.tools import Kraken2, CellRangerMkfastq, Cutadapt, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
@@ -41,13 +41,12 @@ def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=
     instance.run()
 
 
-def cellranger_mkfastq(inputs, output_path, tool_args):
+def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args):
     """Runs Cell Ranger's mkfastq command via Toolchest.
-
-    (todo: actually support input compression, etc.)
 
     :param inputs: Path (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
+    :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
     Usage::
@@ -55,11 +54,16 @@ def cellranger_mkfastq(inputs, output_path, tool_args):
         >>> import toolchest_client as toolchest
         >>> toolchest.cellranger_mkfastq(
         ...     tool_args="todo: add arg",
+        ...     samplesheet_name="sample_sheet.csv",
         ...     inputs="./path/to/input",
         ...     output_path="./path/to/output",
         ... )
 
     """
+
+    # Add --samplesheet arg
+    assert_exists(f"{inputs}/{samplesheet_name}")
+    tool_args = f"--samplesheet={samplesheet_name}" + tool_args
 
     instance = CellRangerMkfastq(
         tool_args=tool_args,

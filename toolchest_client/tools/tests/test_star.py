@@ -18,7 +18,7 @@ def test_star_variable_arg_parsing_single():
         database_name="test",
         database_version="0.1.0",
     )
-    star_instance._validate_and_prepare()
+    star_instance._validate_args()
 
     assert star_instance.tool_args == "--quantMode GeneCounts --scoreGap 1"
 
@@ -36,6 +36,6 @@ def test_star_variable_arg_parsing_multiple():
         database_name="test",
         database_version="0.1.0",
     )
-    star_instance._validate_and_prepare()
+    star_instance._validate_args()
 
     assert star_instance.tool_args == "--quantMode TranscriptomeSAM GeneCounts --scoreGap 1"
