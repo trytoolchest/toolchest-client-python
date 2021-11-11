@@ -41,7 +41,7 @@ def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=
     instance.run()
 
 
-def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args):
+def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args=""):
     """Runs Cell Ranger's mkfastq command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
@@ -53,21 +53,21 @@ def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args):
 
         >>> import toolchest_client as toolchest
         >>> toolchest.cellranger_mkfastq(
-        ...     tool_args="todo: add arg",
+        ...     tool_args="",
         ...     samplesheet_name="sample_sheet.csv",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output",
+        ...     output_path="./path/to/output.tar.gz",
         ... )
 
     """
 
     # Add --samplesheet arg
     assert_exists(f"{inputs}/{samplesheet_name}")
-    tool_args = f"--samplesheet={samplesheet_name}" + tool_args
+    tool_args = f"--samplesheet={samplesheet_name} " + tool_args
 
     instance = CellRangerMkfastq(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name='output',
         inputs=inputs,
         output_path=output_path,
     )

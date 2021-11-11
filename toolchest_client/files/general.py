@@ -84,7 +84,7 @@ def compress_files_in_path(file_path):
     assert_exists(file_path, must_be_directory=True)
     temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"
 
-    print(f"Creating an archive of all files in {file_path}")
+    print(f"Creating an archive of all files in {file_path}...")
     zip_location = shutil.make_archive(
         base_name=f"{temp_directory}/{os.path.basename(file_path)}",
         format="gztar",
