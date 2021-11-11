@@ -10,14 +10,10 @@ import pathlib
 import re
 
 
-# todo: better define working directory location
-import sys
-
-
 def open_new_output_file(
         current_split_number,
         input_basename,
-        working_directory="./temp_toolchest",
+        working_directory=os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest",
         filename_prefix="input_split"
 ):
     """Opens a new file for parallelization.
