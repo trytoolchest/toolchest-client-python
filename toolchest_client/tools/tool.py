@@ -8,6 +8,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 import copy
 import datetime
 import os
+import re
 import signal
 import sys
 from threading import Thread
@@ -17,7 +18,8 @@ from toolchest_client.api.auth import _validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
+    split_paired_files_by_lines, compress_files_in_path
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
@@ -28,7 +30,8 @@ class Tool:
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
-                 max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES):
+                 max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
+                 group_paired_ends=False, compress_inputs=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -47,6 +50,8 @@ class Tool:
         self.database_name = database_name
         self.database_version = database_version
         self.parallel_enabled = parallel_enabled
+        self.group_paired_ends = group_paired_ends
+        self.compress_inputs = compress_inputs
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
@@ -54,11 +59,17 @@ class Tool:
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
-    def _validate_inputs(self):
-        """Validates the input files. Currently only validates the number of inputs."""
+    def _prepare_inputs(self):
+        """Prepares the input files."""
+        if self.compress_inputs:
+            # Input files are all .tar.gz'd together, preserving directory structure
+            self.input_files = [compress_files_in_path(self.inputs)]
+            self.num_input_files = 1
+        else:
+            # Input files are handled individually, destroying directory structure
+            self.input_files = files_in_path(self.inputs)
+            self.num_input_files = len(self.input_files)
 
-        self.input_files = files_in_path(self.inputs)
-        self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
@@ -81,48 +92,52 @@ class Tool:
         if not self.output_name:
             raise ValueError("output name must be non-empty.")
 
-        # Perform a deeper input validation
-        self._validate_inputs()
-
         # Perform a deeper tool_args validation
         self._validate_tool_args()
 
     def _validate_tool_args(self):
         """Validates and sanitizes user-provided custom tool_args.
 
-        Currently, this is processed as an argument whitelist: argument tags
+        Currently, this is processed as an argument whitelist; argument tags
         are kept only if they appear as an accepted tag.
         """
 
-        tool_dict = ARGUMENT_WHITELIST[self.tool_name]
+        tool_arg_whitelist = ARGUMENT_WHITELIST[self.tool_name]
 
-        processed_args = []
-        following_args = 0
+        sanitized_args_list = []
+        num_args_remaining_after_tag = 0
+
         # process arguments individually
         for arg in self.tool_args.split():
-            if following_args == 0:
-                # if no tag found, skip args until a tag is found
-                if arg in tool_dict:
-                    processed_args.append(arg)
-                    following_args = tool_dict[arg]
-            elif following_args == VARIABLE_ARGS:
+            # the minimal_tag for "--arg=a" is "--arg"
+            # this allows matching args assigned via an "=" to match on the whitelist
+            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", rf"\1", arg)
+            tag_in_whitelist = minimal_tag in tool_arg_whitelist
+            if num_args_remaining_after_tag == 0 and tag_in_whitelist:
+                # if the arg is a tag in the whitelist, add it
+                sanitized_args_list.append(arg)
+                num_args_remaining_after_tag = tool_arg_whitelist[minimal_tag]
+            elif num_args_remaining_after_tag == VARIABLE_ARGS:
                 # if previous tag has additional args (unknown/variable amount),
                 # append args until another tag is found
                 # TODO: filter out non-escaped bash command-line characters
-                processed_args.append(arg)
-                if arg in tool_dict:
-                    following_args = tool_dict[arg]
-            else:
+                # TODO: handle variable arguments better; this allows passing of undesired args
+                sanitized_args_list.append(arg)
+                if tag_in_whitelist:
+                    num_args_remaining_after_tag = tool_arg_whitelist[minimal_tag]
+            elif num_args_remaining_after_tag > 0:
                 # append remaining args if previous tag has additional args
                 # TODO: filter out non-escaped bash command-line characters
-                processed_args.append(arg)
-                following_args -= 1
+                sanitized_args_list.append(arg)
+                num_args_remaining_after_tag -= 1
+            # if no tag found, skip args until a tag is found
 
-        sanitized_args = " ".join(processed_args)
+        sanitized_args = " ".join(sanitized_args_list)
         if sanitized_args != self.tool_args:
             self.tool_args = sanitized_args
-            print("Processing tool_args as:")
-            print(f"\t{self.tool_args}")
+        print("Processing tool_args as:")
+        pretty_print_args = self.tool_args if self.tool_args else "(no tool_args set)"
+        print(f"\t{pretty_print_args}")
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
@@ -226,14 +241,25 @@ class Tool:
         """
 
         if should_run_in_parallel:
-            adjusted_input_file_paths = split_file_by_lines(
-                input_file_path=self.input_files[0],
-                max_bytes=self.max_input_bytes_per_node,
-            )
-            for file_path in adjusted_input_file_paths:
-                # This is assuming only one input file per parallel run.
-                # This will need to be changed once we support multiple input files for parallelization.
-                yield [file_path]
+            if not self.group_paired_ends:
+                # Arbitrary parallelization – assume only one input file which is to be split
+                adjusted_input_file_paths = split_file_by_lines(
+                    input_file_path=self.input_files[0],
+                    max_bytes=self.max_input_bytes_per_node,
+                )
+                for _, file_path in adjusted_input_file_paths:
+                    # This is assuming only one input file per parallel run.
+                    # This will need to be changed once we support multiple input files for parallelization.
+                    yield [file_path]
+            else:
+                # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
+                input_file_paths_pairs = split_paired_files_by_lines(
+                    input_file_paths=self.input_files,
+                    max_bytes=self.max_input_bytes_per_node,
+                )
+                for input_file_path_pair in input_file_paths_pairs:
+                    yield input_file_path_pair
+
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
             for file_path in self.input_files:
@@ -252,11 +278,13 @@ class Tool:
 
         # todo: better propagate and handle errors for parallel runs
         self._validate_args()
+        # Prepare input files (expand paths, compress, etc)
+        self._prepare_inputs()
 
         print(f"Found {self.num_input_files} files to upload.")
 
         should_run_in_parallel = self.parallel_enabled \
-            and self.num_input_files == 1 \
+            and self.group_paired_ends or self.num_input_files == 1 \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
             and self._system_supports_parallel_execution()
 
