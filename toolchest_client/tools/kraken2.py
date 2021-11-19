@@ -5,7 +5,7 @@ toolchest_client.tools.kraken2
 This is the Kraken2 implementation of the Tool class.
 """
 from . import Tool
-from toolchest_client.files import concatenate_files
+from toolchest_client.files import OutputType
 
 
 class Kraken2(Tool):
@@ -25,8 +25,6 @@ class Kraken2(Tool):
             max_inputs=2,
             database_name=database_name,
             database_version=database_version,
-            parallel_enabled=True,
+            parallel_enabled=False,
+            output_type=OutputType.GZ_TAR,
         )
-
-    def _merge_outputs(self, output_file_paths):
-        concatenate_files(output_file_paths, self.output_path)

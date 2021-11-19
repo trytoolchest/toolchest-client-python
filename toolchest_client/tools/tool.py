@@ -19,7 +19,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines, compress_files_in_path
+    split_paired_files_by_lines, compress_files_in_path, OutputType
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
@@ -31,7 +31,8 @@ class Tool:
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
-                 group_paired_ends=False, compress_inputs=False):
+                 group_paired_ends=False, compress_inputs=False,
+                 output_type=OutputType.FLAT_TEXT):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -56,6 +57,7 @@ class Tool:
         self.query_threads = []
         self.query_thread_statuses = dict()
         self.terminating = False
+        self.output_type = output_type
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -313,6 +315,7 @@ class Tool:
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
+                "output_type": self.output_type,
             })
 
             # Add non-distinct dictionary for status updates
