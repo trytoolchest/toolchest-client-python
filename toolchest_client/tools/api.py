@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=""):
@@ -135,6 +135,47 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     instance.run()
 
 
+def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved=None,
+            single_end=None):
+    """Runs Megahit via Toolchest.
+
+    :param output_path: Path (client-side) where the output will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Megahit.
+    :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
+    :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
+    :param interleaved: (optional) `-12` inputs. Path or list of paths for interleaved paired-end files.
+    :param single_end: (optional) `-r` inputs. Path or list of paths for single-end inputs.
+
+    .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
+    versa. In other words, the nth read in `read_one` should be paired with the nth read
+    in `read_two`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.megahit(
+        ...     tool_args="",
+        ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
+        ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
+        ...     output_path="./path/to/output.txt",
+        ... )
+
+    """
+
+    instance = Megahit(
+        tool_args=tool_args,
+        output_name='temp.txt',  # TODO: find out what the actual output name is
+        input_prefix_mapping={
+            read_one: "-1",
+            read_two: "-2",
+            interleaved: "-12",
+            single_end: "-r",
+        },
+        inputs=[read_one, read_two, interleaved, single_end],  # TODO: come up with a way to incorporate -1, -2, -12, -r info
+        output_path=output_path,
+    )
+
+
 def shi7(inputs, output_path, tool_args=""):
     """Runs shi7 via Toolchest.
 
@@ -189,7 +230,7 @@ def shogun_align(inputs, output_path, database_name="shogun_standard", database_
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
     )
     instance.run()
 
@@ -218,11 +259,11 @@ def shogun_filter(inputs, output_path, database_name="shogun_standard", database
 
     instance = ShogunFilter(
         tool_args=tool_args,
-    output_name='output.txt',  # TODO: add actual outputs
+        output_name='output.txt',  # TODO: add actual outputs
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
     )
     instance.run()
 
