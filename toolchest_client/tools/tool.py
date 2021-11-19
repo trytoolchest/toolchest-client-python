@@ -301,6 +301,8 @@ class Tool:
         # Note that this is relying on a result from the generator, so these are slightly staggered
         temp_input_file_paths = []
         temp_output_file_paths = []
+        non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
+            else self.output_path
         for index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             temp_parallel_output_file_path = f"{self.output_path}_{index}"
@@ -310,8 +312,6 @@ class Tool:
             q = Query()
 
             # Deep copy to make thread safe
-            non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-                else self.output_path
             query_args = copy.deepcopy({
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
@@ -355,7 +355,7 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            sanity_check(self.output_path)
+            sanity_check(non_parallel_output_path)
 
         print("Analysis run complete!")
 
