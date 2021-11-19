@@ -19,7 +19,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines, compress_files_in_path
+    split_paired_files_by_lines, compress_files_in_path, OutputType
 from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
@@ -31,12 +31,14 @@ class Tool:
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
-                 group_paired_ends=False, compress_inputs=False):
+                 group_paired_ends=False, compress_inputs=False,
+                 output_type=OutputType.FLAT_TEXT, output_is_directory=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
         self.output_path = output_path
+        self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
         # {
@@ -56,6 +58,7 @@ class Tool:
         self.query_threads = []
         self.query_thread_statuses = dict()
         self.terminating = False
+        self.output_type = output_type
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -90,7 +93,9 @@ class Tool:
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
-            raise ValueError("output name must be non-empty.")
+            raise ValueError("Output name must be non-empty.")
+        if self.output_is_directory and not os.path.isdir(self.output_path):
+            raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
         # Perform a deeper tool_args validation
         self._validate_tool_args()
@@ -142,6 +147,13 @@ class Tool:
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
+
+    def _sanity_output_check(self):
+        """
+        Confirms that – at a very basic level – output was created.
+        Tool subclasses can have more specific implementations.
+        """
+        sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -294,12 +306,14 @@ class Tool:
         # Note that this is relying on a result from the generator, so these are slightly staggered
         temp_input_file_paths = []
         temp_output_file_paths = []
+        non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
+            else self.output_path
         for index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
-            temp_output_file_path = f"{self.output_path}_{index}"
+            temp_parallel_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
-                temp_output_file_paths.append(temp_output_file_path)
+                temp_output_file_paths.append(temp_parallel_output_file_path)
             q = Query()
 
             # Deep copy to make thread safe
@@ -312,7 +326,8 @@ class Tool:
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
-                "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
+                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
+                "output_type": self.output_type,
             })
 
             # Add non-distinct dictionary for status updates
@@ -333,8 +348,8 @@ class Tool:
 
         # Do basic check for completion, merge output files, delete temporary files
         if should_run_in_parallel:
-            for temp_output_file_path in temp_output_file_paths:
-                sanity_check(temp_output_file_path)
+            for temp_parallel_output_file_path in temp_output_file_paths:
+                sanity_check(temp_parallel_output_file_path)
             print(f"Merging {len(temp_output_file_paths)} output files...")
             self._merge_outputs(temp_output_file_paths)
             print("Merging of files complete.")
@@ -345,7 +360,7 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            sanity_check(self.output_path)
+            self._sanity_output_check()
 
         print("Analysis run complete!")
 
