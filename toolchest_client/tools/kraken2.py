@@ -27,4 +27,5 @@ class Kraken2(Tool):
             database_version=database_version,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
+            output_is_directory=True,
         )

@@ -32,12 +32,13 @@ class Tool:
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT):
+                 output_type=OutputType.FLAT_TEXT, output_is_directory=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
         self.output_path = output_path
+        self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
         # {
@@ -92,7 +93,11 @@ class Tool:
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
-            raise ValueError("output name must be non-empty.")
+            raise ValueError("Output name must be non-empty.")
+        if self.output_is_directory and not os.path.isdir(self.output_path):
+            raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
+        if not self.output_is_directory and not os.path.isfile(self.output_path):
+            raise ValueError(f"Output path must be a file. It is currently {self.output_path}")
 
         # Perform a deeper tool_args validation
         self._validate_tool_args()
@@ -298,13 +303,15 @@ class Tool:
         temp_output_file_paths = []
         for index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
-            temp_output_file_path = f"{self.output_path}_{index}"
+            temp_parallel_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
-                temp_output_file_paths.append(temp_output_file_path)
+                temp_output_file_paths.append(temp_parallel_output_file_path)
             q = Query()
 
             # Deep copy to make thread safe
+            non_parallel_output_path = self.output_path if self.output_is_directory \
+                else f"{self.output_path}/{self.output_name}"
             query_args = copy.deepcopy({
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
@@ -314,7 +321,7 @@ class Tool:
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
-                "output_path": temp_output_file_path if should_run_in_parallel else self.output_path,
+                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,
             })
 
@@ -336,8 +343,8 @@ class Tool:
 
         # Do basic check for completion, merge output files, delete temporary files
         if should_run_in_parallel:
-            for temp_output_file_path in temp_output_file_paths:
-                sanity_check(temp_output_file_path)
+            for temp_parallel_output_file_path in temp_output_file_paths:
+                sanity_check(temp_parallel_output_file_path)
             print(f"Merging {len(temp_output_file_paths)} output files...")
             self._merge_outputs(temp_output_file_paths)
             print("Merging of files complete.")
