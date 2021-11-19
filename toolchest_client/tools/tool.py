@@ -96,8 +96,6 @@ class Tool:
             raise ValueError("Output name must be non-empty.")
         if self.output_is_directory and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
-        if not self.output_is_directory and not os.path.isfile(self.output_path):
-            raise ValueError(f"Output path must be a file. It is currently {self.output_path}")
 
         # Perform a deeper tool_args validation
         self._validate_tool_args()
