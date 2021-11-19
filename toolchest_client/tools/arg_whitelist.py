@@ -95,6 +95,10 @@ ARGUMENT_WHITELIST = {
         "--seed": 1,
         "--non-deterministic": 0,
     },
+    "cellranger_mkfastq": {
+        "--samplesheet": 0,
+        # todo: add cellranger mkfastq args
+    },
     # Docs at https://cutadapt.readthedocs.io/en/stable/guide.html
     # Paired read inputs are currently unsupported.
     "cutadapt": {
@@ -160,6 +164,30 @@ ARGUMENT_WHITELIST = {
         "--minimum-hit-groups": 1,
         "--paired": 0,
     },
+    "shi7": {
+        "--debug": 0,
+        "--adaptor": VARIABLE_ARGS,
+        "-SE": 0,
+        "--flash": 1,
+        "--trim": 1,
+        "-outies": 1,
+        "--allow_outies": 1,
+        "--convert_fasta": 1,
+        "--combine_fasta": 1,
+        "-s": 1,
+        "-strip_delim": 1,
+        "-m": 1,
+        "--min_overlap": 1,
+        "-M": 1,
+        "--max_overlap": 1,
+        "-filter_l": 1,
+        "--filter_length": 1,
+        "-filter_q": 1,
+        "--filter_qual": 1,
+        "-trim_q": 1,
+        "--trim_qual": 1,
+        "--drop_r2": 1,
+    },
     # TODO: add STAR arguments to whitelist
     "STAR": {
         "--outFilterType": 1,
@@ -213,6 +241,16 @@ ARGUMENT_WHITELIST = {
         "--quantMode": VARIABLE_ARGS,
         "--quantTranscriptomeBAMcompression": 1,
         "--quantTranscriptomeBan": 1,
+    },
+    "shogun_align": {
+        "-a": 1,
+        "--aligner": 1,
+    },
+    "shogun_filter": {
+        "-p": 1,
+        "--percent-id": 1,
+        "-a": 1,
+        "--alignment": 1,
     },
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {},

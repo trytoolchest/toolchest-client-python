@@ -4,16 +4,16 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+from toolchest_client.files import assert_exists
+from toolchest_client.tools import Kraken2, CellRangerMkfastq, Cutadapt, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
-from toolchest_client.tools import Kraken2, Cutadapt, Bowtie2, STARInstance, Test, Unicycler
 
-
-def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
+def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=""):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
     :param database_name: Name of database to use for Bowtie 2 alignment.
-    :param database_version: Version of database to use for Bowtie 2 alignment.
+    :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: Path (client-side) where the output file will be downloaded.
@@ -37,6 +37,39 @@ def bowtie2(inputs, output_path, database_name, database_version, tool_args=""):
         output_path=output_path,
         database_name=database_name,
         database_version=database_version
+    )
+    instance.run()
+
+
+def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args=""):
+    """Runs Cell Ranger's mkfastq command via Toolchest.
+
+    :param inputs: Path (client-side) to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
+    :param tool_args: Additional arguments to be passed to Cell Ranger.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.cellranger_mkfastq(
+        ...     tool_args="",
+        ...     samplesheet_name="sample_sheet.csv",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output.tar.gz",
+        ... )
+
+    """
+
+    # Add --samplesheet arg
+    assert_exists(f"{inputs}/{samplesheet_name}")
+    tool_args = f"--samplesheet={samplesheet_name} " + tool_args
+
+    instance = CellRangerMkfastq(
+        tool_args=tool_args,
+        output_name='output',
+        inputs=inputs,
+        output_path=output_path,
     )
     instance.run()
 
@@ -109,8 +142,8 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
 
     if read_one:
         inputs = [read_one]
-    if read_two:
-        inputs.append(read_two)
+        if read_two:
+            inputs.append(read_two)
 
     # Add --paired tag if paired reads are provided. Else, remove if present.
     tool_args_list = tool_args.split()
@@ -126,11 +159,103 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
 
     instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.txt',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version,        
+        database_version=database_version,
+    )
+    instance.run()
+
+
+def shi7(inputs, output_path, tool_args=""):
+    """Runs shi7 via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to shi7.
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shi7(
+        ...     inputs="./path/to/fastq/",
+        ...     output_path="./path/to/output.txt", # todo: fix for multiple output files
+        ... )
+
+    """
+
+    instance = Shi7(
+        tool_args=tool_args,
+        output_name='combined_seqs.fna',
+        inputs=inputs,
+        output_path=output_path,
+    )
+    instance.run()
+
+
+def shogun_align(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+    """Runs Shogun (for alignment) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to Shogun.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_version: (optional) Version of database to use for Shogun alignment.
+    :type database_version: str
+    :param inputs: Path to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shogun_align(
+        ...     database_name="DB_name",
+        ...     database_version="version_number",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = ShogunAlign(
+        tool_args=tool_args,
+        output_name='output.txt',  # TODO: add actual outputs
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version
+    )
+    instance.run()
+
+
+def shogun_filter(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+    """Runs Shogun (for filtering human genome content) via Toolchest.
+
+    :param tool_args: (optional) Additional arguments to be passed to Shogun.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_version: (optional) Version of database to use for Shogun alignment.
+    :type database_version: str
+    :param inputs: Path to be passed in as input.
+    :param output_path: Path (client-side) where the output file will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.shogun_filter(
+        ...     database_name="DB_name",
+        ...     database_version="version_number",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = ShogunFilter(
+        tool_args=tool_args,
+    output_name='output.txt',  # TODO: add actual outputs
+        inputs=inputs,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version
     )
     instance.run()
 

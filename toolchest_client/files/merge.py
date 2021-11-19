@@ -41,7 +41,6 @@ def merge_sam_files(input_file_paths, output_file_path):
     # -c: combine headers when they exist in both files
     # -p: merge @PG IDs
     # --threads: number of threads
-    # todo: verify that this works correctly with real output files
     pysam.merge(
         "-f",
         "-u",
