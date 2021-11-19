@@ -150,6 +150,13 @@ class Tool:
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
+    def _sanity_output_check(self):
+        """
+        Confirms that – at a very basic level – output was created.
+        Tool subclasses can have more specific implementations.
+        """
+        sanity_check(self.output_path)
+
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
 
@@ -355,7 +362,7 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            sanity_check(non_parallel_output_path)
+            self._sanity_output_check()
 
         print("Analysis run complete!")
 
