@@ -35,7 +35,6 @@ def link_dst_unlink_src(src, dst):
             raise ValueError("Files were not moved successfully!")
         for directory in directories:
             os.rmdir(f"{root}/{directory}")
-    os.rmdir(src)
 
 
 def unpack_files(file_path_to_unpack, output_type):
