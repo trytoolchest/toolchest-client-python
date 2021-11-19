@@ -143,7 +143,7 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
     :param tool_args: (optional) Additional arguments to be passed to Megahit.
     :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
     :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
-    :param interleaved: (optional) `-12` inputs. Path or list of paths for interleaved paired-end files.
+    :param interleaved: (optional) `--12` inputs. Path or list of paths for interleaved paired-end files.
     :param single_end: (optional) `-r` inputs. Path or list of paths for single-end inputs.
 
     .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
@@ -168,7 +168,7 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
         input_prefix_mapping={
             read_one: "-1",
             read_two: "-2",
-            interleaved: "-12",
+            interleaved: "--12",
             single_end: "-r",
         },
         inputs=[read_one, read_two, interleaved, single_end],  # TODO: come up with a way to incorporate -1, -2, -12, -r info
