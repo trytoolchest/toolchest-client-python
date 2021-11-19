@@ -65,7 +65,7 @@ def test_kraken2_paired_end():
     assert hash.unordered(output_file_path) == 1076645572
 
 
-@pytest.mark.integration
+@pytest.mark.skip(reason="Not yet productionized")
 def test_shi7_single_end():
     """
     Tests shi7 with a single R1 input
@@ -90,7 +90,7 @@ def test_shi7_single_end():
     assert hash.unordered(output_file_path) == SHI7_SINGLE_END_HASH
 
 
-@pytest.mark.integration
+@pytest.mark.skip(reason="Not yet productionized")
 def test_shi7_paired_end():
     """
     Tests shi7 with paired-end inputs
