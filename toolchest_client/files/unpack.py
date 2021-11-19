@@ -50,7 +50,7 @@ def unpack_files(file_path_to_unpack, output_type):
         visible_files_in_directory = [
             f for f in os.listdir(unpacked_outputs_final_destination) if not f.startswith('.')
         ]
-        if visible_files_in_directory != 1:
+        if len(visible_files_in_directory) > 1:
             raise ValueError(
                 f"{unpacked_outputs_final_destination} is not empty. Please use an empty directory for output!"
             )
