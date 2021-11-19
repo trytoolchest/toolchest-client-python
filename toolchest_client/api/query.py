@@ -339,6 +339,7 @@ class Query():
                 output_type=output_type,
             )
         except Exception as err:
+            print(err)
             self._update_status_to_failed(
                 f"Failed to unpack file with type: {output_type}.",
                 force_raise=True,
