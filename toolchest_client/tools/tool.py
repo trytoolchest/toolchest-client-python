@@ -310,8 +310,8 @@ class Tool:
             q = Query()
 
             # Deep copy to make thread safe
-            non_parallel_output_path = self.output_path if self.output_is_directory \
-                else f"{self.output_path}/{self.output_name}"
+            non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
+                else self.output_path
             query_args = copy.deepcopy({
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
