@@ -33,7 +33,7 @@ class Kraken2(Tool):
         )
 
     def _sanity_output_check(self):
-        for output_name in ["kraken2_output.txt, kraken2_report.txt"]:
+        for output_name in ["kraken2_output.txt", "kraken2_report.txt"]:
             output_file_path = f"{self.output_path}/{output_name}"
             assert_exists(output_file_path, must_be_file=True)
             if os.stat(output_file_path).st_size <= 100:
