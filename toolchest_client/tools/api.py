@@ -135,7 +135,7 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
         >>> toolchest.kraken2(
         ...     tool_args="",
         ...     inputs="./path/to/input.fastq",
-        ...     output_path="./path/to/output.txt",
+        ...     output_path="./path/to/output.tar.gz",
         ... )
 
     """
@@ -190,7 +190,7 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
         ...     tool_args="",
         ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
         ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
-        ...     output_path="./path/to/output.txt",
+        ...     output_path="./path/to/output.tar.gz",
         ... )
 
     """
@@ -215,7 +215,7 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
 
     instance = Megahit(
         tool_args=tool_args,
-        output_name='temp.txt',  # TODO: find out what the actual output name is
+        output_name='output.tar.gz',
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
