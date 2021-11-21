@@ -95,6 +95,10 @@ ARGUMENT_WHITELIST = {
         "--seed": 1,
         "--non-deterministic": 0,
     },
+    "cellranger_mkfastq": {
+        "--samplesheet": 0,
+        # todo: add cellranger mkfastq args
+    },
     # Docs at https://cutadapt.readthedocs.io/en/stable/guide.html
     # Paired read inputs are currently unsupported.
     "cutadapt": {

@@ -2,7 +2,7 @@ import filecmp
 import os
 import pathlib
 
-from .. import split_file_by_lines
+from .. import split_file_by_lines, split_paired_files_by_lines
 
 THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
 
@@ -27,7 +27,7 @@ def test_split_small_fastq():
         max_bytes=100
     )
 
-    for file_path in split_file_paths:
+    for _, file_path in split_file_paths:
         new_file_paths.append(file_path)
 
     assert len(new_file_paths) == 2
@@ -46,7 +46,7 @@ def test_split_small_fastq_small_bytes():
         max_bytes=1
     )
 
-    for file_path in split_file_paths:
+    for _, file_path in split_file_paths:
         new_file_paths.append(file_path)
 
     assert len(new_file_paths) == 2
@@ -55,3 +55,32 @@ def test_split_small_fastq_small_bytes():
     assert_files_eq(new_file_paths[1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
 
     delete_temp_files(new_file_paths)
+
+
+def test_split_paired_fastqs():
+    new_file_paths = []
+    files_to_delete = []
+    split_file_paths = split_paired_files_by_lines(
+        input_file_paths=[
+            f"{THIS_FILE_PATH}/data/paired_end/eight_line_R1.fastq",
+            f"{THIS_FILE_PATH}/data/paired_end/eight_line_R2.fastq",
+        ],
+        num_lines_in_group=4,
+        max_bytes=100
+    )
+
+    for split_paired_input_files in split_file_paths:
+        new_file_paths.append(split_paired_input_files)
+        files_to_delete.append(split_paired_input_files[0])
+        files_to_delete.append(split_paired_input_files[1])
+
+    assert len(new_file_paths) == 2
+    assert len(new_file_paths[0]) == 2
+    assert len(new_file_paths[1]) == 2
+
+    assert_files_eq(new_file_paths[0][0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
+    assert_files_eq(new_file_paths[1][0], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
+    assert_files_eq(new_file_paths[0][1], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
+    assert_files_eq(new_file_paths[1][1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
+
+    delete_temp_files(files_to_delete)
