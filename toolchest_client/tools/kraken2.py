@@ -9,8 +9,6 @@ import os
 from . import Tool
 from toolchest_client.files import OutputType, assert_exists
 
-KRAKEN_2_OUTPUT_FILES = ["kraken2_output.txt", "kraken2_report.txt"]
-
 
 class Kraken2(Tool):
     """
