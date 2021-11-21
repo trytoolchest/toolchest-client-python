@@ -162,18 +162,29 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
 
     """
 
+    # If input parameters are lists, parse these for input_prefix_mapping.
+    tag_to_param_map = {
+        "-1": read_one,
+        "-2": read_two,
+        "--12": interleaved,
+        "-r": single_end,
+    }
+    input_prefix_mapping = {}
+    for tag, param in tag_to_param_map.items():
+        if isinstance(param, list):
+            for input_file in param:
+                input_prefix_mapping[input_file] = tag
+        elif isinstance(param, str):
+            input_prefix_mapping[param] = tag
+
     instance = Megahit(
         tool_args=tool_args,
         output_name='temp.txt',  # TODO: find out what the actual output name is
-        input_prefix_mapping={
-            read_one: "-1",
-            read_two: "-2",
-            interleaved: "--12",
-            single_end: "-r",
-        },
+        input_prefix_mapping=input_prefix_mapping,
         inputs=[read_one, read_two, interleaved, single_end],  # TODO: come up with a way to incorporate -1, -2, -12, -r info
         output_path=output_path,
     )
+    instance.run()
 
 
 def shi7(inputs, output_path, tool_args=""):
