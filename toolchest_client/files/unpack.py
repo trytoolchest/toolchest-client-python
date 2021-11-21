@@ -10,7 +10,7 @@ class OutputType(Enum):
     FLAT_TEXT = ".txt"
 
 
-def link_dst_unlink_src(src, dst):
+def move_from_child_to_parent_dir(src, dst):
     """Hard links files within src to dst, and then unlinks the src. dst must be a parent of src."""
     src_path = Path(src)
     dst_path = Path(dst)
@@ -43,26 +43,17 @@ def unpack_files(file_path_to_unpack, output_type):
         # Flat text needs no post-processing
         return file_path_to_unpack
     elif output_type == OutputType.GZ_TAR:
-        # The underlying shutil code does some, but it's limited
         unpacked_outputs_final_destination = os.path.dirname(file_path_to_unpack)
-        # Make sure the directory is empty except for the GZ_TAR
-        visible_files_in_directory = [
-            f for f in os.listdir(unpacked_outputs_final_destination) if not f.startswith('.')
-        ]
-        if len(visible_files_in_directory) > 1:
-            raise ValueError(
-                f"{unpacked_outputs_final_destination} is not empty. Please use an empty directory for output!"
-            )
         shutil.unpack_archive(
             filename=file_path_to_unpack,
             extract_dir=unpacked_outputs_final_destination,
             format="gztar",
         )
 
-        # Assumes the resulting unpacked archive is named "output", which is true by spec
+        # Assumes the resulting unpacked archive is named "output", which is true by Toolchest spec
         unpacked_outputs_intermediate_dir = f"{unpacked_outputs_final_destination}/output"
         # Move everything up one directory out of the temporary dir
-        link_dst_unlink_src(
+        move_from_child_to_parent_dir(
             src=unpacked_outputs_intermediate_dir,
             dst=unpacked_outputs_final_destination,
         )

@@ -14,7 +14,7 @@ import sys
 from threading import Thread
 import time
 
-from toolchest_client.api.auth import _validate_key
+from toolchest_client.api.auth import validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
@@ -148,11 +148,13 @@ class Tool:
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
-    def _sanity_output_check(self):
-        """
-        Confirms that – at a very basic level – output was created.
-        Tool subclasses can have more specific implementations.
-        """
+    def _preflight(self):
+        """Generic preflight check. Tools can have more specific implementations."""
+        # Validate Toolchest auth key.
+        validate_key()
+
+    def _postflight(self):
+        """Generic postflight check. Tools can have more specific implementations."""
         sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
@@ -285,8 +287,7 @@ class Tool:
         """Constructs and runs a Toolchest query."""
         print("Beginning Toolchest analysis run.")
 
-        # Validate Toolchest auth key.
-        _validate_key()
+        self._preflight()
 
         # todo: better propagate and handle errors for parallel runs
         self._validate_args()
@@ -360,7 +361,7 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            self._sanity_output_check()
+            self._postflight()
 
         print("Analysis run complete!")
 
