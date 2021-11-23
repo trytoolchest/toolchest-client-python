@@ -60,4 +60,5 @@ def test_kraken2_paired_end():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(output_file_path) == 1174140935
+    # Kraken 2 paired-end is not completely deterministic, and consistently alternates between these two hashes
+    assert hash.unordered(output_file_path) in [1076645572, 1174140935]
