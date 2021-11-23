@@ -54,7 +54,6 @@ jobs:
             cd ~/repo
             export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
             shopt -s globstar
-#           After we have saved timings, --split-by should be "timings" instead of "filesize"
             TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=filesize)
             shopt -u globstar
             poetry install
