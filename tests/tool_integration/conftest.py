@@ -1,7 +1,7 @@
 import os
 
 
-def pytest_configure(_):
+def pytest_configure(config):
     """
     Allows plugins and conftest files to perform initial configuration.
     This hook is called for every plugin and initial conftest
