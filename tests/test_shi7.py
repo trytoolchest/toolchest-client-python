@@ -37,7 +37,7 @@ def test_shi7_single_end():
     assert hash.unordered(output_file_path) == SHI7_SINGLE_END_HASH
 
 
-@pytest.mark.skip(reason="Not yet productionized")
+@pytest.mark.integration
 def test_shi7_paired_end():
     """
     Tests shi7 with paired-end inputs
