@@ -48,7 +48,7 @@ def set_key(key):
         os.environ["TOOLCHEST_KEY"] = key
 
 
-def _validate_key():
+def validate_key():
     """Validates Toolchest API key, retrieved from get_key()."""
 
     BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
