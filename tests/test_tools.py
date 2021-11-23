@@ -68,7 +68,7 @@ def test_kraken2_paired_end():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(output_file_path) == 1076645572
+    assert hash.unordered(output_file_path) == 1174140935
 
 
 @pytest.mark.skip(reason="Not yet productionized")
