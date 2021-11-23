@@ -33,7 +33,7 @@ jobs:
   integration-tests:
     executor: python/default
     working_directory: ~/repo
-    parallelism: 10
+    parallelism: 2
     steps:
       - checkout
       - run:
@@ -54,7 +54,7 @@ jobs:
             cd ~/repo
             export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
             shopt -s globstar
-            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=timings)
+            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=filesize)
             shopt -u globstar
             poetry install
             mkdir -p test-results
@@ -74,6 +74,7 @@ workflows:
               only:
                 - main
                 - staging
+                - devops/pytest-parallelism
   deploy:
     jobs:
       - deploy-to-pypi:
