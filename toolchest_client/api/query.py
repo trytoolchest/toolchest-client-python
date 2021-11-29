@@ -17,6 +17,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
+from toolchest_client.files import unpack_files
 from .status import Status, ThreadStatus
 
 
@@ -48,7 +49,7 @@ class Query():
         self.thread_statuses = None
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
-                  tool_args=None, database_name=None, database_version=None,
+                  output_type, tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None, inputs_are_in_s3=None,
                   output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
@@ -62,6 +63,7 @@ class Query():
         :param input_files: List of paths to be passed in as input.
         :param inputs_are_in_s3: List of bools describing whether a filepath is an S3 URI.
         :param output_path: Path (client-side) where the output file will be downloaded.
+        :param output_type: Type (e.g. GZ_TAR) of the output file
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
         self.thread_name = threading.current_thread().getName()
@@ -106,6 +108,7 @@ class Query():
 
         self._update_thread_status(ThreadStatus.DOWNLOADING)
         self._download(output_path)
+        self._unpack_output(output_path, output_type)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -344,6 +347,21 @@ class Query():
         # TODO: add support for multiple download files
 
         return response.json()[0]["signed_url"]
+
+    def _unpack_output(self, output_path, output_type):
+        """After downloading, unpack files if needed"""
+        try:
+            unpack_files(
+                file_path_to_unpack=output_path,
+                output_type=output_type,
+            )
+        except Exception as err:
+            print(err)
+            self._update_status_to_failed(
+                f"Failed to unpack file with type: {output_type}.",
+                force_raise=True,
+            )
+            raise err
 
     def _mark_as_failed_at_exit(self):
         """Upon exit, marks job as failed if it has started but is not marked as completed/failed."""

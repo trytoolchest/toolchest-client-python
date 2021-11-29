@@ -33,6 +33,7 @@ jobs:
   integration-tests:
     executor: python/default
     working_directory: ~/repo
+    parallelism: 2
     steps:
       - checkout
       - run:
@@ -48,11 +49,21 @@ jobs:
           pkg-manager: poetry
       - run:
           name: Run integration tests
+          parallel: true
           command: |
             cd ~/repo
             export DEPLOY_ENVIRONMENT=$([[ $CIRCLE_BRANCH = main ]] && echo production || echo staging)
+            shopt -s globstar
+            TESTFILES=$(circleci tests glob tests/**/test*.py | circleci tests split --split-by=filesize)
+            shopt -u globstar
             poetry install
-            poetry run pytest -v -m integration
+            mkdir -p test-results
+            poetry run pytest -v -m integration --junitxml=test-results/junit.xml $TESTFILES
+          no_output_timeout: 1h
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
 workflows:
   test:
     jobs:

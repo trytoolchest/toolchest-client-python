@@ -5,6 +5,7 @@ toolchest_client.tools.shogun
 This contains the shogun_align and shogun_filter implementations of the Tool class.
 """
 from . import Tool
+from toolchest_client.files import concatenate_files
 
 
 class ShogunAlign(Tool):
@@ -24,7 +25,11 @@ class ShogunAlign(Tool):
             max_inputs=1,
             database_name=database_name,
             database_version=database_version,
+            parallel_enabled=True,
         )
+
+    def _merge_outputs(self, output_file_paths):
+        concatenate_files(output_file_paths, self.output_path)
 
 
 class ShogunFilter(Tool):
@@ -44,4 +49,8 @@ class ShogunFilter(Tool):
             max_inputs=1,
             database_name=database_name,
             database_version=database_version,
+            parallel_enabled=True,
         )
+
+    def _merge_outputs(self, output_file_paths):
+        concatenate_files(output_file_paths, self.output_path)
