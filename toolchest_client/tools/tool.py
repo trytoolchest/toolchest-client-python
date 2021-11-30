@@ -308,11 +308,12 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
+        # Note: if any S3 input is present, parallelization is disabled
         should_run_in_parallel = self.parallel_enabled \
-            and self.group_paired_ends or self.num_input_files == 1 \
+            and not any(self.inputs_are_in_s3) \
+            and (self.group_paired_ends or self.num_input_files == 1) \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
-            and self._system_supports_parallel_execution() \
-            and not any(self.inputs_are_in_s3)  # if any S3 input is present, disable parallelization
+            and self._system_supports_parallel_execution()
 
         jobs = self._generate_jobs(should_run_in_parallel)
 
