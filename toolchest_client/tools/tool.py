@@ -289,9 +289,8 @@ class Tool:
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
             for file_path, file_is_in_s3 in zip(self.input_files, self.inputs_are_in_s3):
-                if not file_is_in_s3:
-                    check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
-                # If the file is already in S3, no need to check max size.
+                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES, is_s3_uri=file_is_in_s3)
+                # If the file is already in S3, the size is checked in check_file_size as well.
             # Note that for a tool like Unicycler, this would look like:
             # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
             # As there are multiple input files required for the job
