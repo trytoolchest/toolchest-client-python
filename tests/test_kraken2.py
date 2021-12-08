@@ -62,3 +62,26 @@ def test_kraken2_paired_end():
 
     # Kraken 2 paired-end is not completely deterministic, and consistently alternates between these two hashes
     assert hash.unordered(output_file_path) in [1076645572, 1174140935]
+
+@pytest.mark.integration
+def test_kraken2_s3():
+    """
+    Tests Kraken 2 with an example input in S3 against the std (v1) DB
+    """
+    test_dir = "test_kraken2_standard"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    input_file_path = "./kraken_input.fasta"
+    output_dir_path = f"./{test_dir}/"
+    output_file_path = f"{output_dir_path}kraken2_output.txt"
+
+    s3.download_integration_test_input(
+        s3_file_key="synthetic_bacteroides_reads.fasta",
+        output_file_path=input_file_path,
+    )
+
+    toolchest.kraken2(
+        inputs="s3://toolchest-integration-tests-public/synthetic_bacteroides_reads.fasta",
+        output_path=output_dir_path,
+    )
+
+    assert hash.unordered(output_file_path) == 886254946

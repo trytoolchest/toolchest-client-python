@@ -260,6 +260,8 @@ class Tool:
         Each job is simply an array containing the input file paths for the job, as the rest
         of the context is shared amongst jobs (e.g. tool, database, prefix mapping, etc.).
 
+        Returns (file_path, file_is_in_s3) pairs.
+
         Note that this is a generator.
         """
 
