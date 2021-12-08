@@ -46,6 +46,7 @@ class Tool:
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
+        self.inputs_are_in_s3 = []
         self.num_input_files = None
         self.min_inputs = min_inputs
         self.max_inputs = max_inputs
@@ -73,6 +74,14 @@ class Tool:
             self.input_files = files_in_path(self.inputs)
             self.num_input_files = len(self.input_files)
 
+        # Sanitize valid paths and list all files in self.inputs.
+        self.input_files = files_in_path(self.inputs)
+
+        # Note which files are S3 URIs.
+        S3_PREFIX = "s3://"
+        self.inputs_are_in_s3 = [file_path.startswith(S3_PREFIX) for file_path in self.input_files]
+
+        self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
@@ -251,10 +260,13 @@ class Tool:
         Each job is simply an array containing the input file paths for the job, as the rest
         of the context is shared amongst jobs (e.g. tool, database, prefix mapping, etc.).
 
+        Returns (file_path, file_is_in_s3) pairs.
+
         Note that this is a generator.
         """
 
         if should_run_in_parallel:
+            PARALLEL_FILE_IS_IN_S3 = False  # S3 files are currently not parallelized.
             if not self.group_paired_ends:
                 # Arbitrary parallelization – assume only one input file which is to be split
                 adjusted_input_file_paths = split_file_by_lines(
@@ -264,7 +276,7 @@ class Tool:
                 for _, file_path in adjusted_input_file_paths:
                     # This is assuming only one input file per parallel run.
                     # This will need to be changed once we support multiple input files for parallelization.
-                    yield [file_path]
+                    yield [file_path, PARALLEL_FILE_IS_IN_S3]
             else:
                 # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
                 input_file_paths_pairs = split_paired_files_by_lines(
@@ -272,16 +284,18 @@ class Tool:
                     max_bytes=self.max_input_bytes_per_node,
                 )
                 for input_file_path_pair in input_file_paths_pairs:
-                    yield input_file_path_pair
+                    yield input_file_path_pair, PARALLEL_FILE_IS_IN_S3
 
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
-            for file_path in self.input_files:
-                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
+            for file_path, file_is_in_s3 in zip(self.input_files, self.inputs_are_in_s3):
+                if not file_is_in_s3:
+                    check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
+                # If the file is already in S3, no need to check max size.
             # Note that for a tool like Unicycler, this would look like:
             # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
             # As there are multiple input files required for the job
-            yield self.input_files
+            yield self.input_files, self.inputs_are_in_s3
 
     def run(self):
         """Constructs and runs a Toolchest query."""
@@ -296,8 +310,10 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
+        # Note: if any S3 input is present, parallelization is disabled
         should_run_in_parallel = self.parallel_enabled \
-            and self.group_paired_ends or self.num_input_files == 1 \
+            and not any(self.inputs_are_in_s3) \
+            and (self.group_paired_ends or self.num_input_files == 1) \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
             and self._system_supports_parallel_execution()
 
@@ -309,7 +325,7 @@ class Tool:
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
             else self.output_path
-        for index, input_files in enumerate(jobs):
+        for index, (input_files, inputs_are_in_s3) in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             temp_parallel_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
@@ -326,6 +342,7 @@ class Tool:
                 "database_version": self.database_version,
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
+                "inputs_are_in_s3": inputs_are_in_s3,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,
@@ -364,4 +381,3 @@ class Tool:
             self._postflight()
 
         print("Analysis run complete!")
-

@@ -15,6 +15,8 @@ class ToolchestException(OSError):
 class ToolchestKeyError(ToolchestException):
     """Invalid Toolchest auth key."""
 
+class ToolchestS3AccessError(ToolchestException):
+    """S3 input cannot be accessed by Toolchest."""
 
 class DataLimitError(ToolchestException):
     """Data limit for Toolchest exceeded."""
