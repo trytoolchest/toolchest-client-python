@@ -8,7 +8,9 @@ General file handling functions.
 import shutil
 import os
 
-from .s3 import assert_accessible_s3
+import boto3
+
+from .s3 import assert_accessible_s3, get_params_from_s3_uri
 
 
 def assert_exists(path, must_be_file=False, must_be_directory=False):
@@ -30,19 +32,34 @@ def assert_exists(path, must_be_file=False, must_be_directory=False):
         raise ValueError(f"Directory entry at {path} is not a directory")
 
 
-def check_file_size(file_path, max_size_bytes=None):
+def check_file_size(file_path, max_size_bytes=None, file_is_in_s3=False):
     """Raises an error if the file is above the non-multipart upload limit for S3 (5GB)
 
     :param file_path: A path to a file.
     :type file_path: string
     :param max_size_bytes: Maximum number of bytes allowed for a file. Throws error if above limit.
     :type max_size_bytes: int | None
+    :param file_is_in_s3: Whether or not the file path is an S3 URI, as opposed to a local filepath.
+    :type file_is_in_s3: bool
     """
-    assert_exists(file_path, must_be_file=True)
-    file_size_bytes = os.stat(file_path).st_size
+    if not file_is_in_s3:
+        assert_exists(file_path, must_be_file=True)
+        file_size_bytes = os.stat(file_path).st_size
+    else:
+        # Get file size S3 metadata, via boto3.
+        # NOTE: It's best to move this to
+        s3_file_params = get_params_from_s3_uri(file_path)
+        s3_client = boto3.client("s3")
+        response = s3_client.head_object(
+            Bucket=s3_file_params["bucket"],
+            Key=s3_file_params["key"],
+        )
+        file_size_bytes = response["ContentLength"]
+
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
             raise ValueError(f"File at {file_path} is larger than your plan's per-file limit")
+
     return file_size_bytes
 
 
