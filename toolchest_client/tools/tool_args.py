@@ -297,6 +297,7 @@ TOOL_ARG_LISTS = {
     # All user-provided arguments are filtered out for the test pipeline.
     "test": {
         "whitelist": {},
+        "blacklist": ["--bad"],
     },
     "unicycler": {
         "whitelist": {
