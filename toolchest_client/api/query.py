@@ -17,7 +17,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
-from toolchest_client.files import unpack_files
+from toolchest_client.files import unpack_files, OutputType
 from .status import Status, ThreadStatus
 
 
@@ -76,12 +76,13 @@ class Query():
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
-            tool_name,
-            tool_version,
-            tool_args,
-            database_name,
-            database_version,
-            output_name,
+            compress_output=True if output_type == OutputType.GZ_TAR else False,
+            database_name=database_name,
+            database_version=database_version,
+            output_name=output_name,
+            tool_name=tool_name,
+            tool_version=tool_version,
+            tool_args=tool_args,
         )
         create_content = create_response.json()
 
@@ -112,19 +113,21 @@ class Query():
         self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
-                              database_name, database_version, output_name):
+                              database_name, database_version, output_name,
+                              compress_output):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
         """
 
         create_body = {
-            "tool_name": tool_name,
-            "tool_version": tool_version,
+            "compress_output": compress_output,
             "custom_tool_args": tool_args,
             "database_name": database_name,
             "database_version": database_version,
             "output_file_name": output_name,
+            "tool_name": tool_name,
+            "tool_version": tool_version,
         }
 
         create_response = requests.post(

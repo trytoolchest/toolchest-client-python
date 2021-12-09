@@ -18,7 +18,7 @@ class Kraken2(Tool):
                  database_name, database_version):
         super().__init__(
             tool_name="kraken2",
-            tool_version="2.1.1",  # todo: allow kraken version to be set by the user
+            tool_version="2.1.1",  # todo: allow kraken 2 version to be set by the user
             tool_args=tool_args,
             output_name=output_name,
             output_path=output_path,

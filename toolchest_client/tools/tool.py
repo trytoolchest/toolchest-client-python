@@ -91,15 +91,22 @@ class Tool:
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
     def _validate_tool_args(self):
-        """Validates and sanitizes user-provided custom tool_args.
+        """
+        Validates and sanitizes user-provided custom tool_args.
 
-        Currently, this is processed as an argument whitelist; argument tags
-        are kept only if they appear as an accepted tag.
+        This is processed as an argument whitelist; argument tags
+        are kept only if they appear as an accepted tag. If an argument
+        is not on the whitelist, an error is thrown.
+
+        If a dangerous argument – one that changes the function or
+        structure of the Toolchest run – is found, complexity is
+        reduced (no validation, no parallelization) and a warning
+        is shown.
         """
 
-        whitelist = TOOL_ARG_LISTS[self.tool_name]["whitelist"] # all tools have a whitelist
-        dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist") # some tools have a dangerlist
-        blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist") # some tools have a blacklist
+        whitelist = TOOL_ARG_LISTS[self.tool_name]["whitelist"]  # all tools have a whitelist
+        dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist")  # some tools have a dangerlist
+        blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist")  # some tools have a blacklist
 
         sanitized_args = []  # arguments that are explicitly allowed
         unknown_args = []  # all arguments that were not included
@@ -156,8 +163,11 @@ class Tool:
         if dangerous_args:
             print("WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!")
             print(f"Dangerous arguments: {dangerous_args}")
+            # Disable parallelization, validation, and revert to plain compressed output
             self.output_validation_enabled = False
             self.parallel_enabled = False
+            self.output_is_directory = True
+            self.output_type = OutputType.GZ_TAR
 
         sanitized_args = " ".join(sanitized_args)
         if sanitized_args != self.tool_args:
@@ -167,6 +177,10 @@ class Tool:
         print(f"\t{pretty_print_args}")
 
     def _validate_args(self):
+        # Perform a deep tool_args validation
+        # This has to happen before checking the input args, as in some cases parallelization is disabled and
+        # expected input / output values may change.
+        self._validate_tool_args()
 
         if self.inputs is None:
             raise ValueError("No input provided.")
@@ -181,9 +195,6 @@ class Tool:
             raise ValueError("Output name must be non-empty.")
         if self.output_is_directory and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
-
-        # Perform a deeper tool_args validation
-        self._validate_tool_args()
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""

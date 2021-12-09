@@ -32,8 +32,7 @@ class STARInstance(Tool):
             database_version=database_version,
             parallel_enabled=True,
             max_input_bytes_per_node=4.5 * 1024 * 1024 * 1024,
-            output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
+            output_type=OutputType.SAM_FILE,  # In some cases, this can change (e.g. a dangerous argument is passed)
         )
 
     def _merge_outputs(self, output_file_paths):
