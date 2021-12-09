@@ -213,7 +213,6 @@ ARGUMENT_WHITELIST = {
         "--outSAMtype": VARIABLE_ARGS,
         "--runRNGseed": 1,
         "--readFilesType": 1,
-        "--readFilesCommand": 1,
         "--readMapNumber": 1,
         "--readMatesLengthsIn": 1,
         "--readStrand": 1,
