@@ -11,6 +11,8 @@ from enum import Enum
 class Status(str, Enum):
     """Status values for the Toolchest API."""
 
+    # NOTE: These statuses aren't currently being used with threading.
+    # All status updates are encapsulated in the statuses of the threads.
     INITIALIZED = "initialized"
     TRANSFERRING_FROM_CLIENT = "transferring_from_client"
     TRANSFERRED_FROM_CLIENT = "transferred_from_client"
@@ -20,6 +22,7 @@ class Status(str, Enum):
     READY_TO_TRANSFER_TO_CLIENT = "ready_to_transfer_to_client"
     TRANSFERRING_TO_CLIENT = "transferring_to_client"
     TRANSFERRED_TO_CLIENT = "transferred_to_client"
+    COMPLETE = "complete"
     FAILED = "failed"
 
 

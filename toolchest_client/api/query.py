@@ -51,7 +51,8 @@ class Query():
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None, inputs_are_in_s3=None,
-                  output_path=None, thread_statuses=None):
+                  output_path=None, thread_statuses=None, is_first_in_pipeline=True,
+                  is_last_in_pipeline=True):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -65,6 +66,8 @@ class Query():
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
         :param thread_statuses: Statuses of all threads, shared between threads.
+        :param is_first_in_pipeline: Whether the tool is first in the pipeline. If not, skips input upload.
+        :param is_last_in_pipeline: Whether the tool is last in the pipeline. If not, skips output download.
         """
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
