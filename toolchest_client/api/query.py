@@ -21,7 +21,7 @@ from toolchest_client.files import unpack_files
 from .status import Status, ThreadStatus
 
 
-class Query():
+class Query:
     """A Toolchest query.
 
     Provides persistence of query-specific variables from start (query
