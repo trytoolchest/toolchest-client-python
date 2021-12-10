@@ -106,9 +106,11 @@ class Query():
         self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        self._update_thread_status(ThreadStatus.DOWNLOADING)
-        self._download(output_path)
-        self._unpack_output(output_path, output_type)
+        if output_path:
+            self._update_thread_status(ThreadStatus.DOWNLOADING)
+            self._download(output_path)
+            self._unpack_output(output_path, output_type)
+        self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
