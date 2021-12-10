@@ -17,6 +17,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
+from toolchest_client.api.output import Output
 from toolchest_client.files import unpack_files
 from .status import Status, ThreadStatus
 
@@ -47,6 +48,8 @@ class Query:
         self.mark_as_failed = False
         self.thread_name = ''
         self.thread_statuses = None
+
+        self.presigned_s3_uri = None
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -112,6 +115,13 @@ class Query:
             self._unpack_output(output_path, output_type)
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
+
+        return Output(
+            # TODO: implement this after API returns the s3_uri along with the presigned URI
+            s3_uri=None,
+            presigned_s3_uri=self.presigned_s3_uri,
+            output_path=output_path
+        )
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name):
@@ -347,8 +357,8 @@ class Query:
             )
 
         # TODO: add support for multiple download files
-
-        return response.json()[0]["signed_url"]
+        self.presigned_s3_uri = response.json()[0]["signed_url"]
+        return self.presigned_s3_uri
 
     def _unpack_output(self, output_path, output_type):
         """After downloading, unpack files if needed"""
