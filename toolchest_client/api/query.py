@@ -50,7 +50,7 @@ class Query():
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  output_name="output", input_files=None, inputs_are_in_s3=None,
+                  output_name="output", input_files=None,
                   output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
@@ -61,7 +61,6 @@ class Query():
         :param database_version: Version of database to be used.
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_files: List of paths to be passed in as input.
-        :param inputs_are_in_s3: List of bools describing whether a filepath is an S3 URI.
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
         :param thread_statuses: Statuses of all threads, shared between threads.
@@ -100,7 +99,7 @@ class Query():
 
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
-        self._upload(input_files, input_prefix_mapping, inputs_are_in_s3)
+        self._upload(input_files, input_prefix_mapping)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -140,9 +139,9 @@ class Query():
 
         return create_response
 
-    # Note: file_is_in_s3 is False by default for backwards compatibility.
+    # Note: input_is_in_s3 is False by default for backwards compatibility.
     # TODO: Deprecate this after confirming it doesn't affect the API.
-    def _add_input_file(self, input_file_path, input_prefix, file_is_in_s3=False):
+    def _add_input_file(self, input_file_path, input_prefix, input_is_in_s3=False):
         add_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_URL,
             'input-files'
@@ -155,8 +154,8 @@ class Query():
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
-                "is_s3": file_is_in_s3,
-                "s3_uri": input_file_path if file_is_in_s3 else "",
+                "is_s3": input_is_in_s3,
+                "s3_uri": input_file_path if input_is_in_s3 else "",
             },
         )
         try:
@@ -165,29 +164,31 @@ class Query():
             print(f"Failed to upload file at {input_file_path}", file=sys.stderr)
             raise
 
-        if not file_is_in_s3:
+        if not input_is_in_s3:
             return response.json().get("input_file_upload_location")
 
-    def _upload(self, input_file_paths, input_prefix_mapping, inputs_are_in_s3):
+    def _upload(self, input_file_paths, input_prefix_mapping):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
-        for file_path, file_is_in_s3 in zip(input_file_paths, inputs_are_in_s3):
+        S3_PREFIX = "s3://"
+        for file_path in input_file_paths:
+            input_is_in_s3 = file_path.startswith(S3_PREFIX)
             # If the file is already in S3, there is no need to upload.
-            if file_is_in_s3:
+            if input_is_in_s3:
                 # Registers the file in the internal DB.
                 self._add_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix_mapping.get(file_path),
-                    file_is_in_s3=file_is_in_s3,
+                    input_is_in_s3=input_is_in_s3,
                 )
             else:
                 print(f"Uploading {file_path}")
                 upload_url = self._add_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix_mapping.get(file_path),
-                    file_is_in_s3=file_is_in_s3,
+                    input_is_in_s3=input_is_in_s3,
                 )
 
                 upload_response = requests.put(
