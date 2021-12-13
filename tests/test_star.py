@@ -18,7 +18,7 @@ def test_star_grch38():
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}star_output.txt"
+    output_file_path = f"{output_dir_path}Aligned.out.sam"
 
     s3.download_integration_test_input(
         s3_file_key="small_star_500k.fastq",
@@ -27,7 +27,7 @@ def test_star_grch38():
 
     toolchest.STAR(
         read_one=input_file_path,
-        output_path=output_dir_path,
+        output_path=output_file_path,
         database_name="GRCh38",
     )
 
@@ -44,7 +44,7 @@ def test_star_grch38_parallel():
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./large_star.fastq"
     output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}star_output.txt"
+    output_file_path = f"{output_dir_path}Aligned.out.sam"
 
     s3.download_integration_test_input(
         s3_file_key="large_star_15GB.fastq",
@@ -53,7 +53,7 @@ def test_star_grch38_parallel():
 
     toolchest.STAR(
         read_one=input_file_path,
-        output_path=output_dir_path,
+        output_path=output_file_path,
         database_name="GRCh38",
     )
 
