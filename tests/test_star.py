@@ -84,5 +84,11 @@ def test_star_grch38_dangerous_arg():
         tool_args="--outSAMtype BAM Unsorted",
     )
 
-    # Because STAR is non-deterministic and BAMs are are compressed verify that the number of bytes matches
-    assert os.path.getsize(output_file_path) == 38236026
+    # Because STAR is non-deterministic and BAMs are are compressed verify that the number of bytes is in range
+    assert 38236020 <= os.path.getsize(output_file_path) <= 38236030
+
+    # Make sure all non-parallel files exist as well
+    assert os.path.isfile(f"{output_dir_path}Log.final.out")
+    assert os.path.isfile(f"{output_dir_path}Log.out")
+    assert os.path.isfile(f"{output_dir_path}Log.progress.out")
+    assert os.path.isfile(f"{output_dir_path}SJ.out.tab")
