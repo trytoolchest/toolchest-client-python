@@ -31,8 +31,8 @@ def test_star_grch38():
         database_name="GRCh38",
     )
 
-    # Because STAR is non-deterministic, verify that the number of bytes is the exact same
-    assert os.path.getsize(output_file_path) == 185952766
+    # Because STAR is non-deterministic, verify that the number of bytes is in range
+    assert 185952744 <= os.path.getsize(output_file_path) <= 185952766
 
 
 @pytest.mark.dev
@@ -57,5 +57,5 @@ def test_star_grch38_parallel():
         database_name="GRCh38",
     )
 
-    # Because STAR is non-deterministic, verify that the number of bytes is the exact same
-    assert os.path.getsize(output_file_path) == 33292992730
+    # Because STAR is non-deterministic, verify that the number of bytes is in range
+    assert 33292992706 <= os.path.getsize(output_file_path) <= 33292992730
