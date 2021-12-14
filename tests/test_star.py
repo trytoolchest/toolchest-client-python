@@ -61,7 +61,7 @@ def test_star_grch38_parallel():
     assert 33292992706 <= os.path.getsize(output_file_path) <= 33292992730
 
 
-@pytest.mark.dev
+@pytest.mark.integration
 def test_star_grch38_dangerous_arg():
     """
     Tests STAR against the grch38 database, with a dangerous arg (changing functionality)
