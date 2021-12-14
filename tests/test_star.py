@@ -81,7 +81,7 @@ def test_star_grch38_dangerous_arg():
         read_one=input_file_path,
         output_path=output_file_path,
         database_name="GRCh38",
-        tool_args="BAM Unsorted",
+        tool_args="--outSAMtype BAM Unsorted",
     )
 
     # Because STAR is non-deterministic, verify that the number of bytes is in range
