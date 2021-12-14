@@ -1,5 +1,5 @@
 """
-toolchest_client.tools.arg_whitelist
+toolchest_client.tools.tool_args
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This contains lists of custom tool_args that can currently be

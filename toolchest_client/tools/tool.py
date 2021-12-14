@@ -60,7 +60,7 @@ class Tool:
         self.query_threads = []
         self.query_thread_statuses = dict()
         self.terminating = False
-        self.output_type = output_type
+        self.output_type = output_type or OutputType.FLAT_TEXT
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
