@@ -79,7 +79,7 @@ def test_star_grch38_dangerous_arg():
 
     toolchest.STAR(
         read_one=input_file_path,
-        output_path=output_file_path,
+        output_path=output_dir_path,
         database_name="GRCh38",
         tool_args="--outSAMtype BAM Unsorted",
     )
