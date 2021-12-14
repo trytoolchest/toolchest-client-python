@@ -8,6 +8,7 @@ import shutil
 class OutputType(Enum):
     GZ_TAR = ".tar.gz"
     FLAT_TEXT = ".txt"
+    SAM_FILE = ".sam"
 
 
 def move_from_child_to_parent_dir(src, dst):
@@ -40,7 +41,8 @@ def move_from_child_to_parent_dir(src, dst):
 def unpack_files(file_path_to_unpack, output_type):
     """Unpack output file, if needed. Returns the path to the (optionally) unpacked output."""
     if output_type == OutputType.FLAT_TEXT:
-        # Flat text needs no post-processing
+        return file_path_to_unpack
+    elif output_type == OutputType.SAM_FILE:
         return file_path_to_unpack
     elif output_type == OutputType.GZ_TAR:
         unpacked_outputs_final_destination = os.path.dirname(file_path_to_unpack)

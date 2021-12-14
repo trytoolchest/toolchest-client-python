@@ -18,7 +18,7 @@ class Kraken2(Tool):
                  database_name, database_version):
         super().__init__(
             tool_name="kraken2",
-            tool_version="2.1.1",  # todo: allow kraken version to be set by the user
+            tool_version="2.1.1",  # todo: allow kraken 2 version to be set by the user
             tool_args=tool_args,
             output_name=output_name,
             output_path=output_path,
@@ -52,8 +52,9 @@ class Kraken2(Tool):
     def _postflight(self):
         """Kraken 2 specific postflight"""
         # Do a basic sanity check on the output files
-        for output_name in ["kraken2_output.txt", "kraken2_report.txt"]:
-            output_file_path = f"{self.output_path}/{output_name}"
-            assert_exists(output_file_path, must_be_file=True)
-            if os.stat(output_file_path).st_size <= 100:
-                raise ValueError(f"Kraken 2 output file at {output_file_path} is suspiciously small")
+        if self.output_validation_enabled:
+            for output_name in ["kraken2_output.txt", "kraken2_report.txt"]:
+                output_file_path = f"{self.output_path}/{output_name}"
+                assert_exists(output_file_path, must_be_file=True)
+                if os.stat(output_file_path).st_size <= 100:
+                    raise ValueError(f"Kraken 2 output file at {output_file_path} is suspiciously small")
