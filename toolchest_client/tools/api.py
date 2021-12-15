@@ -168,12 +168,13 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     instance.run()
 
 
-def shi7(inputs, output_path, tool_args=""):
+def shi7(inputs, output_path=None, tool_args=""):
     """Runs shi7 via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to shi7.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
 
@@ -191,10 +192,10 @@ def shi7(inputs, output_path, tool_args=""):
         inputs=inputs,
         output_path=output_path,
     )
-    instance.run()
+    return instance.run()
 
 
-def shogun_align(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_align(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -202,7 +203,8 @@ def shogun_align(inputs, output_path, database_name="shogun_standard", database_
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
 
@@ -224,10 +226,10 @@ def shogun_align(inputs, output_path, database_name="shogun_standard", database_
         database_name=database_name,
         database_version=database_version
     )
-    instance.run()
+    return instance.run()
 
 
-def shogun_filter(inputs, output_path, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_filter(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -235,7 +237,8 @@ def shogun_filter(inputs, output_path, database_name="shogun_standard", database
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
 
@@ -257,7 +260,7 @@ def shogun_filter(inputs, output_path, database_name="shogun_standard", database
         database_name=database_name,
         database_version=database_version
     )
-    instance.run()
+    return instance.run()
 
 
 def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args=""):

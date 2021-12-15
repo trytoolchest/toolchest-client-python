@@ -40,7 +40,7 @@ class Query:
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
 
-    def __init__(self):
+    def __init__(self, output_object=None):
         self.HEADERS = dict()
         self.PIPELINE_SEGMENT_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
@@ -49,7 +49,8 @@ class Query:
         self.thread_name = ''
         self.thread_statuses = None
 
-        self.presigned_s3_uri = None
+        self.presigned_s3_url = None
+        self.output_object = output_object if output_object else Output()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -113,15 +114,15 @@ class Query:
             self._update_thread_status(ThreadStatus.DOWNLOADING)
             self._download(output_path)
             self._unpack_output(output_path, output_type)
+        else:
+            print("Output path not provided, skipping download.")
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
-        return Output(
-            # TODO: implement this after API returns the s3_uri along with the presigned URI
-            s3_uri=None,
-            presigned_s3_uri=self.presigned_s3_uri,
-            output_path=output_path
-        )
+        self.output_object.s3_uri = self.output_s3_uri
+        self.output_object.presigned_s3_url = self.presigned_s3_url
+        self.output_object.output_path = output_path
+        return self.output_object
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name):
@@ -357,8 +358,10 @@ class Query:
             )
 
         # TODO: add support for multiple download files
-        self.presigned_s3_uri = response.json()[0]["signed_url"]
-        return self.presigned_s3_uri
+        response_data = response.json()[0]
+        self.output_s3_uri = response_data["s3_uri"]
+        self.presigned_s3_url = response_data["signed_url"]
+        return self.presigned_s3_url
 
     def _unpack_output(self, output_path, output_type):
         """After downloading, unpack files if needed"""

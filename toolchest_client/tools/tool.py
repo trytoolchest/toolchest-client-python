@@ -16,6 +16,7 @@ import time
 
 from toolchest_client.api.auth import validate_key
 from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
@@ -27,7 +28,7 @@ FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
 
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
-                 output_path, inputs, min_inputs, max_inputs,
+                 inputs, min_inputs, max_inputs, output_path=None,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_node=FOUR_POINT_FIVE_GIGABYTES,
@@ -60,6 +61,7 @@ class Tool:
         self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type
+        self.output_objects = {}
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -94,8 +96,6 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self.output_path is None:
-            raise ValueError("No output path provided.")
         if not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
@@ -164,7 +164,8 @@ class Tool:
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        sanity_check(self.output_path)
+        if self.output_path:
+            sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -330,7 +331,10 @@ class Tool:
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
                 temp_output_file_paths.append(temp_parallel_output_file_path)
-            q = Query()
+
+            # Create a new output object for the thread.
+            self.output_objects[index] = Output()
+            q = Query(output_object=self.output_objects[index])
 
             # Deep copy to make thread safe
             query_args = copy.deepcopy({
@@ -380,3 +384,7 @@ class Tool:
             self._postflight()
 
         print("Analysis run complete!")
+
+        # Note: output information is only returned if parallelization is disabled
+        if not should_run_in_parallel:
+            return self.output_objects[0]
