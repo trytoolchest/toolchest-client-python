@@ -21,9 +21,10 @@ from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
     split_paired_files_by_lines, compress_files_in_path, OutputType
-from toolchest_client.tools.arg_whitelist import ARGUMENT_WHITELIST, VARIABLE_ARGS
+from toolchest_client.files.s3 import inputs_are_in_s3
+from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
-FOUR_POINT_FIVE_GIGABYTES = 4.5 * 1024 * 1024 * 1024
+FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 
 class Tool:
@@ -47,20 +48,20 @@ class Tool:
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
-        self.inputs_are_in_s3 = []
         self.num_input_files = None
         self.min_inputs = min_inputs
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
         self.parallel_enabled = parallel_enabled
+        self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
         self.compress_inputs = compress_inputs
         self.max_input_bytes_per_node = max_input_bytes_per_node
         self.query_threads = []
         self.query_thread_statuses = dict()
         self.terminating = False
-        self.output_type = output_type
+        self.output_type = output_type or OutputType.FLAT_TEXT
         self.output_objects = {}
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -79,10 +80,6 @@ class Tool:
         # Sanitize valid paths and list all files in self.inputs.
         self.input_files = files_in_path(self.inputs)
 
-        # Note which files are S3 URIs.
-        S3_PREFIX = "s3://"
-        self.inputs_are_in_s3 = [file_path.startswith(S3_PREFIX) for file_path in self.input_files]
-
         self.num_input_files = len(self.input_files)
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
@@ -91,8 +88,97 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
+    def _validate_tool_args(self):
+        """
+        Validates and sanitizes user-provided custom tool_args.
+
+        This is processed as an argument whitelist; argument tags
+        are kept only if they appear as an accepted tag. If an argument
+        is not on the whitelist, an error is thrown.
+
+        If a dangerous argument – one that changes the function or
+        structure of the Toolchest run – is found, complexity is
+        reduced (no validation, no parallelization) and a warning
+        is shown.
+        """
+
+        whitelist = TOOL_ARG_LISTS[self.tool_name]["whitelist"]  # all tools have a whitelist
+        dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist", [])  # some tools have a dangerlist
+        blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist", [])  # some tools have a blacklist
+
+        sanitized_args = []  # arguments that are explicitly allowed
+        unknown_args = []  # all arguments that were not included
+        blacklisted_args = []  # arguments that are known to not work
+        dangerous_args = []  # arguments that significantly change the function of the program
+
+        num_args_remaining_after_tag = 0
+
+        # process arguments individually
+        for arg in self.tool_args.split():
+            # the minimal_tag for "--arg=a" is "--arg"
+            # this allows matching args assigned via an "=" to match on the whitelist
+            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", rf"\1", arg)
+            tag_in_whitelist = minimal_tag in whitelist
+            if num_args_remaining_after_tag == 0 and tag_in_whitelist:
+                # if the arg is a tag in the whitelist, add it
+                sanitized_args.append(arg)
+                num_args_remaining_after_tag = whitelist[minimal_tag]
+                # if the arg is a tag in the dangerlist, note so can adjust accordingly
+                if minimal_tag in dangerlist:
+                    dangerous_args.append(arg)
+            elif num_args_remaining_after_tag == VARIABLE_ARGS:
+                # if previous tag has additional args (unknown/variable amount),
+                # append args until another tag is found
+                # TODO: filter out non-escaped bash command-line characters
+                # TODO: handle variable arguments better; this allows passing of undesired args
+                sanitized_args.append(arg)
+                if tag_in_whitelist:
+                    num_args_remaining_after_tag = whitelist[minimal_tag]
+            elif num_args_remaining_after_tag > 0:
+                # append remaining args if previous tag has additional args
+                # TODO: filter out non-escaped bash command-line characters
+                sanitized_args.append(arg)
+                num_args_remaining_after_tag -= 1
+            else:
+                # Instead of stopping and throwing an error immediately, we wait and collect all undesired args
+                if minimal_tag in blacklist:
+                    blacklisted_args.append(arg)
+                else:
+                    unknown_args.append(arg)
+
+        if unknown_args or blacklisted_args:
+            print("Non-allowed arguments found in tool_args:")
+            print(
+                f"Blacklisted arguments (these are known to cause Toolchest to fail): \
+{blacklisted_args if blacklisted_args else '(none)'}"
+            )
+            print(
+                f"Unknown arguments (these are not yet validated for use with Toolchest – please contact us!): \
+{unknown_args if unknown_args else '(none)'}"
+            )
+            raise ValueError("Unknown or blacklisted arguments present in tool_args. See above for details.")
+
+        if dangerous_args:
+            print("WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!")
+            print(f"Dangerous arguments: {dangerous_args}")
+            # Disable parallelization, validation, and revert to plain compressed output
+            self.output_validation_enabled = False
+            self.parallel_enabled = False
+            self.output_is_directory = True
+            self.output_type = OutputType.GZ_TAR
+
+        sanitized_args = " ".join(sanitized_args)
+        if sanitized_args != self.tool_args:
+            self.tool_args = sanitized_args
+        print("Processing tool_args as:")
+        pretty_print_args = self.tool_args if self.tool_args else "(no tool_args set)"
+        print(f"\t{pretty_print_args}")
+
     def _validate_args(self):
-        """Validates args set by tools."""
+        # Perform a deep tool_args validation
+        # This has to happen before checking the input args, as in some cases parallelization is disabled and
+        # expected input / output values may change.
+        self._validate_tool_args()
 
         if self.inputs is None:
             raise ValueError("No input provided.")
@@ -106,53 +192,6 @@ class Tool:
         if self.output_is_directory and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
-        # Perform a deeper tool_args validation
-        self._validate_tool_args()
-
-    def _validate_tool_args(self):
-        """Validates and sanitizes user-provided custom tool_args.
-
-        Currently, this is processed as an argument whitelist; argument tags
-        are kept only if they appear as an accepted tag.
-        """
-
-        tool_arg_whitelist = ARGUMENT_WHITELIST[self.tool_name]
-
-        sanitized_args_list = []
-        num_args_remaining_after_tag = 0
-
-        # process arguments individually
-        for arg in self.tool_args.split():
-            # the minimal_tag for "--arg=a" is "--arg"
-            # this allows matching args assigned via an "=" to match on the whitelist
-            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", rf"\1", arg)
-            tag_in_whitelist = minimal_tag in tool_arg_whitelist
-            if num_args_remaining_after_tag == 0 and tag_in_whitelist:
-                # if the arg is a tag in the whitelist, add it
-                sanitized_args_list.append(arg)
-                num_args_remaining_after_tag = tool_arg_whitelist[minimal_tag]
-            elif num_args_remaining_after_tag == VARIABLE_ARGS:
-                # if previous tag has additional args (unknown/variable amount),
-                # append args until another tag is found
-                # TODO: filter out non-escaped bash command-line characters
-                # TODO: handle variable arguments better; this allows passing of undesired args
-                sanitized_args_list.append(arg)
-                if tag_in_whitelist:
-                    num_args_remaining_after_tag = tool_arg_whitelist[minimal_tag]
-            elif num_args_remaining_after_tag > 0:
-                # append remaining args if previous tag has additional args
-                # TODO: filter out non-escaped bash command-line characters
-                sanitized_args_list.append(arg)
-                num_args_remaining_after_tag -= 1
-            # if no tag found, skip args until a tag is found
-
-        sanitized_args = " ".join(sanitized_args_list)
-        if sanitized_args != self.tool_args:
-            self.tool_args = sanitized_args
-        print("Processing tool_args as:")
-        pretty_print_args = self.tool_args if self.tool_args else "(no tool_args set)"
-        print(f"\t{pretty_print_args}")
-
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
@@ -164,7 +203,7 @@ class Tool:
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.output_path:
+        if self.output_validation_enabled and self.output_path:
             sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
@@ -261,13 +300,10 @@ class Tool:
         Each job is simply an array containing the input file paths for the job, as the rest
         of the context is shared amongst jobs (e.g. tool, database, prefix mapping, etc.).
 
-        Returns (file_path, file_is_in_s3) pairs.
-
         Note that this is a generator.
         """
 
         if should_run_in_parallel:
-            PARALLEL_FILE_IS_IN_S3 = False  # S3 files are currently not parallelized.
             if not self.group_paired_ends:
                 # Arbitrary parallelization – assume only one input file which is to be split
                 adjusted_input_file_paths = split_file_by_lines(
@@ -277,7 +313,7 @@ class Tool:
                 for _, file_path in adjusted_input_file_paths:
                     # This is assuming only one input file per parallel run.
                     # This will need to be changed once we support multiple input files for parallelization.
-                    yield [file_path, PARALLEL_FILE_IS_IN_S3]
+                    yield [file_path]
             else:
                 # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
                 input_file_paths_pairs = split_paired_files_by_lines(
@@ -285,17 +321,16 @@ class Tool:
                     max_bytes=self.max_input_bytes_per_node,
                 )
                 for input_file_path_pair in input_file_paths_pairs:
-                    yield input_file_path_pair, PARALLEL_FILE_IS_IN_S3
+                    yield input_file_path_pair
 
         else:
             # Make sure we're below plan/multi-part limit for non-splittable files
-            # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
-            for file_path, file_is_in_s3 in zip(self.input_files, self.inputs_are_in_s3):
-                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES, file_is_in_s3=file_is_in_s3)
+            for file_path in self.input_files:
+                check_file_size(file_path, max_size_bytes=FOUR_POINT_FIVE_GIGABYTES)
             # Note that for a tool like Unicycler, this would look like:
             # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
             # As there are multiple input files required for the job
-            yield self.input_files, self.inputs_are_in_s3
+            yield self.input_files
 
     def run(self):
         """Constructs and runs a Toolchest query."""
@@ -310,9 +345,8 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
-        # Note: if any S3 input is present, parallelization is disabled
         should_run_in_parallel = self.parallel_enabled \
-            and not any(self.inputs_are_in_s3) \
+            and not any(inputs_are_in_s3(self.input_files)) \
             and (self.group_paired_ends or self.num_input_files == 1) \
             and check_file_size(self.input_files[0]) > self.max_input_bytes_per_node \
             and self._system_supports_parallel_execution()
@@ -325,7 +359,7 @@ class Tool:
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
             else self.output_path
-        for index, (input_files, inputs_are_in_s3) in enumerate(jobs):
+        for index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             temp_parallel_output_file_path = f"{self.output_path}_{index}"
             if should_run_in_parallel:
@@ -345,7 +379,6 @@ class Tool:
                 "database_version": self.database_version,
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
-                "inputs_are_in_s3": inputs_are_in_s3,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,

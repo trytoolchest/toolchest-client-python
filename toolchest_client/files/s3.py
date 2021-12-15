@@ -63,3 +63,15 @@ def get_params_from_s3_uri(uri):
     }
 
     return params
+
+
+def inputs_are_in_s3(input_paths):
+    """Returns a list of booleans describing which of the input files are S3 URIs.
+
+    :param input_paths: An input path or list of input paths (strings).
+    """
+    if isinstance(input_paths, str):
+        input_paths = [input_paths]
+
+    S3_PREFIX = "s3://"
+    return [file_path.startswith(S3_PREFIX) for file_path in input_paths]
