@@ -335,7 +335,7 @@ class Query():
                 aws_secret_access_key=output_file_keys["secret_access_key"],
                 aws_session_token=output_file_keys["session_token"],
             )
-            s3_client.upload_file(
+            s3_client.download_file(
                 output_file_keys["bucket"],
                 output_file_keys["object_name"],
                 output_path,
@@ -366,7 +366,7 @@ class Query():
                 force_raise=True,
             )
 
-        response_json = response[0].json()  # assumes only one output file
+        response_json = response.json()[0]  # assumes only one output file
         return {
             "access_key_id": response_json.get('access_key_id'),
             "secret_access_key": response_json.get('secret_access_key'),
