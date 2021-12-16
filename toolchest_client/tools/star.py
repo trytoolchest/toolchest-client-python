@@ -31,7 +31,7 @@ class STARInstance(Tool):
             database_name=database_name,
             database_version=database_version,
             parallel_enabled=True,
-            max_input_bytes_per_file=4.5 * 1024 * 1024 * 1024,
+            max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
             output_type=OutputType.SAM_FILE,  # In many cases, this will change (e.g. a dangerous argument is passed)
         )
 
