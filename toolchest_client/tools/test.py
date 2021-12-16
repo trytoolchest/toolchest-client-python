@@ -21,5 +21,5 @@ class Test(Tool):
             inputs=inputs,
             min_inputs=1,
             max_inputs=100,  # this limit is completely arbitrary
-            max_input_bytes_per_node=256 * 1024 * 1024 * 1024,
+            max_input_bytes_per_file=256 * 1024 * 1024 * 1024,
         )
