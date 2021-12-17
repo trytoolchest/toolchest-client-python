@@ -58,7 +58,7 @@ def test_star_grch38_parallel():
     )
 
     # Because STAR is non-deterministic, verify that the number of bytes is in range
-    assert 33292992706 <= os.path.getsize(output_file_path) <= 33292992730
+    assert 33292990718 <= os.path.getsize(output_file_path) <= 33292994718
 
 
 @pytest.mark.integration
