@@ -4,6 +4,8 @@ toolchest_client.tools.bowtie2
 
 This is the bowtie2 implementation of the Tool class.
 """
+from toolchest_client.files import OutputType
+
 from . import Tool
 
 
@@ -24,4 +26,8 @@ class Bowtie2(Tool):
             max_inputs=1,
             database_name=database_name,
             database_version=database_version,
+            parallel_enabled=False,
+            output_type=OutputType.GZ_TAR,
+            output_is_directory=True,
+            output_names=["output.txt"],
         )

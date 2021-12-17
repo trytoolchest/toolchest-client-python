@@ -19,7 +19,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines, compress_files_in_path, OutputType
+    split_paired_files_by_lines, compress_files_in_path, OutputType, assert_exists
 from toolchest_client.files.s3 import inputs_are_in_s3
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
@@ -33,7 +33,8 @@ class Tool:
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT, output_is_directory=False):
+                 output_type=OutputType.FLAT_TEXT, output_is_directory=False,
+                 output_names=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -61,6 +62,7 @@ class Tool:
         self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
+        self.output_names = output_names or []
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -196,15 +198,37 @@ class Tool:
         """Merges output files for parallel runs."""
         raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
 
+    def _warn_if_outputs_exist(self):
+        """Warns if default output files already exist in the output directory"""
+        for file_path in self.output_names + ["output", "output.tar.gz"]:
+            joined_file_path = os.path.join(self.output_path, file_path)
+            if os.path.exists(joined_file_path):
+                print(f"WARNING: {joined_file_path} already exists and will be overwritten")
+
     def _preflight(self):
         """Generic preflight check. Tools can have more specific implementations."""
         # Validate Toolchest auth key.
         validate_key()
 
+        if self.output_is_directory:
+            if os.path.exists(self.output_path):
+                if os.path.isfile(self.output_path):
+                    raise ValueError(
+                        f"{self.output_path} is a file. Please pass a directory instead of an output file."
+                    )
+            else:
+                os.makedirs(self.output_path)
+
+        self._warn_if_outputs_exist()
+
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
         if self.output_validation_enabled:
-            sanity_check(self.output_path)
+            for output_name in self.output_names:
+                output_file_path = f"{self.output_path}/{output_name}"
+                assert_exists(output_file_path, must_be_file=True)
+                if os.stat(output_file_path).st_size <= 5:
+                    raise ValueError(f"Output file at {output_file_path} is suspiciously small")
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -336,10 +360,12 @@ class Tool:
         """Constructs and runs a Toolchest query."""
         print("Beginning Toolchest analysis run.")
 
-        self._preflight()
-
         # todo: better propagate and handle errors for parallel runs
         self._validate_args()
+
+        # Preflight check should occur after validating args, as validation may affect the preflight check
+        self._preflight()
+
         # Prepare input files (expand paths, compress, etc)
         self._prepare_inputs()
 
