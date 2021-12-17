@@ -23,3 +23,9 @@ class Output:
         self.s3_uri = s3_uri
         self.presigned_s3_url = presigned_s3_url
         self.output_path = output_path
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+    def __str__(self):
+        return str(self.__dict__)
