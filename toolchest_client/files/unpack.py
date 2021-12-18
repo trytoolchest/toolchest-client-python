@@ -1,4 +1,3 @@
-from distutils.dir_util import copy_tree
 from enum import Enum
 import os
 from pathlib import Path
@@ -61,7 +60,7 @@ def unpack_files(file_path_to_unpack, output_type):
         )
 
         # Remove the unpacked .tar.gz file and empty unpacked output folder
-        # os.remove(file_path_to_unpack)
+        os.remove(file_path_to_unpack)
         # Ensure unpacked output folder is empty
         if len(os.listdir(unpacked_outputs_intermediate_dir)) != 0:
             raise OSError(f"Failed to move all contents of {unpacked_outputs_intermediate_dir} while unpacking")

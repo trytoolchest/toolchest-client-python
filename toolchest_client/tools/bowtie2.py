@@ -29,5 +29,5 @@ class Bowtie2(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["output.txt"],
+            output_names=["bowtie2.log", "bowtie2_output.sam"],
         )
