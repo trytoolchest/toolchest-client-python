@@ -74,40 +74,6 @@ def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args=""):
     instance.run()
 
 
-def cutadapt(inputs, output_path, tool_args):
-    """Runs Cutadapt via Toolchest.
-
-    (Currently, only single .fastq inputs are supported.)
-
-    :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
-    :param tool_args: Additional arguments to be passed to Cutadapt.
-
-
-    .. note:: Inputs and outputs should be specified in `inputs` and `output_path`.
-      These will be automatically handled by the Toolchest backend. Input/output
-      arguments supplied in `tool_args` (e.g., `-o`) will be ignored.
-
-    Usage::
-
-        >>> import toolchest_client as toolchest
-        >>> toolchest.cutadapt(
-        ...     tool_args="-a AACCGGTT",
-        ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output",
-        ... )
-
-    """
-
-    instance = Cutadapt(
-        tool_args=tool_args,
-        output_name='output.fastq',
-        inputs=inputs,
-        output_path=output_path,
-    )
-    instance.run()
-
-
 def kraken2(output_path, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None):
     """Runs Kraken 2 via Toolchest.
