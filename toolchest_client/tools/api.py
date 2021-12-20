@@ -226,7 +226,7 @@ def shogun_filter(inputs, output_path, database_name="shogun_standard", database
     instance.run()
 
 
-def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args=""):
+def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args="", parallelize=False):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -236,6 +236,7 @@ def STAR(output_path, read_one, database_name, database_version="1", read_two=No
     :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
     :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
     :param output_path: Path (client-side) where the output file will be downloaded.
+    :param parallelize: (optional) Allow parallelization of STAR if needed.
 
     .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
 
@@ -266,6 +267,7 @@ def STAR(output_path, read_one, database_name, database_version="1", read_two=No
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
+        parallelize=parallelize,
     )
     instance.run()
 
