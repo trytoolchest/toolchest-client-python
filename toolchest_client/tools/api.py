@@ -258,7 +258,7 @@ def STAR(output_path, read_one, database_name, database_version="1", read_two=No
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
-        output_name='Aligned.out.sam',
+        output_name="Aligned.out.sam" if parallelize else "output.tar.gz",
         input_prefix_mapping={
             read_one: None,
             read_two: None,
@@ -322,7 +322,7 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
 
     instance = Unicycler(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         input_prefix_mapping={
             read_one: "-1",
             read_two: "-2",
