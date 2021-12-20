@@ -52,5 +52,5 @@ class ShogunFilter(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["combined_seqs.filtered.fna"],
+            output_names=["combined_seqs.filtered.fna", "alignment.burst.best.b6"],
         )

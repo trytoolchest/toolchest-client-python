@@ -320,7 +320,7 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
 
     instance = Unicycler(
         tool_args=tool_args,
-        output_name='output.txt',
+        output_name='output.tar.gz',
         input_prefix_mapping={
             read_one: "-1",
             read_two: "-2",
