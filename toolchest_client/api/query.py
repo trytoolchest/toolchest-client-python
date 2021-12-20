@@ -12,12 +12,14 @@ import sys
 import threading
 import time
 
+import boto3
+from botocore.exceptions import ClientError
 import requests
 from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
-from toolchest_client.files import unpack_files
+from toolchest_client.files import unpack_files, OutputType
 from .status import Status, ThreadStatus
 
 
@@ -50,8 +52,8 @@ class Query():
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  output_name="output", input_files=None, output_path=None,
-                  thread_statuses=None):
+                  output_name="output", input_files=None,
+                  output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -75,12 +77,13 @@ class Query():
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
-            tool_name,
-            tool_version,
-            tool_args,
-            database_name,
-            database_version,
-            output_name,
+            compress_output=True if output_type == OutputType.GZ_TAR else False,
+            database_name=database_name,
+            database_version=database_version,
+            output_name=output_name,
+            tool_name=tool_name,
+            tool_version=tool_version,
+            tool_args=tool_args,
         )
         create_content = create_response.json()
 
@@ -111,19 +114,21 @@ class Query():
         self._update_thread_status(ThreadStatus.COMPLETE)
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
-                              database_name, database_version, output_name):
+                              database_name, database_version, output_name,
+                              compress_output):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
         """
 
         create_body = {
-            "tool_name": tool_name,
-            "tool_version": tool_version,
+            "compress_output": compress_output,
             "custom_tool_args": tool_args,
             "database_name": database_name,
             "database_version": database_version,
             "output_file_name": output_name,
+            "tool_name": tool_name,
+            "tool_version": tool_version,
         }
 
         create_response = requests.post(
@@ -139,7 +144,9 @@ class Query():
 
         return create_response
 
-    def _add_input_file(self, input_file_path, input_prefix):
+    # Note: input_is_in_s3 is False by default for backwards compatibility.
+    # TODO: Deprecate this after confirming it doesn't affect the API.
+    def _add_input_file(self, input_file_path, input_prefix, input_is_in_s3=False):
         add_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_URL,
             'input-files'
@@ -152,39 +159,68 @@ class Query():
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
+                "is_s3": input_is_in_s3,
+                "s3_uri": input_file_path if input_is_in_s3 else "",
             },
         )
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to upload file at {input_file_path}", file=sys.stderr)
+            print(f"Failed to add input file at {input_file_path}", file=sys.stderr)
             raise
-        return response.json().get("input_file_upload_location")
+
+        if not input_is_in_s3:
+            response_json = response.json()
+            return {
+                "access_key_id": response_json.get('access_key_id'),
+                "secret_access_key": response_json.get('secret_access_key'),
+                "session_token": response_json.get('session_token'),
+                "bucket": response_json.get('bucket'),
+                "object_name": response_json.get('object_name'),
+            }
 
     def _upload(self, input_file_paths, input_prefix_mapping):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
+        S3_PREFIX = "s3://"
         for file_path in input_file_paths:
-            print(f"Uploading {file_path}")
-            upload_url = self._add_input_file(
-                input_file_path=file_path,
-                input_prefix=input_prefix_mapping.get(file_path)
-            )
-
-            upload_response = requests.put(
-                upload_url,
-                data=open(file_path, "rb")
-            )
-            try:
-                upload_response.raise_for_status()
-            except HTTPError as e:
-                # todo: this isn't propagating as a failure
-                self._update_status_to_failed(
-                    f"Input file upload failed for file at {file_path}.",
-                    force_raise=True
+            input_is_in_s3 = file_path.startswith(S3_PREFIX)
+            # If the file is already in S3, there is no need to upload.
+            if input_is_in_s3:
+                # Registers the file in the internal DB.
+                self._add_input_file(
+                    input_file_path=file_path,
+                    input_prefix=input_prefix_mapping.get(file_path),
+                    input_is_in_s3=input_is_in_s3,
                 )
+            else:
+                print(f"Uploading {file_path}")
+                input_file_keys = self._add_input_file(
+                    input_file_path=file_path,
+                    input_prefix=input_prefix_mapping.get(file_path),
+                    input_is_in_s3=input_is_in_s3,
+                )
+
+                try:
+                    s3_client = boto3.client(
+                        's3',
+                        aws_access_key_id=input_file_keys["access_key_id"],
+                        aws_secret_access_key=input_file_keys["secret_access_key"],
+                        aws_session_token=input_file_keys["session_token"],
+                    )
+                    s3_client.upload_file(
+                        file_path,
+                        input_file_keys["bucket"],
+                        input_file_keys["object_name"],
+                    )
+                except ClientError as e:
+                    # todo: this isn't propagating as a failure
+                    self._update_status_to_failed(
+                        f"{e} \n\nInput file upload failed for file at {file_path}.",
+                        force_raise=True
+                    )
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
@@ -288,31 +324,34 @@ class Query():
     def _download(self, output_path):
         """Downloads output to ``output_path``."""
 
-        download_signed_url = self._get_download_signed_url()
+        output_file_keys = self._get_download()
 
         self._update_status(Status.TRANSFERRING_TO_CLIENT)
 
-        # Downloads output by sending a GET request.
-        with requests.get(download_signed_url, stream=True) as r:
-            # Validates response of GET request.
-            try:
-                r.raise_for_status()
-            except HTTPError:
-                self._update_status_to_failed(
-                    "Output download failed.",
-                    force_raise=True,
-                )
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=output_file_keys["access_key_id"],
+                aws_secret_access_key=output_file_keys["secret_access_key"],
+                aws_session_token=output_file_keys["session_token"],
+            )
+            s3_client.download_file(
+                output_file_keys["bucket"],
+                output_file_keys["object_name"],
+                output_path,
+            )
 
-            # Writes streamed output data from response to the output file.
-            with open(output_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
+        except ClientError as e:
             # TODO: output more detailed error message if write error encountered
+            self._update_status_to_failed(
+                f"{e} \n\nOutput download failed.",
+                force_raise=True
+            )
 
         self._update_status(Status.TRANSFERRED_TO_CLIENT)
         self.mark_as_failed = False
 
-    def _get_download_signed_url(self):
+    def _get_download(self):
         """Gets URL for downloading output of query task(s)."""
 
         response = requests.get(
@@ -327,9 +366,14 @@ class Query():
                 force_raise=True,
             )
 
-        # TODO: add support for multiple download files
-
-        return response.json()[0]["signed_url"]
+        response_json = response.json()[0]  # assumes only one output file
+        return {
+            "access_key_id": response_json.get('access_key_id'),
+            "secret_access_key": response_json.get('secret_access_key'),
+            "session_token": response_json.get('session_token'),
+            "bucket": response_json.get('bucket'),
+            "object_name": response_json.get('object_name'),
+        }
 
     def _unpack_output(self, output_path, output_type):
         """After downloading, unpack files if needed"""
