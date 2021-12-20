@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Cutadapt, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name, database_version="1", tool_args=""):
