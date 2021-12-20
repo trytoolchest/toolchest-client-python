@@ -26,5 +26,6 @@ class Shi7(Tool):
             group_paired_ends=True,
             max_input_bytes_per_file=5 * 1024 * 1024 * 1024,
             output_type=OutputType.GZ_TAR,
+            output_is_directory=True,
             output_names=["combined_seqs.fna"],
         )
