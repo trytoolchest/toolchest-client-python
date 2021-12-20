@@ -24,7 +24,7 @@ class Shi7(Tool):
             max_inputs=10,  # artificially constrained at 10 for now
             parallel_enabled=False,
             group_paired_ends=True,
-            max_input_bytes_per_file=1.5 * 1024 * 1024 * 1024,
+            max_input_bytes_per_file=5 * 1024 * 1024 * 1024,
             output_type=OutputType.GZ_TAR,
             output_names=["combined_seqs.fna"],
         )
