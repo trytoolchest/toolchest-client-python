@@ -5,7 +5,7 @@ toolchest_client.tools.shi7
 This is the shi7 implementation of the Tool class.
 """
 from . import Tool
-from toolchest_client.files import concatenate_files, OutputType
+from toolchest_client.files import OutputType
 
 
 class Shi7(Tool):
