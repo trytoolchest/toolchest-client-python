@@ -27,7 +27,7 @@ def test_star_grch38():
 
     toolchest.STAR(
         read_one=input_file_path,
-        output_path=output_file_path,
+        output_path=output_dir_path,
         database_name="GRCh38",
     )
 
