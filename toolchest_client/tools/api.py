@@ -291,7 +291,7 @@ def test(inputs, output_path, tool_args=""):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.txt',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
     )
