@@ -79,7 +79,6 @@ class Tool:
             self.input_files = files_in_path(self.inputs)
             self.num_input_files = len(self.input_files)
 
-        # PR review: this former block broke cellranger_mkfastq - why did this need to happen when it happens above??
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
