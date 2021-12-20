@@ -28,5 +28,5 @@ class Unicycler(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["assembly.fasta"],
+            output_names=["assembly.fasta", "unicycler.log"],
         )
