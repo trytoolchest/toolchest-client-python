@@ -5,7 +5,7 @@ toolchest_client.tools.shi7
 This is the shi7 implementation of the Tool class.
 """
 from . import Tool
-from toolchest_client.files import concatenate_files
+from toolchest_client.files import concatenate_files, OutputType
 
 
 class Shi7(Tool):
@@ -22,10 +22,9 @@ class Shi7(Tool):
             inputs=inputs,
             min_inputs=1,
             max_inputs=10,  # artificially constrained at 10 for now
-            parallel_enabled=True,
+            parallel_enabled=False,
             group_paired_ends=True,
             max_input_bytes_per_file=1.5 * 1024 * 1024 * 1024,
+            output_type=OutputType.GZ_TAR,
+            output_names=["combined_seqs.fna"],
         )
-
-    def _merge_outputs(self, output_file_paths):
-        concatenate_files(output_file_paths, self.output_path)
