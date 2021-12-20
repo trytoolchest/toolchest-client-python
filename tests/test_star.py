@@ -55,6 +55,7 @@ def test_star_grch38_parallel():
         read_one=input_file_path,
         output_path=output_file_path,
         database_name="GRCh38",
+        parallelize=True,
     )
 
     # Because STAR is non-deterministic, verify that the number of bytes is in range
@@ -82,6 +83,7 @@ def test_star_grch38_dangerous_arg():
         output_path=output_dir_path,
         database_name="GRCh38",
         tool_args="--outSAMtype BAM Unsorted",
+        parallelize=True,  # this should be deliberately ignored
     )
 
     # Because STAR is non-deterministic and BAMs are are compressed verify that the number of bytes is in range

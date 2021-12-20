@@ -32,6 +32,7 @@ class Tool:
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
+                 max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=False,
                  output_names=None):
@@ -58,6 +59,7 @@ class Tool:
         self.group_paired_ends = group_paired_ends
         self.compress_inputs = compress_inputs
         self.max_input_bytes_per_file = max_input_bytes_per_file
+        self.max_input_bytes_per_file_parallel = max_input_bytes_per_file_parallel
         self.query_threads = []
         self.query_thread_statuses = dict()
         self.terminating = False
@@ -329,7 +331,7 @@ class Tool:
                 # Arbitrary parallelization – assume only one input file which is to be split
                 adjusted_input_file_paths = split_file_by_lines(
                     input_file_path=self.input_files[0],
-                    max_bytes=self.max_input_bytes_per_file,
+                    max_bytes=self.max_input_bytes_per_file_parallel,
                 )
                 for _, file_path in adjusted_input_file_paths:
                     # This is assuming only one input file per parallel run.
@@ -339,7 +341,7 @@ class Tool:
                 # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
                 input_file_paths_pairs = split_paired_files_by_lines(
                     input_file_paths=self.input_files,
-                    max_bytes=self.max_input_bytes_per_file,
+                    max_bytes=self.max_input_bytes_per_file_parallel,
                 )
                 for input_file_path_pair in input_file_paths_pairs:
                     yield input_file_path_pair
@@ -371,7 +373,6 @@ class Tool:
         should_run_in_parallel = self.parallel_enabled \
             and not any(inputs_are_in_s3(self.input_files)) \
             and (self.group_paired_ends or self.num_input_files == 1) \
-            and check_file_size(self.input_files[0]) > self.max_input_bytes_per_file \
             and self._system_supports_parallel_execution()
 
         jobs = self._generate_jobs(should_run_in_parallel)

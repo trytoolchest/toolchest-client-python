@@ -17,6 +17,7 @@ def test_star_variable_arg_parsing_single():
         output_path="./output.sam",
         database_name="test",
         database_version="0.1.0",
+        parallelize=False,
     )
     star_instance._validate_args()
 
@@ -35,6 +36,7 @@ def test_star_variable_arg_parsing_multiple():
         output_path="./output.sam",
         database_name="test",
         database_version="0.1.0",
+        parallelize=False,
     )
     star_instance._validate_args()
 
