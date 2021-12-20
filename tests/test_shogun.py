@@ -15,11 +15,11 @@ def test_shogun_filter_and_align():
     Tests shogun (filter and align for simplicity) with a single R1 input
     """
 
-    test_dir = "test_shogun_filter_and_align"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
+    test_dir = "./test_shogun_filter_and_align"
+    os.makedirs(f"{test_dir}", exist_ok=True)
     input_file_path = f"./{test_dir}/combined_seqs_unfiltered.fna"
-    output_file_path_filter = f"./{test_dir}/combined_seqs_filtered.fna"
-    output_file_path_align = f"./{test_dir}/burst_output.b6"
+    output_file_path_filter = f"./{test_dir}/combined_seqs.filtered.fna"
+    output_file_path_align = f"./{test_dir}/alignment.burst.b6"
 
     s3.download_integration_test_input(
         s3_file_key="combined_seqs_unfiltered.fna",
@@ -29,7 +29,7 @@ def test_shogun_filter_and_align():
     toolchest.shogun_filter(
         tool_args="--alignment True",
         inputs=input_file_path,
-        output_path=output_file_path_filter,
+        output_path=test_dir,
     )
 
     assert hash.unordered(output_file_path_filter) == 510167908
@@ -37,7 +37,7 @@ def test_shogun_filter_and_align():
     toolchest.shogun_align(
         tool_args="",
         inputs=output_file_path_filter,
-        output_path=output_file_path_align,
+        output_path=test_dir,
     )
 
     assert hash.unordered(output_file_path_align) == 780853697

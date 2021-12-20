@@ -153,7 +153,7 @@ def shi7(inputs, output_path, tool_args=""):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='combined_seqs.fna',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
     )
