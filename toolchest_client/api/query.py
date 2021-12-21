@@ -123,7 +123,7 @@ class Query:
 
         self.output.s3_uri = self.output_s3_uri
         self.output.presigned_s3_url = self.presigned_s3_url
-        self.output.output_path = output_path
+        self.output.output_path = self.unpacked_output
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -392,7 +392,7 @@ class Query:
     def _unpack_output(self, output_path, output_type):
         """After downloading, unpack files if needed"""
         try:
-            unpack_files(
+            self.unpacked_output = unpack_files(
                 file_path_to_unpack=output_path,
                 output_type=output_type,
             )
