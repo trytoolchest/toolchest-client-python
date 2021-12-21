@@ -52,7 +52,7 @@ class Query:
         self.thread_statuses = None
 
         self.presigned_s3_url = None
-        self.output_object = output_object if output_object else Output()
+        self.output = output_object if output_object else Output()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -121,10 +121,10 @@ class Query:
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
-        self.output_object.s3_uri = self.output_s3_uri
-        self.output_object.presigned_s3_url = self.presigned_s3_url
-        self.output_object.output_path = output_path
-        return self.output_object
+        self.output.s3_uri = self.output_s3_uri
+        self.output.presigned_s3_url = self.presigned_s3_url
+        self.output.output_path = output_path
+        return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name,
@@ -380,7 +380,7 @@ class Query:
             )
 
         response_json = response.json()[0]  # assumes only one output file
-        self.output_s3_uri = response_data["s3_uri"]
+        self.output_s3_uri = response_json.get("s3_uri"),
         return {
             "access_key_id": response_json.get('access_key_id'),
             "secret_access_key": response_json.get('secret_access_key'),

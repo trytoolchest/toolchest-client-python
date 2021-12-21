@@ -65,7 +65,7 @@ class Tool:
         self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
-        self.output_objects = {}
+        self.output_locations = {}
         self.output_names = output_names or []
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -189,7 +189,7 @@ class Tool:
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and not os.path.isdir(self.output_path):
+        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
@@ -208,16 +208,19 @@ class Tool:
         # Validate Toolchest auth key.
         validate_key()
 
-        if self.output_is_directory:
-            if os.path.exists(self.output_path):
-                if os.path.isfile(self.output_path):
-                    raise ValueError(
-                        f"{self.output_path} is a file. Please pass a directory instead of an output file."
-                    )
-            else:
-                os.makedirs(self.output_path)
+        # Check if the given output_path is a directory, if required by the tool
+        # and if the user provides output_path.
+        if self.output_path:
+            if self.output_is_directory:
+                if os.path.exists(self.output_path):
+                    if os.path.isfile(self.output_path):
+                        raise ValueError(
+                            f"{self.output_path} is a file. Please pass a directory instead of an output file."
+                        )
+                else:
+                    os.makedirs(self.output_path)
 
-        self._warn_if_outputs_exist()
+            self._warn_if_outputs_exist()
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
@@ -389,9 +392,9 @@ class Tool:
                 temp_input_file_paths += input_files
                 temp_output_file_paths.append(temp_parallel_output_file_path)
 
-            # Create a new output object for the thread.
-            self.output_objects[index] = Output()
-            q = Query(output_object=self.output_objects[index])
+            # Create a new Output for the thread.
+            self.output_locations[index] = Output()
+            q = Query(output_object=self.output_locations[index])
 
             # Deep copy to make thread safe
             query_args = copy.deepcopy({
@@ -443,4 +446,4 @@ class Tool:
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:
-            return self.output_objects[0]
+            return self.output_locations[0]
