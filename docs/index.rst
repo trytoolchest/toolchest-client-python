@@ -29,7 +29,6 @@ Tools
 Toolchest currently supports the following tools:
 
 * Bowtie2 (`bowtie2`)
-* Cutadapt (`cutadapt`)
 * Kraken2 (`kraken2`)
 * STAR (`STAR`)
 * Unicycler (`unicycler`)

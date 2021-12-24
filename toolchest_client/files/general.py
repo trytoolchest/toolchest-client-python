@@ -8,6 +8,10 @@ General file handling functions.
 import shutil
 import os
 
+import boto3
+
+from .s3 import assert_accessible_s3, get_params_from_s3_uri
+
 
 def assert_exists(path, must_be_file=False, must_be_directory=False):
     """Raises an error if a path does not exist.
@@ -36,11 +40,25 @@ def check_file_size(file_path, max_size_bytes=None):
     :param max_size_bytes: Maximum number of bytes allowed for a file. Throws error if above limit.
     :type max_size_bytes: int | None
     """
-    assert_exists(file_path, must_be_file=True)
-    file_size_bytes = os.stat(file_path).st_size
+    S3_PREFIX = "s3://"
+    if not file_path.startswith(S3_PREFIX):
+        assert_exists(file_path, must_be_file=True)
+        file_size_bytes = os.stat(file_path).st_size
+    else:
+        # Get file size S3 metadata, via boto3.
+        # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
+        s3_file_params = get_params_from_s3_uri(file_path)
+        s3_client = boto3.client("s3")
+        response = s3_client.head_object(
+            Bucket=s3_file_params["bucket"],
+            Key=s3_file_params["key"],
+        )
+        file_size_bytes = response["ContentLength"]
+
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
             raise ValueError(f"File at {file_path} is larger than your plan's per-file limit")
+
     return file_size_bytes
 
 
@@ -57,10 +75,17 @@ def files_in_path(files):
             more_files.extend(files_in_path(sub_path))
         return more_files
 
+    # If it's an S3 URI, treat it as a file
+    # Check if it is accessible from a worker node
+    S3_PREFIX = "s3://"
+    if files.startswith(S3_PREFIX):
+        assert_accessible_s3(files)
+        return [files]
+
     # If it's a path to something that doesn't exist, error
     assert_exists(files, must_be_file=False)
 
-    # If it's a path is to a single file, return a list containing just the path to that file
+    # If it's a path to a single file, return a list containing just the path to that file
     if os.path.isfile(files):
         return [files]
 

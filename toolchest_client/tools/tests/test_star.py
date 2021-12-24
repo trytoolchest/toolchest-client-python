@@ -14,9 +14,10 @@ def test_star_variable_arg_parsing_single():
             "r2_path": None,
         },
         inputs=f"{THIS_DIRECTORY}/test_star.py",
-        output_path="./output.sam",
+        output_path="./",
         database_name="test",
         database_version="0.1.0",
+        parallelize=False,
     )
     star_instance._validate_args()
 
@@ -32,9 +33,10 @@ def test_star_variable_arg_parsing_multiple():
             "r2_path": None,
         },
         inputs=f"{THIS_DIRECTORY}/test_star.py",
-        output_path="./output.sam",
+        output_path="./",
         database_name="test",
         database_version="0.1.0",
+        parallelize=False,
     )
     star_instance._validate_args()
 
