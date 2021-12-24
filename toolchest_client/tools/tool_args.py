@@ -124,6 +124,10 @@ TOOL_ARG_LISTS = {
         },
     },
     "megahit": {
+        "blacklist": [
+            "--continue",
+            "-o",
+        ],
         "whitelist": {
             "--min-count": 1,
             "--k-list": 1,

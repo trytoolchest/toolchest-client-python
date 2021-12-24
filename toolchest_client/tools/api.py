@@ -157,7 +157,7 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
         ...     tool_args="",
         ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
         ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
-        ...     output_path="./path/to/output.tar.gz",
+        ...     output_path="./path/to/output",
         ... )
 
     """
