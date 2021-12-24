@@ -123,6 +123,32 @@ TOOL_ARG_LISTS = {
             "--paired": 0,
         },
     },
+    "megahit": {
+        "blacklist": [
+            "--continue",
+            "-o",
+        ],
+        "whitelist": {
+            "--min-count": 1,
+            "--k-list": 1,
+            "--k-min": 1,
+            "--k-max": 1,
+            "--k-step": 1,
+            "--no-mercy": 0,
+            "--bubble-level": 1,
+            "--merge-level": 1,
+            "--prune-level": 1,
+            "--prune-depth": 1,
+            "--disconnect-ratio": 1,
+            "--low-local-ratio": 1,
+            "--max-tip-len": 1,
+            "--cleaning-rounds": 1,
+            "--no-local": 0,
+            "--kmin-1pass": 1,
+            "--presets": 1,
+            "--min-contig-len": 1,
+        },
+    },
     "shi7": {
         "whitelist": {
             "--debug": 0,
