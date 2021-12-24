@@ -4,6 +4,8 @@ toolchest_client.tools.megahit
 
 This is the megahit implementation of the Tool class.
 """
+from toolchest_client.files import OutputType
+
 from . import Tool
 
 
@@ -23,4 +25,8 @@ class Megahit(Tool):
             input_prefix_mapping=input_prefix_mapping,
             min_inputs=1,
             max_inputs=10,  # todo: make this unlimited?
+            parallel_enabled=False,
+            output_type=OutputType.GZ_TAR,
+            output_is_directory=True,
+            output_names=[],
         )
