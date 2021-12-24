@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
@@ -102,7 +102,7 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
         >>> toolchest.kraken2(
         ...     tool_args="",
         ...     inputs="./path/to/input.fastq",
-        ...     output_path="./path/to/output.txt",
+        ...     output_path="./path/to/output",
         ... )
 
     """
@@ -131,6 +131,61 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
+    )
+    instance.run()
+
+
+def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved=None,
+            single_end=None):
+    """Runs Megahit via Toolchest.
+
+    :param output_path: Path (client-side) where the output will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Megahit.
+    :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
+    :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
+    :param interleaved: (optional) `--12` inputs. Path or list of paths for interleaved paired-end files.
+    :param single_end: (optional) `-r` inputs. Path or list of paths for single-end inputs.
+
+    .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
+    versa. In other words, the nth read in `read_one` should be paired with the nth read
+    in `read_two`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.megahit(
+        ...     tool_args="",
+        ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
+        ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    # If input parameters are lists, parse these for input_prefix_mapping.
+    tag_to_param_map = {
+        "-1": read_one,
+        "-2": read_two,
+        "--12": interleaved,
+        "-r": single_end,
+    }
+    input_list = []  # list of all inputs
+    input_prefix_mapping = {}  # map of each input to its respective tag
+    for tag, param in tag_to_param_map.items():
+        if isinstance(param, list):
+            for input_file in param:
+                input_list.append(input_file)
+                input_prefix_mapping[input_file] = tag
+        elif isinstance(param, str):
+            input_list.append(param)
+            input_prefix_mapping[param] = tag
+
+    instance = Megahit(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        input_prefix_mapping=input_prefix_mapping,
+        inputs=input_list,
+        output_path=output_path,
     )
     instance.run()
 
@@ -189,7 +244,7 @@ def shogun_align(inputs, output_path, database_name="shogun_standard", database_
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
     )
     instance.run()
 
@@ -222,7 +277,7 @@ def shogun_filter(inputs, output_path, database_name="shogun_standard", database
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
     )
     instance.run()
 
