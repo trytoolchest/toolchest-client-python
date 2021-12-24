@@ -28,5 +28,11 @@ class Megahit(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=[],
+            output_names=[
+                "checkpoints.txt",
+                "done",
+                "final.contigs.fa",
+                "log",
+                "options.json",
+            ],
         )
