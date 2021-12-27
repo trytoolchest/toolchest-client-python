@@ -52,6 +52,7 @@ class Query:
         self.thread_statuses = None
 
         self.presigned_s3_url = None
+        self.unpacked_output = None
         self.output = output_object if output_object else Output()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
