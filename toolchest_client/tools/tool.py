@@ -182,7 +182,7 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if not os.access(
+        if self.output_path and not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
         ):
