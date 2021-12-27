@@ -224,12 +224,15 @@ class Tool:
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.output_validation_enabled and self.output_path:
-            for output_name in self.output_names:
-                output_file_path = f"{self.output_path}/{output_name}"
-                assert_exists(output_file_path, must_be_file=True)
-                if os.stat(output_file_path).st_size <= 5:
-                    raise ValueError(f"Output file at {output_file_path} is suspiciously small")
+        if self.output_path:
+            if self.output_validation_enabled:
+                for output_name in self.output_names:
+                    output_file_path = f"{self.output_path}/{output_name}"
+                    assert_exists(output_file_path, must_be_file=True)
+                    if os.stat(output_file_path).st_size <= 5:
+                        raise ValueError(f"Output file at {output_file_path} is suspiciously small")
+        else:
+            print("Output path not provided, skipping download.")
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.

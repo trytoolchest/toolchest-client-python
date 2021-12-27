@@ -117,7 +117,7 @@ class Query:
             self._download(output_path)
             self._unpack_output(output_path, output_type)
         else:
-            print("Output path not provided, skipping download.")
+            self._get_download()
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
@@ -365,7 +365,7 @@ class Query:
         self.mark_as_failed = False
 
     def _get_download(self):
-        """Gets URL for downloading output of query task(s)."""
+        """Gets S3 URI and presigned URL for downloading output of query task(s)."""
 
         response = requests.get(
             "/".join([self.PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
