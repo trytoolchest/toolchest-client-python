@@ -189,7 +189,9 @@ class Query():
         S3_PREFIX = "s3://"
         for file_path in input_file_paths:
             input_is_in_s3 = file_path.startswith(S3_PREFIX)
-            input_prefix, input_order = input_prefix_mapping.get(file_path, (None, None))
+            input_prefix_details = input_prefix_mapping.get(file_path)
+            input_prefix = input_prefix_details.get("prefix")
+            input_order = input_prefix_details.get("order")
             # If the file is already in S3, there is no need to upload.
             if input_is_in_s3:
                 # Registers the file in the internal DB.
