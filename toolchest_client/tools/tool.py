@@ -30,8 +30,8 @@ class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  output_path, inputs, min_inputs, max_inputs,
                  database_name=None, database_version=None,
-                 input_prefix_mapping=None, parallel_enabled=False,
-                 max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
+                 input_prefix_mapping=None, input_prefix_order=None,
+                 parallel_enabled=False, max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=False,
@@ -48,6 +48,7 @@ class Tool:
         #   "./path_to_file.txt": "-prefix",
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
+        self.input_prefix_order = input_prefix_order or dict()  # formatted the same as input_prefix_mapping
         self.input_files = None
         self.num_input_files = None
         self.min_inputs = min_inputs
@@ -400,6 +401,7 @@ class Tool:
                 "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
+                "input_prefix_order": self.input_prefix_order,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,
             })
