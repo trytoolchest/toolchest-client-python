@@ -381,7 +381,7 @@ class Query:
             )
 
         response_json = response.json()[0]  # assumes only one output file
-        self.output_s3_uri = response_json.get("s3_uri"),
+        self.output_s3_uri = response_json.get("s3_uri")
         return {
             "access_key_id": response_json.get('access_key_id'),
             "secret_access_key": response_json.get('secret_access_key'),
