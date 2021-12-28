@@ -14,7 +14,7 @@ class Megahit(Tool):
     The megahit implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 input_prefix_order, output_path):
+                 output_path):
         super().__init__(
             tool_name="megahit",
             tool_version="1.2.9",  # todo: allow version to be set by the user
@@ -23,7 +23,6 @@ class Megahit(Tool):
             output_path=output_path,
             inputs=inputs,
             input_prefix_mapping=input_prefix_mapping,
-            input_prefix_order=input_prefix_order,
             min_inputs=1,
             max_inputs=10,  # todo: make this unlimited?
             parallel_enabled=False,

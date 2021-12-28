@@ -171,13 +171,14 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
     }
     input_list = []  # list of all inputs
     input_prefix_mapping = {}  # map of each input to its respective tag
-    input_prefix_order = {}  # map of each input to its respective order in the prefix arg
     for tag, param in tag_to_param_map.items():
         if isinstance(param, list):
             for index, input_file in enumerate(param):
                 input_list.append(input_file)
-                input_prefix_mapping[input_file] = tag
-                input_prefix_order[input_file] = index
+                input_prefix_mapping[input_file] = {
+                    "prefix": tag,
+                    "order": index,
+                }
         elif isinstance(param, str):
             input_list.append(param)
             input_prefix_mapping[param] = tag
@@ -186,7 +187,6 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
         tool_args=tool_args,
         output_name='output.tar.gz',
         input_prefix_mapping=input_prefix_mapping,
-        input_prefix_order=input_prefix_order,
         inputs=input_list,
         output_path=output_path,
     )

@@ -50,8 +50,8 @@ class Query():
         self.thread_name = ''
         self.thread_statuses = None
 
-    def run_query(self, tool_name, tool_version, input_prefix_mapping, input_prefix_order,
-                  output_type, tool_args=None, database_name=None, database_version=None,
+    def run_query(self, tool_name, tool_version, input_prefix_mapping, output_type,
+                  tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None,
                   output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
@@ -62,7 +62,6 @@ class Query():
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1")
-        :param input_prefix_order: Mapping of input filepaths to their order under the respective prefix tag, 0-indexed
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
@@ -104,7 +103,7 @@ class Query():
 
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
-        self._upload(input_files, input_prefix_mapping, input_prefix_order)
+        self._upload(input_files, input_prefix_mapping)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -148,7 +147,7 @@ class Query():
 
     # Note: input_is_in_s3 is False by default for backwards compatibility.
     # TODO: Deprecate this after confirming it doesn't affect the API.
-    def _add_input_file(self, input_file_path, input_prefix, input_prefix_order, input_is_in_s3=False):
+    def _add_input_file(self, input_file_path, input_prefix, input_order, input_is_in_s3=False):
         add_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_URL,
             'input-files'
@@ -161,7 +160,7 @@ class Query():
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
-                "tool_prefix_order": input_prefix_order,
+                "tool_prefix_order": input_order,
                 "is_s3": input_is_in_s3,
                 "s3_uri": input_file_path if input_is_in_s3 else "",
             },
@@ -182,7 +181,7 @@ class Query():
                 "object_name": response_json.get('object_name'),
             }
 
-    def _upload(self, input_file_paths, input_prefix_mapping, input_prefix_order):
+    def _upload(self, input_file_paths, input_prefix_mapping):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
@@ -190,21 +189,22 @@ class Query():
         S3_PREFIX = "s3://"
         for file_path in input_file_paths:
             input_is_in_s3 = file_path.startswith(S3_PREFIX)
+            input_prefix, input_order = input_prefix_mapping.get(file_path, (None, None))
             # If the file is already in S3, there is no need to upload.
             if input_is_in_s3:
                 # Registers the file in the internal DB.
                 self._add_input_file(
                     input_file_path=file_path,
-                    input_prefix=input_prefix_mapping.get(file_path),
-                    input_prefix_order=input_prefix_order.get(file_path),
+                    input_prefix=input_prefix,
+                    input_order=input_order,
                     input_is_in_s3=input_is_in_s3,
                 )
             else:
                 print(f"Uploading {file_path}")
                 input_file_keys = self._add_input_file(
                     input_file_path=file_path,
-                    input_prefix=input_prefix_mapping.get(file_path),
-                    input_prefix_order=input_prefix_order.get(file_path),
+                    input_prefix=input_prefix,
+                    input_order=input_order,
                     input_is_in_s3=input_is_in_s3,
                 )
 
