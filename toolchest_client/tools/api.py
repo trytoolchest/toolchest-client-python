@@ -173,9 +173,12 @@ def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved
     input_prefix_mapping = {}  # map of each input to its respective tag
     for tag, param in tag_to_param_map.items():
         if isinstance(param, list):
-            for input_file in param:
+            for index, input_file in enumerate(param):
                 input_list.append(input_file)
-                input_prefix_mapping[input_file] = tag
+                input_prefix_mapping[input_file] = {
+                    "prefix": tag,
+                    "order": index,
+                }
         elif isinstance(param, str):
             input_list.append(param)
             input_prefix_mapping[param] = tag

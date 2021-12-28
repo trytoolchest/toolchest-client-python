@@ -45,7 +45,9 @@ class Tool:
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
         # {
-        #   "./path_to_file.txt": "-prefix",
+        #   "./path_to_file.txt": {
+        #       "prefix": "-prefix",
+        #       "order": 0,
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
