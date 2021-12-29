@@ -383,9 +383,9 @@ def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_a
         tool_args=tool_args,
         output_name="output.tar.gz",
         input_prefix_mapping={
-            read_one: "-1",
-            read_two: "-2",
-            long_reads: "-l",
+            read_one: {"prefix": "-1"},
+            read_two: {"prefix": "-2"},
+            long_reads: {"prefix": "-l"},
         },
         inputs=[read_one, read_two, long_reads],
         output_path=output_path,
