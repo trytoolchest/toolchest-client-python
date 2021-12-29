@@ -4,9 +4,8 @@ toolchest_client.tools.megahit
 
 This is the megahit implementation of the Tool class.
 """
-from toolchest_client.files import OutputType
-
 from . import Tool
+from toolchest_client.files import OutputType, sanity_check
 
 
 class Megahit(Tool):
@@ -36,3 +35,11 @@ class Megahit(Tool):
                 "options.json",
             ],
         )
+
+    def _postflight(self):
+        if self.output_validation_enabled:
+            for output_name in self.output_names:
+                # Skip validation for the "done" file, which should be empty.
+                if output_name != "done":
+                    output_file_path = f"{self.output_path}/{output_name}"
+                    sanity_check(output_file_path)

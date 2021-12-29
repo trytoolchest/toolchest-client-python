@@ -19,7 +19,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines, compress_files_in_path, OutputType, assert_exists
+    split_paired_files_by_lines, compress_files_in_path, OutputType
 from toolchest_client.files.s3 import inputs_are_in_s3
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
@@ -45,7 +45,10 @@ class Tool:
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
         # {
-        #   "./path_to_file.txt": "-prefix",
+        #   "./path_to_file.txt": {
+        #       "prefix": "-prefix",
+        #       "order": 0,
+        #   }
         # }
         self.input_prefix_mapping = input_prefix_mapping or dict()
         self.input_files = None
@@ -224,9 +227,7 @@ class Tool:
         if self.output_validation_enabled:
             for output_name in self.output_names:
                 output_file_path = f"{self.output_path}/{output_name}"
-                assert_exists(output_file_path, must_be_file=True)
-                if os.stat(output_file_path).st_size <= 5:
-                    raise ValueError(f"Output file at {output_file_path} is suspiciously small")
+                sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
