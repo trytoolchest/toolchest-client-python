@@ -28,7 +28,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
-                 output_path, inputs, min_inputs, max_inputs,
+                 output_path, inputs, min_inputs, max_inputs=None,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
@@ -85,7 +85,7 @@ class Tool:
         if self.num_input_files < self.min_inputs:
             raise ValueError(f"Not enough input files submitted. "
                              f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
-        if self.num_input_files > self.max_inputs:
+        if self.max_inputs and self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 

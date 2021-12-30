@@ -23,7 +23,7 @@ class Megahit(Tool):
             inputs=inputs,
             input_prefix_mapping=input_prefix_mapping,
             min_inputs=1,
-            max_inputs=10,  # todo: make this unlimited?
+            max_inputs=None,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
