@@ -16,6 +16,7 @@ import time
 
 from toolchest_client.api.auth import validate_key
 from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
@@ -28,7 +29,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
-                 output_path, inputs, min_inputs, max_inputs=None,
+                 inputs, min_inputs, max_inputs=None, output_path=None,
                  database_name=None, database_version=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
@@ -67,6 +68,7 @@ class Tool:
         self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
+        self.thread_outputs = {}
         self.output_names = output_names or []
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -183,16 +185,14 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self.output_path is None:
-            raise ValueError("No output path provided.")
-        if not os.access(
+        if self.output_path and not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and not os.path.isdir(self.output_path):
+        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
@@ -211,23 +211,27 @@ class Tool:
         # Validate Toolchest auth key.
         validate_key()
 
-        if self.output_is_directory:
-            if os.path.exists(self.output_path):
-                if os.path.isfile(self.output_path):
-                    raise ValueError(
-                        f"{self.output_path} is a file. Please pass a directory instead of an output file."
-                    )
-            else:
-                os.makedirs(self.output_path)
+        # Check if the given output_path is a directory, if required by the tool
+        # and if the user provides output_path.
+        if self.output_path:
+            if self.output_is_directory:
+                if os.path.exists(self.output_path):
+                    if os.path.isfile(self.output_path):
+                        raise ValueError(
+                            f"{self.output_path} is a file. Please pass a directory instead of an output file."
+                        )
+                else:
+                    os.makedirs(self.output_path)
 
-        self._warn_if_outputs_exist()
+            self._warn_if_outputs_exist()
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.output_validation_enabled:
-            for output_name in self.output_names:
-                output_file_path = f"{self.output_path}/{output_name}"
-                sanity_check(output_file_path)
+        if self.output_path:
+            if self.output_validation_enabled:
+                for output_name in self.output_names:
+                    output_file_path = f"{self.output_path}/{output_name}"
+                    sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -382,14 +386,17 @@ class Tool:
         temp_input_file_paths = []
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            else self.output_path
-        for index, input_files in enumerate(jobs):
+            and self.output_path else self.output_path
+        for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
-            temp_parallel_output_file_path = f"{self.output_path}_{index}"
+            temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
                 temp_output_file_paths.append(temp_parallel_output_file_path)
-            q = Query()
+
+            # Create a new Output for the thread.
+            self.thread_outputs[thread_index] = Output()
+            q = Query(stored_output=self.thread_outputs[thread_index])
 
             # Deep copy to make thread safe
             query_args = copy.deepcopy({
@@ -398,7 +405,7 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
-                "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
+                "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
@@ -438,3 +445,7 @@ class Tool:
             self._postflight()
 
         print("Analysis run complete!")
+
+        # Note: output information is only returned if parallelization is disabled
+        if not should_run_in_parallel:
+            return self.thread_outputs[0]

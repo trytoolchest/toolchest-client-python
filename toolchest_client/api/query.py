@@ -19,11 +19,12 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_key
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
+from toolchest_client.api.output import Output
 from toolchest_client.files import unpack_files, OutputType
 from .status import Status, ThreadStatus
 
 
-class Query():
+class Query:
     """A Toolchest query.
 
     Provides persistence of query-specific variables from start (query
@@ -41,7 +42,7 @@ class Query():
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
 
-    def __init__(self):
+    def __init__(self, stored_output=None):
         self.HEADERS = dict()
         self.PIPELINE_SEGMENT_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
@@ -50,8 +51,12 @@ class Query():
         self.thread_name = ''
         self.thread_statuses = None
 
-    def run_query(self, tool_name, tool_version, input_prefix_mapping, output_type,
-                  tool_args=None, database_name=None, database_version=None,
+        self.presigned_s3_url = None
+        self.unpacked_output_paths = None
+        self.output = stored_output if stored_output else Output()
+
+    def run_query(self, tool_name, tool_version, input_prefix_mapping,
+                  output_type, tool_args=None, database_name=None, database_version=None,
                   output_name="output", input_files=None,
                   output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
@@ -109,10 +114,19 @@ class Query():
         self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        self._update_thread_status(ThreadStatus.DOWNLOADING)
-        self._download(output_path)
-        self._unpack_output(output_path, output_type)
+        if output_path:
+            self._update_thread_status(ThreadStatus.DOWNLOADING)
+            self._download(output_path)
+            self._unpack_output(output_path, output_type)
+        else:
+            self._get_download()
+        self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
+
+        self.output.s3_uri = self.output_s3_uri
+        self.output.presigned_s3_url = self.presigned_s3_url
+        self.output.output_path = self.unpacked_output_paths
+        return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name,
@@ -359,7 +373,7 @@ class Query():
         self.mark_as_failed = False
 
     def _get_download(self):
-        """Gets URL for downloading output of query task(s)."""
+        """Gets S3 URI and presigned URL for downloading output of query task(s)."""
 
         response = requests.get(
             "/".join([self.PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
@@ -374,6 +388,7 @@ class Query():
             )
 
         response_json = response.json()[0]  # assumes only one output file
+        self.output_s3_uri = response_json.get("s3_uri")
         return {
             "access_key_id": response_json.get('access_key_id'),
             "secret_access_key": response_json.get('secret_access_key'),
@@ -382,11 +397,11 @@ class Query():
             "object_name": response_json.get('object_name'),
         }
 
-    def _unpack_output(self, output_path, output_type):
+    def _unpack_output(self, compressed_output_path, output_type):
         """After downloading, unpack files if needed"""
         try:
-            unpack_files(
-                file_path_to_unpack=output_path,
+            self.unpacked_output_paths = unpack_files(
+                file_path_to_unpack=compressed_output_path,
                 output_type=output_type,
             )
         except Exception as err:
