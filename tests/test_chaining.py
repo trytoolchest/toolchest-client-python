@@ -41,7 +41,7 @@ def test_shi7_shogun_chaining():
     # should be None.
     assert output_shi7.output_path is None
 
-    output_shogun = toolchest.shogun(
+    output_shogun = toolchest.shogun_align(
         inputs=output_shi7.s3_uri,
         output_path=output_file_path_shogun,
     )
