@@ -43,7 +43,7 @@ def test_shi7_shogun_chaining():
 
     output_shogun = toolchest.shogun_align(
         inputs=output_shi7.s3_uri,
-        output_path=output_file_path_shogun,
+        output_path=output_dir_path,
     )
 
     assert hash.unordered(output_file_path_shogun) == SHOGUN_CHAINED_HASH
