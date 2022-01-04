@@ -42,7 +42,7 @@ class Query:
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
 
-    def __init__(self, output_object=None):
+    def __init__(self, stored_output=None):
         self.HEADERS = dict()
         self.PIPELINE_SEGMENT_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
@@ -52,8 +52,8 @@ class Query:
         self.thread_statuses = None
 
         self.presigned_s3_url = None
-        self.unpacked_output = None
-        self.output = output_object if output_object else Output()
+        self.unpacked_output_paths = None
+        self.output = stored_output if stored_output else Output()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -125,7 +125,7 @@ class Query:
 
         self.output.s3_uri = self.output_s3_uri
         self.output.presigned_s3_url = self.presigned_s3_url
-        self.output.output_path = self.unpacked_output
+        self.output.output_path = self.unpacked_output_paths
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -397,11 +397,11 @@ class Query:
             "object_name": response_json.get('object_name'),
         }
 
-    def _unpack_output(self, output_path, output_type):
+    def _unpack_output(self, compressed_output_path, output_type):
         """After downloading, unpack files if needed"""
         try:
-            self.unpacked_output = unpack_files(
-                file_path_to_unpack=output_path,
+            self.unpacked_output_paths = unpack_files(
+                file_path_to_unpack=compressed_output_path,
                 output_type=output_type,
             )
         except Exception as err:

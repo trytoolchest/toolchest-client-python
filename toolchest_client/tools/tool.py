@@ -68,7 +68,7 @@ class Tool:
         self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
-        self.output_locations = {}
+        self.thread_outputs = {}
         self.output_names = output_names or []
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -387,16 +387,16 @@ class Tool:
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
             and self.output_path else self.output_path
-        for index, input_files in enumerate(jobs):
+        for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
-            temp_parallel_output_file_path = f"{self.output_path}_{index}"
+            temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
                 temp_output_file_paths.append(temp_parallel_output_file_path)
 
             # Create a new Output for the thread.
-            self.output_locations[index] = Output()
-            q = Query(output_object=self.output_locations[index])
+            self.thread_outputs[thread_index] = Output()
+            q = Query(stored_output=self.thread_outputs[thread_index])
 
             # Deep copy to make thread safe
             query_args = copy.deepcopy({
@@ -405,7 +405,7 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
-                "output_name": f"{index}_{self.output_name}" if should_run_in_parallel else self.output_name,
+                "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
@@ -448,4 +448,4 @@ class Tool:
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:
-            return self.output_locations[0]
+            return self.thread_outputs[0]

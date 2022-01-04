@@ -16,8 +16,8 @@ SHOGUN_CHAINED_HASH = 33856653
 def test_shi7_shogun_chaining():
     """
     Tests S3-based chaining with shi7 and shogun. Passes the S3 URI of the
-    shi7 output to shogun as input. Downloads both the (intermediate) shi7
-    output and the (final) shogun output to hash for testing.
+    shi7 output to shogun as input, skipping the (intermediate) shi7 output download.
+    Downloads the (final) shogun output to hash for testing.
 
     To enforce shi7 determinism, a single R1 input is used.
 
@@ -29,20 +29,17 @@ def test_shi7_shogun_chaining():
     test_dir = "test_shi7_shogun_chaining"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
-    output_file_path_shi7 = f"{output_dir_path}combined_seqs.fna"
     output_file_path_shogun = f"{output_dir_path}alignment.burst.b6"
 
     output_shi7 = toolchest.shi7(
         tool_args="-SE",
         inputs="s3://toolchest-integration-tests-public/sample_r1.fastq.gz",
-        output_path=output_file_path_shi7,
     )
 
-    # Note: since shi7 produces multiple files, output_shi7.output_path
-    # is a list of paths to each unpacked output file, so we check whether
-    # it is a list instead.
-    assert hash.unordered(output_file_path_shi7) == SHI7_SINGLE_END_HASH
-    assert isinstance(output_shi7.output_path, list)
+    # Note: since output_path was omitted from the shi7 function call,
+    # local download is skipped, and the local output_path of output_shi7
+    # should be None.
+    assert output_shi7.output_path is None
 
     output_shogun = toolchest.shogun(
         inputs=output_shi7.s3_uri,
