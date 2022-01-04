@@ -6,8 +6,8 @@ This module provides an Output object returned by any completed queries
 made by Toolchest tools. The output object contains information about
 where the output file can be located.
 
-Note: The Output object does NOT represent any of the tool outputs
-themselves.
+Note: The Output object does NOT represent the contents of any of the
+tool output files themselves.
 """
 
 
