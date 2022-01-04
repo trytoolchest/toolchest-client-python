@@ -8,7 +8,7 @@ from toolchest_client.files import assert_exists
 from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
-def bowtie2(inputs, output_path, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
+def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
@@ -17,7 +17,7 @@ def bowtie2(inputs, output_path, database_name="GRCh38_noalt_as", database_versi
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
 
     Usage::
 
@@ -42,11 +42,11 @@ def bowtie2(inputs, output_path, database_name="GRCh38_noalt_as", database_versi
     instance.run()
 
 
-def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args=""):
+def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
     """Runs Cell Ranger's mkfastq command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
     :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
@@ -75,12 +75,12 @@ def cellranger_mkfastq(inputs, output_path, samplesheet_name, tool_args=""):
     instance.run()
 
 
-def kraken2(output_path, inputs=[], database_name="standard", database_version="1",
+def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
-    :param output_path: Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
@@ -135,11 +135,11 @@ def kraken2(output_path, inputs=[], database_name="standard", database_version="
     instance.run()
 
 
-def megahit(output_path, tool_args="", read_one=None, read_two=None, interleaved=None,
+def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interleaved=None,
             single_end=None):
     """Runs Megahit via Toolchest.
 
-    :param output_path: Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Megahit.
     :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
     :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
@@ -288,7 +288,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return instance.run()
 
 
-def STAR(output_path, read_one, database_name, database_version="1", read_two=None, tool_args="", parallelize=False):
+def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="", parallelize=False):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -297,7 +297,7 @@ def STAR(output_path, read_one, database_name, database_version="1", read_two=No
     :param tool_args: (optional) Additional arguments to be passed to STAR.
     :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
     :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
     :param parallelize: (optional) Allow parallelization of STAR if needed.
 
     .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
@@ -334,12 +334,12 @@ def STAR(output_path, read_one, database_name, database_version="1", read_two=No
     instance.run()
 
 
-def test(inputs, output_path, tool_args=""):
+def test(inputs, output_path=None, tool_args=""):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
 
     Usage::
 
@@ -360,14 +360,14 @@ def test(inputs, output_path, tool_args=""):
     instance.run()
 
 
-def unicycler(output_path, read_one=None, read_two=None, long_reads=None, tool_args=""):
+def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, tool_args=""):
     """Runs Unicycler (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Unicycler.
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param long_reads: (optional) Path to the file containing long reads.
-    :param output_path: Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
 
     Usage::
 
