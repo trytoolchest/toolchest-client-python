@@ -10,8 +10,9 @@ import sys
 import requests
 from requests.exceptions import HTTPError
 
-from toolchest_client.api.auth import get_key
+from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestS3AccessError
+from toolchest_client.api.urls import BASE_URL
 
 
 def assert_accessible_s3(uri):
@@ -19,15 +20,10 @@ def assert_accessible_s3(uri):
 
     :param uri: An S3 URI.
     """
-    # TODO: move BASE_URL, HEADERS into a new module
-
-    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
-    HEADERS = {"Authorization": f"Key {get_key()}"}
-
     params = get_params_from_s3_uri(uri)
     response = requests.post(
         f"{BASE_URL}/validate-s3-input/",
-        headers=HEADERS,
+        headers=get_headers(),
         json=params,
     )
     try:

@@ -29,3 +29,7 @@ class Output:
 
     def __str__(self):
         return str(self.__dict__)
+
+    def download(self):
+        pass
+        # TODO: add call to download once finished

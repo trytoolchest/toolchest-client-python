@@ -17,9 +17,10 @@ from botocore.exceptions import ClientError
 import requests
 from requests.exceptions import HTTPError
 
-from toolchest_client.api.auth import get_key
+from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
 from toolchest_client.api.output import Output
+from toolchest_client.api.urls import PIPELINE_URL
 from toolchest_client.files import unpack_files, OutputType
 from .status import Status, ThreadStatus
 
@@ -31,11 +32,6 @@ class Query:
     creation) to finish (query output download).
 
     """
-
-    # Base URLs used by the server API.
-    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
-    PIPELINE_ROUTE = "/pipeline-segment-instances"
-    PIPELINE_URL = BASE_URL + PIPELINE_ROUTE
 
     # Period (in seconds) between requests when waiting for job(s) to finish executing.
     WAIT_FOR_JOB_DELAY = 1
@@ -78,7 +74,7 @@ class Query:
         self._check_if_should_terminate()
 
         # Configure Toolchest auth key.
-        self.HEADERS["Authorization"] = f"Key {get_key()}"
+        self.HEADERS = get_headers()
 
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
@@ -97,7 +93,7 @@ class Query:
 
         self.PIPELINE_SEGMENT_ID = create_content["id"]
         self.PIPELINE_SEGMENT_URL = "/".join([
-            self.PIPELINE_URL,
+            PIPELINE_URL,
             self.PIPELINE_SEGMENT_ID
         ])
         self.STATUS_URL = "/".join([
@@ -116,10 +112,13 @@ class Query:
 
         if output_path:
             self._update_thread_status(ThreadStatus.DOWNLOADING)
+            self._update_status(Status.TRANSFERRING_TO_CLIENT)
             self._download(output_path)
             self._unpack_output(output_path, output_type)
+            self._update_status(Status.TRANSFERRED_TO_CLIENT)
         else:
             self._get_download()
+        self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
@@ -147,7 +146,7 @@ class Query:
         }
 
         create_response = requests.post(
-            self.PIPELINE_URL,
+            PIPELINE_URL,
             headers=self.HEADERS,
             json=create_body,
         )
@@ -376,7 +375,7 @@ class Query:
         """Gets S3 URI and presigned URL for downloading output of query task(s)."""
 
         response = requests.get(
-            "/".join([self.PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
+            "/".join([PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
             headers=self.HEADERS,
         )
         try:
