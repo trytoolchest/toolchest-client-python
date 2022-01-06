@@ -18,7 +18,8 @@ import requests
 from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
-from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException
+from toolchest_client.api.download import download, get_download_details
+from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_URL
 from toolchest_client.files import unpack_files, OutputType
@@ -47,7 +48,6 @@ class Query:
         self.thread_name = ''
         self.thread_statuses = None
 
-        self.presigned_s3_url = None
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
 
@@ -73,7 +73,7 @@ class Query:
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
 
-        # Configure Toolchest auth key.
+        # Configure Toolchest API authorization.
         self.HEADERS = get_headers()
 
         # Create pipeline segment and task(s).
@@ -110,20 +110,13 @@ class Query:
         self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        if output_path:
-            self._update_thread_status(ThreadStatus.DOWNLOADING)
-            self._update_status(Status.TRANSFERRING_TO_CLIENT)
-            self._download(output_path)
-            self._unpack_output(output_path, output_type)
-            self._update_status(Status.TRANSFERRED_TO_CLIENT)
-        else:
-            self._get_download()
+        self._download(output_path, output_type)
+
         self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
         self.output.s3_uri = self.output_s3_uri
-        self.output.presigned_s3_url = self.presigned_s3_url
         self.output.output_path = self.unpacked_output_paths
         return self.output
 
@@ -341,75 +334,24 @@ class Query:
 
         return response.json()["status"]
 
-    def _download(self, output_path):
-        """Downloads output to ``output_path``."""
-
-        output_file_keys = self._get_download()
-
-        self._update_status(Status.TRANSFERRING_TO_CLIENT)
+    def _download(self, output_path, output_type):
+        """Retrieves information needed for downloading. If ``output_path`` is given,
+        downloads output to ``output_path`` and decompresses output archive, if necessary.
+        """
 
         try:
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=output_file_keys["access_key_id"],
-                aws_secret_access_key=output_file_keys["secret_access_key"],
-                aws_session_token=output_file_keys["session_token"],
-            )
-            s3_client.download_file(
-                output_file_keys["bucket"],
-                output_file_keys["object_name"],
-                output_path,
-            )
-
-        except ClientError as e:
-            # TODO: output more detailed error message if write error encountered
-            self._update_status_to_failed(
-                f"{e} \n\nOutput download failed.",
-                force_raise=True
-            )
-
-        self._update_status(Status.TRANSFERRED_TO_CLIENT)
-        self.mark_as_failed = False
-
-    def _get_download(self):
-        """Gets S3 URI and presigned URL for downloading output of query task(s)."""
-
-        response = requests.get(
-            "/".join([PIPELINE_URL, self.PIPELINE_SEGMENT_ID, "downloads"]),
-            headers=self.HEADERS,
-        )
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            self._update_status_to_failed(
-                "Download URL retrieval failed.",
-                force_raise=True,
-            )
-
-        response_json = response.json()[0]  # assumes only one output file
-        self.output_s3_uri = response_json.get("s3_uri")
-        return {
-            "access_key_id": response_json.get('access_key_id'),
-            "secret_access_key": response_json.get('secret_access_key'),
-            "session_token": response_json.get('session_token'),
-            "bucket": response_json.get('bucket'),
-            "object_name": response_json.get('object_name'),
-        }
-
-    def _unpack_output(self, compressed_output_path, output_type):
-        """After downloading, unpack files if needed"""
-        try:
-            self.unpacked_output_paths = unpack_files(
-                file_path_to_unpack=compressed_output_path,
-                output_type=output_type,
-            )
-        except Exception as err:
-            print(err)
-            self._update_status_to_failed(
-                f"Failed to unpack file with type: {output_type}.",
-                force_raise=True,
-            )
-            raise err
+            self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_ID)
+            if output_path:
+                self._update_thread_status(ThreadStatus.DOWNLOADING)
+                self._update_status(Status.TRANSFERRING_TO_CLIENT)
+                self.unpacked_output_paths = download(
+                    output_path,
+                    output_file_keys,
+                    output_type=output_type,
+                )
+                self._update_status(Status.TRANSFERRED_TO_CLIENT)
+        except ToolchestDownloadError as err:
+            self._update_status_to_failed(err)
 
     def _mark_as_failed_at_exit(self):
         """Upon exit, marks job as failed if it has started but is not marked as completed/failed."""

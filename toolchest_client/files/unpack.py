@@ -45,3 +45,15 @@ def unpack_files(file_path_to_unpack, output_type):
 
     else:
         raise NotImplementedError(f"Output type {output_type} unpacking is not implemented")
+
+
+def get_file_type(file_path):
+    """Gets file type from available types registered in OutputType.
+    Raises an error if the file does not match any registered type.
+
+    TODO: add default handling for plaintext files apart from .txt files
+    """
+    for output_type in OutputType:
+        if file_path.endswith(output_type.value):
+            return output_type
+    raise NotImplementedError(f"Handling of output type for file at {file_path} is not implemented")

@@ -19,9 +19,8 @@ class Output:
 
     """
 
-    def __init__(self, s3_uri=None, presigned_s3_url=None, output_path=None):
+    def __init__(self, s3_uri=None, output_path=None):
         self.s3_uri = s3_uri
-        self.presigned_s3_url = presigned_s3_url
         self.output_path = output_path
 
     def __repr__(self):
