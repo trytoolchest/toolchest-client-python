@@ -39,7 +39,7 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
         database_name=database_name,
         database_version=database_version
     )
-    instance.run()
+    return instance.run()
 
 
 def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
@@ -72,7 +72,7 @@ def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args="")
         inputs=inputs,
         output_path=output_path,
     )
-    instance.run()
+    return instance.run()
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
@@ -132,7 +132,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         database_name=database_name,
         database_version=database_version,
     )
-    instance.run()
+    return instance.run()
 
 
 def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interleaved=None,
@@ -190,7 +190,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         inputs=input_list,
         output_path=output_path,
     )
-    instance.run()
+    return instance.run()
 
 
 def shi7(inputs, output_path=None, tool_args=""):
@@ -331,7 +331,7 @@ def STAR(read_one, database_name, output_path=None, database_version="1", read_t
         database_version=database_version,
         parallelize=parallelize,
     )
-    instance.run()
+    return instance.run()
 
 
 def test(inputs, output_path=None, tool_args=""):
@@ -357,7 +357,7 @@ def test(inputs, output_path=None, tool_args=""):
         inputs=inputs,
         output_path=output_path,
     )
-    instance.run()
+    return instance.run()
 
 
 def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, tool_args=""):
@@ -393,4 +393,4 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
         inputs=[read_one, read_two, long_reads],
         output_path=output_path,
     )
-    instance.run()
+    return instance.run()
