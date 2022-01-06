@@ -7,7 +7,6 @@ tools. These queries are handled by the Toolchest (server) API.
 """
 
 import ntpath
-import os
 import sys
 import threading
 import time
@@ -22,7 +21,7 @@ from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_URL
-from toolchest_client.files import unpack_files, OutputType
+from toolchest_client.files import OutputType
 from .status import Status, ThreadStatus
 
 

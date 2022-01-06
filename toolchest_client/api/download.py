@@ -9,6 +9,8 @@ Note: This module is used in downloading from the Output and
 Query classes.
 """
 
+import os
+
 import boto3
 from botocore.exceptions import ClientError
 import requests
@@ -37,6 +39,12 @@ def download(output_path, s3_uri=None, output_file_keys=None, output_type=None):
         else:
             error_message = "S3 URI of output not provided."
             raise ToolchestDownloadError(error_message) from None
+    print(output_file_keys)
+
+    # If output_path is a directory, extract the filename from the target download.
+    if os.path.isdir(output_path):
+        file_name = output_file_keys["file_name"]
+        output_path = "/".join([output_path, file_name])
 
     try:
         s3_client = boto3.client(
@@ -81,6 +89,7 @@ def get_download_details(pipeline_segment_instance_id):
         "session_token": response_json.get('session_token'),
         "bucket": response_json.get('bucket'),
         "object_name": response_json.get('object_name'),
+        "file_name": response_json.get('file_name'),
     }
     return output_s3_uri, output_file_keys
 

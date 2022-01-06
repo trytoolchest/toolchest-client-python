@@ -12,6 +12,7 @@ def test_s3_params():
         "bucket": "toolchest-public-examples",
         "key": "dummy-id/example.fastq",
         "key_initial": "dummy-id",
+        "key_final": "example.fastq"
     }
 
     assert params == target_params

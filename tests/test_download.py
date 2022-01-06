@@ -20,8 +20,10 @@ def test_kraken2_output_manual_download():
     test_dir = "test_kraken2_output_manual_download"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_s3_uri = "s3://toolchest-integration-tests-public/synthetic_bacteroides_reads.fasta"
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}kraken2_output.txt"
+    manual_output_dir_path = f"./{test_dir}/manual/"
+    manual_output_file_path = f"{manual_output_dir_path}kraken2_output.txt"
+    toolchest_output_dir_path = f"./{test_dir}/toolchest/"
+    toolchest_output_file_path = f"{toolchest_output_dir_path}kraken2_output.txt"
 
     # Run job without downloading
     output = toolchest.kraken2(
@@ -29,7 +31,7 @@ def test_kraken2_output_manual_download():
     )
 
     # Manually invoke download from output
-    path_from_manual_download = output.download(output_dir_path)
+    path_from_manual_download = output.download(manual_output_dir_path)
 
     # If multiple files are returned, path_from_manual download will be a list,
     # so we simply check if kraken2_output.txt is contained in it
@@ -37,19 +39,16 @@ def test_kraken2_output_manual_download():
         path_from_manual_download = [os.path.normpath(path) for path in path_from_manual_download]
     else:
         path_from_manual_download = [path_from_manual_download]
-    assert os.path.normpath(output_file_path) in path_from_manual_download
+    assert os.path.normpath(manual_output_file_path) in path_from_manual_download
 
-    assert hash.unordered(output_file_path) == KRAKEN2_SINGLE_END_HASH
+    assert hash.unordered(manual_output_file_path) == KRAKEN2_SINGLE_END_HASH
 
-    # Clear directory and test again with toolchest.download()
-    for output_file in os.listdir(output_dir_path):
-        os.remove(os.path.join(output_dir_path, output_file))
-
-    path_from_toolchest_download = toolchest.download(output_dir_path, s3_uri=output.s3_uri)
+    # Test again with toolchest.download()
+    path_from_toolchest_download = toolchest.download(toolchest_output_dir_path, s3_uri=output.s3_uri)
     if isinstance(path_from_toolchest_download, list):
         path_from_toolchest_download = [os.path.normpath(path) for path in path_from_toolchest_download]
     else:
         path_from_toolchest_download = [path_from_toolchest_download]
-    assert os.path.normpath(output_file_path) in path_from_toolchest_download
+    assert os.path.normpath(toolchest_output_file_path) in path_from_toolchest_download
 
-    assert hash.unordered(output_file_path) == KRAKEN2_SINGLE_END_HASH
+    assert hash.unordered(toolchest_output_file_path) == KRAKEN2_SINGLE_END_HASH

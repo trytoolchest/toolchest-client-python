@@ -52,6 +52,7 @@ def get_params_from_s3_uri(uri):
     arn = "arn:aws:s3:::" + "/".join(uri_split[S3_BUCKET_INDEX:])
     bucket = uri_split[S3_BUCKET_INDEX]
     key_initial = uri_split[S3_KEY_INITIAL_INDEX]
+    key_final = uri_split[-1]
     key = "/".join(uri_split[S3_KEY_INITIAL_INDEX:])
 
     params = {
@@ -59,6 +60,7 @@ def get_params_from_s3_uri(uri):
         "bucket": bucket,
         "key": key,
         "key_initial": key_initial,
+        "key_final": key_final,
     }
 
     return params
