@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from tests.util import s3, hash
+from tests.util import hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
