@@ -44,18 +44,21 @@ def get_params_from_s3_uri(uri):
     :param uri: An S3 URI.
     """
 
-    # Index of S3 bucket name in the URI (when split by slashes).
+    # Index of S3 bucket name and initial key directory in the URI (when split by slashes).
     S3_BUCKET_INDEX = 2
+    S3_KEY_INITIAL_INDEX = S3_BUCKET_INDEX + 1
     uri_split = uri.split(sep="/")
 
     arn = "arn:aws:s3:::" + "/".join(uri_split[S3_BUCKET_INDEX:])
     bucket = uri_split[S3_BUCKET_INDEX]
-    key = "/".join(uri_split[S3_BUCKET_INDEX+1:])
+    key_initial = uri_split[S3_KEY_INITIAL_INDEX]
+    key = "/".join(uri_split[S3_KEY_INITIAL_INDEX:])
 
     params = {
         "arn": arn,
         "bucket": bucket,
         "key": key,
+        "key_initial": key_initial,
     }
 
     return params

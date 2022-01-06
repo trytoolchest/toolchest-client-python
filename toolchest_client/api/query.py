@@ -41,7 +41,7 @@ class Query:
 
     def __init__(self, stored_output=None):
         self.HEADERS = dict()
-        self.PIPELINE_SEGMENT_ID = ''
+        self.PIPELINE_SEGMENT_INSTANCE_ID = ''
         self.PIPELINE_SEGMENT_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
@@ -91,10 +91,10 @@ class Query:
 
         self._update_thread_status(ThreadStatus.INITIALIZED)
 
-        self.PIPELINE_SEGMENT_ID = create_content["id"]
+        self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
         self.PIPELINE_SEGMENT_URL = "/".join([
             PIPELINE_URL,
-            self.PIPELINE_SEGMENT_ID
+            self.PIPELINE_SEGMENT_INSTANCE_ID
         ])
         self.STATUS_URL = "/".join([
             self.PIPELINE_SEGMENT_URL,
@@ -340,7 +340,7 @@ class Query:
         """
 
         try:
-            self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_ID)
+            self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_INSTANCE_ID)
             if output_path:
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)

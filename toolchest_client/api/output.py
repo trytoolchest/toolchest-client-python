@@ -10,6 +10,7 @@ Note: The Output object does NOT represent the contents of any of the
 tool output files themselves.
 """
 
+from toolchest_client.api.download import download
 
 class Output:
     """A Toolchest query output.
@@ -29,6 +30,9 @@ class Output:
     def __str__(self):
         return str(self.__dict__)
 
-    def download(self):
-        pass
-        # TODO: add call to download once finished
+    def download(self, output_dir):
+        self.output_path = download(
+            output_dir,
+            s3_uri=self.s3_uri,
+        )
+        return self.output_path
