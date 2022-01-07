@@ -24,7 +24,7 @@ from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
              output_file_keys=None, output_type=None, ):
-    """Downloads output to ``output_path``.
+    """Downloads output to `output_path`.
 
     One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
     be provided. If `output_file_keys` is omitted, this function will attempt to
@@ -55,7 +55,6 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
         else:
             error_message = "S3 URI of output not provided."
             raise ToolchestDownloadError(error_message) from None
-    print(output_file_keys)
 
     # If output_path is a directory, extract the filename from the target download.
     if os.path.isdir(output_path):
