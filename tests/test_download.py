@@ -24,7 +24,7 @@ def test_kraken2_output_manual_download():
     toolchest_s3_dir_path = f"./{test_dir}/toolchest/s3/"
     toolchest_s3_file_path = f"{toolchest_s3_dir_path}kraken2_output.txt"
     toolchest_pipeline_dir_path = f"./{test_dir}/toolchest/id/"
-    toolchest_pipeline_file_path = f"{toolchest_s3_dir_path}kraken2_output.txt"
+    toolchest_pipeline_file_path = f"{toolchest_pipeline_dir_path}kraken2_output.txt"
     for dir_path in [manual_output_dir_path, toolchest_s3_dir_path, toolchest_pipeline_dir_path]:
         os.makedirs(f"./{dir_path}", exist_ok=True)
 
