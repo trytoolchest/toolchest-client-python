@@ -18,7 +18,6 @@ def test_kraken2_output_manual_download():
     output manually downloaded after job completion
     """
     test_dir = "test_kraken2_output_manual_download"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_s3_uri = "s3://toolchest-integration-tests-public/synthetic_bacteroides_reads.fasta"
     manual_output_dir_path = f"./{test_dir}/manual/"
     manual_output_file_path = f"{manual_output_dir_path}kraken2_output.txt"
@@ -26,6 +25,8 @@ def test_kraken2_output_manual_download():
     toolchest_s3_file_path = f"{toolchest_s3_dir_path}kraken2_output.txt"
     toolchest_pipeline_dir_path = f"./{test_dir}/toolchest/id/"
     toolchest_pipeline_file_path = f"{toolchest_s3_dir_path}kraken2_output.txt"
+    for dir_path in [manual_output_dir_path, toolchest_s3_dir_path, toolchest_pipeline_dir_path]:
+        os.makedirs(f"./{dir_path}", exist_ok=True)
 
     # Run job without downloading
     output = toolchest.kraken2(
