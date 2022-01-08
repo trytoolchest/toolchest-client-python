@@ -32,7 +32,7 @@ class Output:
 
     def download(self, output_dir):
         self.output_path = download(
-            output_dir,
+            output_path=output_dir,
             s3_uri=self.s3_uri,
         )
         return self.output_path

@@ -344,8 +344,8 @@ class Query:
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
                 self.unpacked_output_paths = download(
-                    output_path,
-                    output_file_keys,
+                    output_path=output_path,
+                    output_file_keys=output_file_keys,
                     output_type=output_type,
                 )
                 self._update_status(Status.TRANSFERRED_TO_CLIENT)
