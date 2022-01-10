@@ -184,7 +184,10 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
                 }
         elif isinstance(param, str):
             input_list.append(param)
-            input_prefix_mapping[param] = tag
+            input_prefix_mapping[param] = {
+                "prefix": tag,
+                "order": 0,
+            }
 
     instance = Megahit(
         tool_args=tool_args,
