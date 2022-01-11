@@ -8,7 +8,8 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-EXPECTED_MIN_OUTPUT_SIZE = 1000
+EXPECTED_MIN_OUTPUT_SIZE_MANY_TYPES = 1000
+EXPECTED_MIN_OUTPUT_SIZE_TWO_PAIRS = 3 * 1024 * 1024
 
 
 @pytest.mark.integration
@@ -41,7 +42,7 @@ def test_megahit_many_types():
         output_path=output_dir_path,
     )
 
-    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE
+    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE_MANY_TYPES
 
 
 @pytest.mark.integration
@@ -71,4 +72,4 @@ def test_megahit_multiple_pairs():
         output_path=output_dir_path,
     )
 
-    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE
+    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE_TWO_PAIRS
