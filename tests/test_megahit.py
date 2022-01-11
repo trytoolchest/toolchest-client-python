@@ -23,8 +23,16 @@ def test_megahit_one_pair():
     # output_file_path = f"{output_dir_path}kraken2_output.txt"
 
     output = toolchest.megahit(
-        read_one="s3://toolchest-integration-tests-public/sample_r1.fastq.gz",
-        read_two="s3://toolchest-integration-tests-public/sample_r2.fastq.gz",
+        interleaved=[
+            "s3://toolchest-integration-tests-public/megahit/r1.il.fa.gz",
+            "s3://toolchest-integration-tests-public/megahit/r2.il.fa.bz2",
+        ],
+        read_one="s3://toolchest-integration-tests-public/megahit/r3_1.fa",
+        read_two="s3://toolchest-integration-tests-public/megahit/r3_2.fa",
+        single_end=[
+            "s3://toolchest-integration-tests-public/megahit/r4.fa",
+            "s3://toolchest-integration-tests-public/megahit/loop.fa",
+        ],
         tool_args="--presets meta-large",
-        output_path="C:/Users/Bryce/Documents/Startup/output-test/megahit",
+        output_path=output_dir_path,
     )
