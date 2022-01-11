@@ -8,21 +8,25 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
+EXPECTED_MIN_OUTPUT_SIZE = 1000
+
+
 @pytest.mark.integration
-def test_megahit_one_pair():
+def test_megahit_many_types():
     """
-    Tests Megahit with a single pair of paired-end inputs.
+    Tests Megahit with two interleaved inputs, one pair of paired-end inputs,
+    and two single-end inputs.
 
     Note: Multithreaded megahit is not deterministic, so
     we check the size of the file instead.
     See https://github.com/voutcn/megahit/issues/48.
     """
-    test_dir = "test_megahit_one_pair"
+    test_dir = "test_megahit_many_types"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
-    # output_file_path = f"{output_dir_path}kraken2_output.txt"
+    output_file_path = f"{output_dir_path}final.contigs.fa"
 
-    output = toolchest.megahit(
+    toolchest.megahit(
         interleaved=[
             "s3://toolchest-integration-tests-public/megahit/r1.il.fa.gz",
             "s3://toolchest-integration-tests-public/megahit/r2.il.fa.bz2",
@@ -36,3 +40,35 @@ def test_megahit_one_pair():
         tool_args="--presets meta-large",
         output_path=output_dir_path,
     )
+
+    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE
+
+
+@pytest.mark.integration
+def test_megahit_multiple_pairs():
+    """
+    Tests Megahit with two pairs of paired-end inputs.
+
+    Note: Multithreaded megahit is not deterministic, so
+    we check the size of the file instead.
+    See https://github.com/voutcn/megahit/issues/48.
+    """
+    test_dir = "test_megahit_two_pairs"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}/"
+    output_file_path = f"{output_dir_path}final.contigs.fa"
+
+    toolchest.megahit(
+        read_one=[
+            "s3://toolchest-integration-tests-public/megahit/r3_1.fa",
+            "s3://toolchest-integration-tests-public/r1.fastq.gz",
+        ],
+        read_two=[
+            "s3://toolchest-integration-tests-public/megahit/r3_2.fa",
+            "s3://toolchest-integration-tests-public/r2.fastq.gz",
+        ],
+        tool_args="--presets meta-large",
+        output_path=output_dir_path,
+    )
+
+    assert os.path.getsize(output_file_path) >= EXPECTED_MIN_OUTPUT_SIZE
