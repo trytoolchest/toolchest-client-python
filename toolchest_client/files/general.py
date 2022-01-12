@@ -8,9 +8,7 @@ General file handling functions.
 import shutil
 import os
 
-import boto3
-
-from .s3 import assert_accessible_s3, get_params_from_s3_uri
+from .s3 import assert_accessible_s3, get_s3_file_size
 
 
 def assert_exists(path, must_be_file=False, must_be_directory=False):
@@ -45,15 +43,9 @@ def check_file_size(file_path, max_size_bytes=None):
         assert_exists(file_path, must_be_file=True)
         file_size_bytes = os.stat(file_path).st_size
     else:
-        # Get file size S3 metadata, via boto3.
+        # Get file size S3 metadata, via API.
         # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
-        s3_file_params = get_params_from_s3_uri(file_path)
-        s3_client = boto3.client("s3")
-        response = s3_client.head_object(
-            Bucket=s3_file_params["bucket"],
-            Key=s3_file_params["key"],
-        )
-        file_size_bytes = response["ContentLength"]
+        file_size_bytes = get_s3_file_size(file_path)
 
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:

@@ -4,7 +4,6 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
-import os
 import sys
 
 import requests
@@ -12,7 +11,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestS3AccessError
-from toolchest_client.api.urls import BASE_URL
+from toolchest_client.api.urls import S3_VALIDATION_URL
 
 
 def assert_accessible_s3(uri):
@@ -20,9 +19,21 @@ def assert_accessible_s3(uri):
 
     :param uri: An S3 URI.
     """
+    try:
+        get_s3_file_size(uri)
+    except ToolchestS3AccessError as err:
+        raise err from None
+
+
+def get_s3_file_size(uri):
+    """Returns the size (in bytes) of a file in S3 that is accessible
+    from the worker node.
+
+    :param uri: An S3 URI.
+    """
     params = get_params_from_s3_uri(uri)
     response = requests.post(
-        f"{BASE_URL}/validate-s3-input/",
+        S3_VALIDATION_URL,
         headers=get_headers(),
         json=params,
     )
@@ -32,6 +43,8 @@ def assert_accessible_s3(uri):
         error_message = "Given S3 input cannot be accessed by Toolchest."
         print(error_message, file=sys.stderr)
         raise ToolchestS3AccessError(error_message) from None
+
+    return response.json()["file_size"]
 
 
 def get_params_from_s3_uri(uri):
