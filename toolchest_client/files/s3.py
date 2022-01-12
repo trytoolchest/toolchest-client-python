@@ -11,7 +11,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestS3AccessError
-from toolchest_client.api.urls import S3_VALIDATION_URL
+from toolchest_client.api.urls import S3_METADATA_URL
 
 
 def assert_accessible_s3(uri):
@@ -33,7 +33,7 @@ def get_s3_file_size(uri):
     """
     params = get_params_from_s3_uri(uri)
     response = requests.post(
-        S3_VALIDATION_URL,
+        S3_METADATA_URL,
         headers=get_headers(),
         json=params,
     )
