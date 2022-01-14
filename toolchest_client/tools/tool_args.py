@@ -105,6 +105,11 @@ TOOL_ARG_LISTS = {
             "--non-deterministic": 0,
         },
     },
+    "cellranger_count": {
+        "whitelist": {
+            "--transcriptome": 1,
+        },
+    },
     "cellranger_mkfastq": {
         "whitelist": {
             "--samplesheet": 0,

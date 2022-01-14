@@ -43,6 +43,40 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     return output
 
 
+def cellranger_count(inputs, transcriptome_name, output_path=None, tool_args=""):
+    """Runs Cell Ranger's mkfastq command via Toolchest.
+
+    :param inputs: Path (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param transcriptome_name: Name of transcriptome. Expected to exist inside of "inputs".
+    :param tool_args: Additional arguments to be passed to Cell Ranger.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.cellranger_mkfastq(
+        ...     tool_args="",
+        ...     transcriptome_name="sample_sheet.csv",  # TODO: edit this default name
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output.tar.gz",
+        ... )
+
+    """
+
+    # Add --samplesheet arg
+    assert_exists(f"{inputs}/{transcriptome_name}")
+    tool_args = f"--transcriptome {transcriptome_name} " + tool_args
+
+    instance = CellRangerMkfastq(
+        tool_args=tool_args,
+        output_name='output',
+        inputs=inputs,
+        output_path=output_path,
+    )
+    output = instance.run()
+    return output
+
+
 def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
     """Runs Cell Ranger's mkfastq command via Toolchest.
 
