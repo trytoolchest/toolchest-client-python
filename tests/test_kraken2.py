@@ -8,6 +8,8 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
+KRAKEN2_SINGLE_END_HASH = 886254946
+
 
 @pytest.mark.integration
 def test_kraken2_standard():
@@ -30,7 +32,7 @@ def test_kraken2_standard():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(output_file_path) == 886254946
+    assert hash.unordered(output_file_path) == KRAKEN2_SINGLE_END_HASH
 
 
 @pytest.mark.integration
@@ -84,4 +86,4 @@ def test_kraken2_s3():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(output_file_path) == 886254946
+    assert hash.unordered(output_file_path) == KRAKEN2_SINGLE_END_HASH

@@ -4,14 +4,14 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
-import os
 import sys
 
 import requests
 from requests.exceptions import HTTPError
 
-from toolchest_client.api.auth import get_key
+from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestS3AccessError
+from toolchest_client.api.urls import S3_METADATA_URL
 
 
 def assert_accessible_s3(uri):
@@ -19,15 +19,22 @@ def assert_accessible_s3(uri):
 
     :param uri: An S3 URI.
     """
-    # TODO: move BASE_URL, HEADERS into a new module
+    try:
+        get_s3_file_size(uri)
+    except ToolchestS3AccessError as err:
+        raise err from None
 
-    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
-    HEADERS = {"Authorization": f"Key {get_key()}"}
 
+def get_s3_file_size(uri):
+    """Returns the size (in bytes) of a file in S3 that is accessible
+    from the worker node.
+
+    :param uri: An S3 URI.
+    """
     params = get_params_from_s3_uri(uri)
     response = requests.post(
-        f"{BASE_URL}/validate-s3-input/",
-        headers=HEADERS,
+        S3_METADATA_URL,
+        headers=get_headers(),
         json=params,
     )
     try:
@@ -36,6 +43,8 @@ def assert_accessible_s3(uri):
         error_message = "Given S3 input cannot be accessed by Toolchest."
         print(error_message, file=sys.stderr)
         raise ToolchestS3AccessError(error_message) from None
+
+    return response.json()["file_size"]
 
 
 def get_params_from_s3_uri(uri):
@@ -48,18 +57,23 @@ def get_params_from_s3_uri(uri):
     :param uri: An S3 URI.
     """
 
-    # Index of S3 bucket name in the URI (when split by slashes).
+    # Index of S3 bucket name and initial key directory in the URI (when split by slashes).
     S3_BUCKET_INDEX = 2
+    S3_KEY_INITIAL_INDEX = S3_BUCKET_INDEX + 1
     uri_split = uri.split(sep="/")
 
     arn = "arn:aws:s3:::" + "/".join(uri_split[S3_BUCKET_INDEX:])
     bucket = uri_split[S3_BUCKET_INDEX]
-    key = "/".join(uri_split[S3_BUCKET_INDEX+1:])
+    key_initial = uri_split[S3_KEY_INITIAL_INDEX]
+    key_final = uri_split[-1]
+    key = "/".join(uri_split[S3_KEY_INITIAL_INDEX:])
 
     params = {
         "arn": arn,
         "bucket": bucket,
         "key": key,
+        "key_initial": key_initial,
+        "key_final": key_final,
     }
 
     return params

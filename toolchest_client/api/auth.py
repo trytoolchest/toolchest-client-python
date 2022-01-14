@@ -13,6 +13,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from toolchest_client.api.exceptions import ToolchestKeyError
+from toolchest_client.api.urls import BASE_URL
 
 
 def get_key():
@@ -51,12 +52,9 @@ def set_key(key):
 def validate_key():
     """Validates Toolchest API key, retrieved from get_key()."""
 
-    BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
-    HEADERS = {"Authorization": f"Key {get_key()}"}
-
     validation_response = requests.get(
         BASE_URL,
-        headers=HEADERS,
+        headers=get_headers(),
     )
     try:
         validation_response.raise_for_status()
@@ -64,3 +62,8 @@ def validate_key():
         error_message = "Invalid Toolchest auth key. Please check the key value or contact Toolchest."
         print(error_message, file=sys.stderr)
         raise ToolchestKeyError(error_message) from None
+
+
+def get_headers():
+    """Returns headers for Toolchest API calls."""
+    return {"Authorization": f"Key {get_key()}"}
