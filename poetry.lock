@@ -412,7 +412,7 @@ reference = "pypi-public"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "b8b8622a7ec37a3ccae42dee0d9b276e02077b524d760317fa8a08c4008277ae"
+content-hash = "a7a23c30590cb43f2b98a9e2043b6775faf9d3b6988468feda97bb37766f2416"
 
 [metadata.files]
 atomicwrites = [
