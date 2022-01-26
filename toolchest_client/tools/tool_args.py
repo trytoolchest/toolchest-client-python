@@ -179,7 +179,6 @@ TOOL_ARG_LISTS = {
         "blacklist": [
             "--runThreadN",
             "--runMode",
-            "--readFilesCommand",
             "--outFileNamePrefix",
             "--genomeDir",
             "--sjdbGTFfile",
@@ -189,6 +188,7 @@ TOOL_ARG_LISTS = {
         "dangerlist": [
             "--outReadsUnmapped",
             "--outSAMtype",
+            "--readFilesCommand",
             "--sjdbInsertSave",
         ],
         "whitelist": {
