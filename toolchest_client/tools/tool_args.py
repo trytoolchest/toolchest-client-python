@@ -179,7 +179,6 @@ TOOL_ARG_LISTS = {
         "blacklist": [
             "--runThreadN",
             "--runMode",
-            "--readFilesCommand",
             "--outFileNamePrefix",
             "--genomeDir",
             "--sjdbGTFfile",
@@ -189,6 +188,7 @@ TOOL_ARG_LISTS = {
         "dangerlist": [
             "--outReadsUnmapped",
             "--outSAMtype",
+            "--readFilesCommand",
             "--sjdbInsertSave",
         ],
         "whitelist": {
@@ -215,6 +215,7 @@ TOOL_ARG_LISTS = {
             "--outReadsUnmapped": 1,  # affects whether we can verify all outputs
             "--outSAMstrandField": 1,
             "--outSAMtype": VARIABLE_ARGS,  # affects whether we can verify all outputs
+            "--readFilesCommand": VARIABLE_ARGS, # affects how we can split input files
             "--runRNGseed": 1,
             "--readFilesType": 1,
             "--readMapNumber": 1,
