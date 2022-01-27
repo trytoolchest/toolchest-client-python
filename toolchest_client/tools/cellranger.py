@@ -22,6 +22,7 @@ class CellRangerMkfastq(Tool):
             min_inputs=1,
             max_inputs=1,
             compress_inputs=True,
+            max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
         )
 
 
@@ -43,4 +44,5 @@ class CellRangerCount(Tool):
             database_name=database_name,
             database_version=database_version,
             compress_inputs=True,
+            max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
         )

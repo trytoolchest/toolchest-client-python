@@ -94,7 +94,7 @@ def compress_files_in_path(file_path):
 
     WARNING: this is NOT thread-safe, as shutil.make_archive is not thread safe.
 
-    :param file_path: A string to a directory.
+    :param file_path: A string to a local directory.
     """
     assert_exists(file_path, must_be_directory=True)
     temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"

@@ -21,7 +21,7 @@ from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
     split_paired_files_by_lines, compress_files_in_path, OutputType
-from toolchest_client.files.s3 import inputs_are_in_s3
+from toolchest_client.files.s3 import inputs_are_in_s3, path_is_s3_uri
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
@@ -76,8 +76,12 @@ class Tool:
     def _prepare_inputs(self):
         """Prepares the input files."""
         if self.compress_inputs:
-            # Input files are all .tar.gz'd together, preserving directory structure
-            self.input_files = [compress_files_in_path(self.inputs)]
+            if path_is_s3_uri(self.inputs):
+                # If the given path is in S3, it is assumed to be compressed already.
+                self.input_files = [self.inputs]
+            else:
+                # Input files are all .tar.gz'd together, preserving directory structure
+                self.input_files = [compress_files_in_path(self.inputs)]
             self.num_input_files = 1
         else:
             # Input files are handled individually, destroying directory structure
