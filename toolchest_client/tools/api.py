@@ -68,7 +68,7 @@ def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool
 
     instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=transcriptome_name,
