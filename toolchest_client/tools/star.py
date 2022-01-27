@@ -35,6 +35,13 @@ class STARInstance(Tool):
             max_input_bytes_per_file_parallel=4.5 * 1024 * 1024 * 1024,
             output_type=OutputType.SAM_FILE if parallelize else OutputType.GZ_TAR,
             output_is_directory=not parallelize,
+            output_names=[
+                "Aligned.out.sam",
+                "Log.final.out",
+                "Log.out",
+                "Log.progress.out",
+                "SJ.out.tab",
+            ]
         )
 
     def _merge_outputs(self, output_file_paths):

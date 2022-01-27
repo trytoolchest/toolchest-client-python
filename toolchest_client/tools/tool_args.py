@@ -107,7 +107,6 @@ TOOL_ARG_LISTS = {
     },
     "cellranger_count": {
         "whitelist": {
-            "--transcriptome": 1,
         },
     },
     "cellranger_mkfastq": {

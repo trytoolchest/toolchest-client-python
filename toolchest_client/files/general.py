@@ -8,7 +8,7 @@ General file handling functions.
 import shutil
 import os
 
-from .s3 import assert_accessible_s3, get_s3_file_size
+from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
 
 
 def assert_exists(path, must_be_file=False, must_be_directory=False):
@@ -38,8 +38,7 @@ def check_file_size(file_path, max_size_bytes=None):
     :param max_size_bytes: Maximum number of bytes allowed for a file. Throws error if above limit.
     :type max_size_bytes: int | None
     """
-    S3_PREFIX = "s3://"
-    if not file_path.startswith(S3_PREFIX):
+    if not path_is_s3_uri(file_path):
         assert_exists(file_path, must_be_file=True)
         file_size_bytes = os.stat(file_path).st_size
     else:
@@ -69,8 +68,7 @@ def files_in_path(files):
 
     # If it's an S3 URI, treat it as a file
     # Check if it is accessible from a worker node
-    S3_PREFIX = "s3://"
-    if files.startswith(S3_PREFIX):
+    if path_is_s3_uri(files):
         assert_accessible_s3(files)
         return [files]
 

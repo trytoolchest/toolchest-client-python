@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerCount, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
@@ -43,12 +43,12 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     return output
 
 
-def cellranger_count(inputs, transcriptome_name, output_path=None, tool_args=""):
+def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool_args=""):
     """Runs Cell Ranger's mkfastq command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param transcriptome_name: Name of transcriptome. Expected to exist inside of "inputs".
+    :param transcriptome_name: Name of transcriptome.
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
     Usage::
@@ -63,15 +63,16 @@ def cellranger_count(inputs, transcriptome_name, output_path=None, tool_args="")
 
     """
 
-    # Add --samplesheet arg
-    assert_exists(f"{inputs}/{transcriptome_name}")
-    tool_args = f"--transcriptome {transcriptome_name} " + tool_args
+    # Note: all cellranger transcriptomes are registered as "cellranger_{name}" in the API
+    transcriptome_name = "cellranger_" + transcriptome_name
 
-    instance = CellRangerMkfastq(
+    instance = CellRangerCount(
         tool_args=tool_args,
         output_name='output',
         inputs=inputs,
         output_path=output_path,
+        database_name=transcriptome_name,
+        database_version="2020",
     )
     output = instance.run()
     return output

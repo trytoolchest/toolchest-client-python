@@ -1,6 +1,6 @@
 from .tool import Tool
 from .bowtie2 import Bowtie2
-from .cellranger import CellRangerMkfastq
+from .cellranger import CellRangerCount, CellRangerMkfastq
 from .kraken2 import Kraken2
 from .megahit import Megahit
 from .shi7 import Shi7
