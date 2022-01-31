@@ -22,8 +22,13 @@ from toolchest_client.api.urls import PIPELINE_URL
 from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
 
 
-def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
-             output_file_keys=None, output_type=None, ):
+def download(
+    output_path,
+    s3_uri=None,
+    pipeline_segment_instance_id=None,
+    output_file_keys=None,
+    output_type=None,
+):
     """Downloads output to `output_path`.
 
     One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
@@ -51,7 +56,9 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
             s3_uri_params = get_params_from_s3_uri(s3_uri)
             pipeline_segment_instance_id = s3_uri_params["key_initial"]
         if pipeline_segment_instance_id:
-            output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
+            output_s3_uri, output_file_keys = get_download_details(
+                pipeline_segment_instance_id
+            )
         else:
             error_message = "S3 URI of output not provided."
             raise ToolchestDownloadError(error_message) from None
@@ -63,7 +70,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
 
     try:
         s3_client = boto3.client(
-            's3',
+            "s3",
             aws_access_key_id=output_file_keys["access_key_id"],
             aws_secret_access_key=output_file_keys["secret_access_key"],
             aws_session_token=output_file_keys["session_token"],
@@ -92,19 +99,21 @@ def get_download_details(pipeline_segment_instance_id):
     try:
         response.raise_for_status()
     except HTTPError:
-        error_message = ("An error occurred in getting the output S3 URI and download access keys. "
-                         f"Pipeline segment instance ID: {pipeline_segment_instance_id}")
+        error_message = (
+            "An error occurred in getting the output S3 URI and download access keys. "
+            f"Pipeline segment instance ID: {pipeline_segment_instance_id}"
+        )
         raise ToolchestDownloadError(error_message) from None
 
     response_json = response.json()[0]  # assumes only one output file
     output_s3_uri = response_json.get("s3_uri")
     output_file_keys = {
-        "access_key_id": response_json.get('access_key_id'),
-        "secret_access_key": response_json.get('secret_access_key'),
-        "session_token": response_json.get('session_token'),
-        "bucket": response_json.get('bucket'),
-        "object_name": response_json.get('object_name'),
-        "file_name": response_json.get('file_name'),
+        "access_key_id": response_json.get("access_key_id"),
+        "secret_access_key": response_json.get("secret_access_key"),
+        "session_token": response_json.get("session_token"),
+        "bucket": response_json.get("bucket"),
+        "object_name": response_json.get("object_name"),
+        "file_name": response_json.get("file_name"),
     }
     return output_s3_uri, output_file_keys
 
@@ -123,4 +132,3 @@ def _unpack_output(compressed_output_path, output_type=None):
         error_message = f"Failed to unpack file with type: {output_type}."
         raise ToolchestDownloadError(error_message) from err
     return unpacked_output_paths
-

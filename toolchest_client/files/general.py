@@ -49,7 +49,9 @@ def check_file_size(file_path, max_size_bytes=None):
 
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
-            raise ValueError(f"File at {file_path} is larger than your plan's per-file limit")
+            raise ValueError(
+                f"File at {file_path} is larger than your plan's per-file limit"
+            )
 
     return file_size_bytes
 
@@ -119,4 +121,3 @@ def sanity_check(file_path):
     assert_exists(file_path, must_be_file=True)
     if os.stat(file_path).st_size <= 5:
         raise ValueError(f"File at {file_path} is suspiciously small")
-

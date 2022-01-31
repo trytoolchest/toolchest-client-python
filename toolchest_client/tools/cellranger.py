@@ -11,6 +11,7 @@ class CellRangerMkfastq(Tool):
     """
     The cellranger_mkfastq implementation of the Tool class.
     """
+
     def __init__(self, tool_args, output_name, inputs, output_path):
         super().__init__(
             tool_name="cellranger_mkfastq",

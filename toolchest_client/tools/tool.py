@@ -19,8 +19,15 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
-    split_paired_files_by_lines, compress_files_in_path, OutputType
+from toolchest_client.files import (
+    files_in_path,
+    split_file_by_lines,
+    sanity_check,
+    check_file_size,
+    split_paired_files_by_lines,
+    compress_files_in_path,
+    OutputType,
+)
 from toolchest_client.files.s3 import inputs_are_in_s3
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
@@ -28,15 +35,28 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 
 class Tool:
-    def __init__(self, tool_name, tool_version, tool_args, output_name,
-                 inputs, min_inputs, max_inputs=None, output_path=None,
-                 database_name=None, database_version=None,
-                 input_prefix_mapping=None, parallel_enabled=False,
-                 max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
-                 max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
-                 group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT, output_is_directory=False,
-                 output_names=None):
+    def __init__(
+        self,
+        tool_name,
+        tool_version,
+        tool_args,
+        output_name,
+        inputs,
+        min_inputs,
+        max_inputs=None,
+        output_path=None,
+        database_name=None,
+        database_version=None,
+        input_prefix_mapping=None,
+        parallel_enabled=False,
+        max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
+        max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
+        group_paired_ends=False,
+        compress_inputs=False,
+        output_type=OutputType.FLAT_TEXT,
+        output_is_directory=False,
+        output_names=None,
+    ):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -85,11 +105,15 @@ class Tool:
             self.num_input_files = len(self.input_files)
 
         if self.num_input_files < self.min_inputs:
-            raise ValueError(f"Not enough input files submitted. "
-                             f"Minimum is {self.min_inputs}, {self.num_input_files} found.")
+            raise ValueError(
+                f"Not enough input files submitted. "
+                f"Minimum is {self.min_inputs}, {self.num_input_files} found."
+            )
         if self.max_inputs and self.num_input_files > self.max_inputs:
-            raise ValueError(f"Too many input files submitted. "
-                             f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
+            raise ValueError(
+                f"Too many input files submitted. "
+                f"Maximum is {self.max_inputs}, {self.num_input_files} found."
+            )
 
     def _validate_tool_args(self):
         """
@@ -105,14 +129,22 @@ class Tool:
         is shown.
         """
 
-        whitelist = TOOL_ARG_LISTS[self.tool_name]["whitelist"]  # all tools have a whitelist
-        dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist", [])  # some tools have a dangerlist
-        blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist", [])  # some tools have a blacklist
+        whitelist = TOOL_ARG_LISTS[self.tool_name][
+            "whitelist"
+        ]  # all tools have a whitelist
+        dangerlist = TOOL_ARG_LISTS[self.tool_name].get(
+            "dangerlist", []
+        )  # some tools have a dangerlist
+        blacklist = TOOL_ARG_LISTS[self.tool_name].get(
+            "blacklist", []
+        )  # some tools have a blacklist
 
         sanitized_args = []  # arguments that are explicitly allowed
         unknown_args = []  # all arguments that were not included
         blacklisted_args = []  # arguments that are known to not work
-        dangerous_args = []  # arguments that significantly change the function of the program
+        dangerous_args = (
+            []
+        )  # arguments that significantly change the function of the program
 
         num_args_remaining_after_tag = 0
 
@@ -159,10 +191,14 @@ class Tool:
                 f"Unknown arguments (these are not yet validated for use with Toolchest – please contact us!): \
 {unknown_args if unknown_args else '(none)'}"
             )
-            raise ValueError("Unknown or blacklisted arguments present in tool_args. See above for details.")
+            raise ValueError(
+                "Unknown or blacklisted arguments present in tool_args. See above for details."
+            )
 
         if dangerous_args:
-            print("WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!")
+            print(
+                "WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!"
+            )
             print(f"Dangerous arguments: {dangerous_args}")
             # Disable parallelization, validation, and revert to plain compressed output
             self.output_validation_enabled = False
@@ -186,25 +222,35 @@ class Tool:
         if self.inputs is None:
             raise ValueError("No input provided.")
         if self.output_path and not os.access(
-                os.path.dirname(self.output_path),
-                os.W_OK | os.X_OK,
+            os.path.dirname(self.output_path),
+            os.W_OK | os.X_OK,
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
-            raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
+        if (
+            self.output_is_directory
+            and self.output_path
+            and not os.path.isdir(self.output_path)
+        ):
+            raise ValueError(
+                f"Output path must be a directory. It is currently {self.output_path}"
+            )
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
-        raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
+        raise NotImplementedError(
+            f"Merging outputs not enabled for this tool {self.tool_name}"
+        )
 
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
         for file_path in self.output_names + ["output", "output.tar.gz"]:
             joined_file_path = os.path.join(self.output_path, file_path)
             if os.path.exists(joined_file_path):
-                print(f"WARNING: {joined_file_path} already exists and will be overwritten")
+                print(
+                    f"WARNING: {joined_file_path} already exists and will be overwritten"
+                )
 
     def _preflight(self):
         """Generic preflight check. Tools can have more specific implementations."""
@@ -239,8 +285,10 @@ class Tool:
         Right now, this blindly rejects anything other than Linux or macOS.
         Windows is not currently supported, because pysam requires htslib
         """
-        if sys.platform not in {'linux', 'darwin'}:
-            raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
+        if sys.platform not in {"linux", "darwin"}:
+            raise NotImplementedError(
+                f"Parallel execution is not yet supported for your OS: {sys.platform}"
+            )
         return True
 
     def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
@@ -258,7 +306,9 @@ class Tool:
         job_or_jobs = "job" if len(self.query_threads) == 1 else "jobs"
         status_count = ""
         for status_name in status_counts:
-            status_count += f"| {status_counts[status_name]} {job_or_jobs} {status_name} "
+            status_count += (
+                f"| {status_counts[status_name]} {job_or_jobs} {status_name} "
+            )
 
         job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
         jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
@@ -278,7 +328,9 @@ class Tool:
             raise InterruptedError(f"Toolchest client force killed")
         self.terminating = True
         self._kill_query_threads()
-        raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
+        raise InterruptedError(
+            f"Toolchest client interrupted by signal #{signal_number}"
+        )
 
     def _kill_query_threads(self):
         """
@@ -289,7 +341,10 @@ class Tool:
         for thread in self.query_threads:
             thread_name = thread.getName()
             thread_status = self.query_thread_statuses.get(thread_name)
-            if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
+            if thread.is_alive() and thread_status not in {
+                ThreadStatus.COMPLETE,
+                ThreadStatus.FAILED,
+            }:
                 self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
 
         self._wait_for_threads_to_finish(check_health=False)
@@ -301,7 +356,9 @@ class Tool:
             thread_status = self.query_thread_statuses.get(thread_name)
             if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
                 self._kill_query_threads()
-                raise ToolchestException(f"A job irrecoverably failed. See logs above for details.")
+                raise ToolchestException(
+                    f"A job irrecoverably failed. See logs above for details."
+                )
 
     def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
@@ -374,10 +431,12 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
-        should_run_in_parallel = self.parallel_enabled \
-            and not any(inputs_are_in_s3(self.input_files)) \
-            and (self.group_paired_ends or self.num_input_files == 1) \
+        should_run_in_parallel = (
+            self.parallel_enabled
+            and not any(inputs_are_in_s3(self.input_files))
+            and (self.group_paired_ends or self.num_input_files == 1)
             and self._system_supports_parallel_execution()
+        )
 
         jobs = self._generate_jobs(should_run_in_parallel)
 
@@ -385,8 +444,11 @@ class Tool:
         # Note that this is relying on a result from the generator, so these are slightly staggered
         temp_input_file_paths = []
         temp_output_file_paths = []
-        non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            and self.output_path else self.output_path
+        non_parallel_output_path = (
+            f"{self.output_path}/{self.output_name}"
+            if self.output_is_directory and self.output_path
+            else self.output_path
+        )
         for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
@@ -399,18 +461,24 @@ class Tool:
             q = Query(stored_output=self.thread_outputs[thread_index])
 
             # Deep copy to make thread safe
-            query_args = copy.deepcopy({
-                "tool_name": self.tool_name,
-                "tool_version": self.tool_version,
-                "tool_args": self.tool_args,
-                "database_name": self.database_name,
-                "database_version": self.database_version,
-                "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
-                "input_files": input_files,
-                "input_prefix_mapping": self.input_prefix_mapping,
-                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
-                "output_type": self.output_type,
-            })
+            query_args = copy.deepcopy(
+                {
+                    "tool_name": self.tool_name,
+                    "tool_version": self.tool_version,
+                    "tool_args": self.tool_args,
+                    "database_name": self.database_name,
+                    "database_version": self.database_version,
+                    "output_name": f"{thread_index}_{self.output_name}"
+                    if should_run_in_parallel
+                    else self.output_name,
+                    "input_files": input_files,
+                    "input_prefix_mapping": self.input_prefix_mapping,
+                    "output_path": temp_parallel_output_file_path
+                    if should_run_in_parallel
+                    else non_parallel_output_path,
+                    "output_type": self.output_type,
+                }
+            )
 
             # Add non-distinct dictionary for status updates
             query_args["thread_statuses"] = self.query_thread_statuses

@@ -21,4 +21,5 @@ def test_concatenate_files():
 
     os.remove(temp_output_file_path)
 
+
 # TODO: test merge_sam_files() in a way that's reproducible on different OS choices

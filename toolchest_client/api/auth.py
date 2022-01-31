@@ -22,7 +22,9 @@ def get_key():
     try:
         key = os.environ["TOOLCHEST_KEY"]
     except KeyError as e:
-        print("Key not found. Please set environment variable TOOLCHEST_KEY to your Toolchest API key.")
+        print(
+            "Key not found. Please set environment variable TOOLCHEST_KEY to your Toolchest API key."
+        )
         print("Function call:")
         print("    toolchest_client.set_key(YOUR_KEY_HERE)")
         return e

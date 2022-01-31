@@ -18,7 +18,11 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
-from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
+from toolchest_client.api.exceptions import (
+    ToolchestJobError,
+    ToolchestException,
+    ToolchestDownloadError,
+)
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_URL
 from toolchest_client.files import OutputType
@@ -40,20 +44,30 @@ class Query:
 
     def __init__(self, stored_output=None):
         self.HEADERS = dict()
-        self.PIPELINE_SEGMENT_INSTANCE_ID = ''
-        self.PIPELINE_SEGMENT_URL = ''
-        self.STATUS_URL = ''
+        self.PIPELINE_SEGMENT_INSTANCE_ID = ""
+        self.PIPELINE_SEGMENT_URL = ""
+        self.STATUS_URL = ""
         self.mark_as_failed = False
-        self.thread_name = ''
+        self.thread_name = ""
         self.thread_statuses = None
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
 
-    def run_query(self, tool_name, tool_version, input_prefix_mapping,
-                  output_type, tool_args=None, database_name=None, database_version=None,
-                  output_name="output", input_files=None,
-                  output_path=None, thread_statuses=None):
+    def run_query(
+        self,
+        tool_name,
+        tool_version,
+        input_prefix_mapping,
+        output_type,
+        tool_args=None,
+        database_name=None,
+        database_version=None,
+        output_name="output",
+        input_files=None,
+        output_path=None,
+        thread_statuses=None,
+    ):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -91,14 +105,15 @@ class Query:
         self._update_thread_status(ThreadStatus.INITIALIZED)
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
-        self.PIPELINE_SEGMENT_URL = "/".join([
-            PIPELINE_URL,
-            self.PIPELINE_SEGMENT_INSTANCE_ID
-        ])
-        self.STATUS_URL = "/".join([
-            self.PIPELINE_SEGMENT_URL,
-            "status",
-        ])
+        self.PIPELINE_SEGMENT_URL = "/".join(
+            [PIPELINE_URL, self.PIPELINE_SEGMENT_INSTANCE_ID]
+        )
+        self.STATUS_URL = "/".join(
+            [
+                self.PIPELINE_SEGMENT_URL,
+                "status",
+            ]
+        )
         self.mark_as_failed = True
 
         self._check_if_should_terminate()
@@ -119,9 +134,16 @@ class Query:
         self.output.output_path = self.unpacked_output_paths
         return self.output
 
-    def _send_initial_request(self, tool_name, tool_version, tool_args,
-                              database_name, database_version, output_name,
-                              compress_output):
+    def _send_initial_request(
+        self,
+        tool_name,
+        tool_version,
+        tool_args,
+        database_name,
+        database_version,
+        output_name,
+        compress_output,
+    ):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -152,11 +174,10 @@ class Query:
 
     # Note: input_is_in_s3 is False by default for backwards compatibility.
     # TODO: Deprecate this after confirming it doesn't affect the API.
-    def _add_input_file(self, input_file_path, input_prefix, input_order, input_is_in_s3=False):
-        add_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_URL,
-            'input-files'
-        ])
+    def _add_input_file(
+        self, input_file_path, input_prefix, input_order, input_is_in_s3=False
+    ):
+        add_input_file_url = "/".join([self.PIPELINE_SEGMENT_URL, "input-files"])
         file_name = ntpath.basename(input_file_path)
 
         response = requests.post(
@@ -179,11 +200,11 @@ class Query:
         if not input_is_in_s3:
             response_json = response.json()
             return {
-                "access_key_id": response_json.get('access_key_id'),
-                "secret_access_key": response_json.get('secret_access_key'),
-                "session_token": response_json.get('session_token'),
-                "bucket": response_json.get('bucket'),
-                "object_name": response_json.get('object_name'),
+                "access_key_id": response_json.get("access_key_id"),
+                "secret_access_key": response_json.get("secret_access_key"),
+                "session_token": response_json.get("session_token"),
+                "bucket": response_json.get("bucket"),
+                "object_name": response_json.get("object_name"),
             }
 
     def _upload(self, input_file_paths, input_prefix_mapping):
@@ -195,8 +216,12 @@ class Query:
         for file_path in input_file_paths:
             input_is_in_s3 = file_path.startswith(S3_PREFIX)
             input_prefix_details = input_prefix_mapping.get(file_path)
-            input_prefix = input_prefix_details.get("prefix") if input_prefix_details else None
-            input_order = input_prefix_details.get("order") if input_prefix_details else None
+            input_prefix = (
+                input_prefix_details.get("prefix") if input_prefix_details else None
+            )
+            input_order = (
+                input_prefix_details.get("order") if input_prefix_details else None
+            )
             # If the file is already in S3, there is no need to upload.
             if input_is_in_s3:
                 # Registers the file in the internal DB.
@@ -217,7 +242,7 @@ class Query:
 
                 try:
                     s3_client = boto3.client(
-                        's3',
+                        "s3",
                         aws_access_key_id=input_file_keys["access_key_id"],
                         aws_secret_access_key=input_file_keys["secret_access_key"],
                         aws_session_token=input_file_keys["session_token"],
@@ -231,7 +256,7 @@ class Query:
                     # todo: this isn't propagating as a failure
                     self._update_status_to_failed(
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
-                        force_raise=True
+                        force_raise=True,
                     )
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
@@ -240,8 +265,12 @@ class Query:
         """
         Updates the shared thread status.
         """
-        is_done = new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
-        is_interrupting = self.thread_statuses.get(self.thread_name) == ThreadStatus.INTERRUPTING
+        is_done = (
+            new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
+        )
+        is_interrupting = (
+            self.thread_statuses.get(self.thread_name) == ThreadStatus.INTERRUPTING
+        )
         if not is_interrupting or is_done:
             self.thread_statuses[self.thread_name] = new_status
 
@@ -264,7 +293,9 @@ class Query:
 
         return response
 
-    def _update_status_to_failed(self, error_message, force_raise=False, print_msg=True):
+    def _update_status_to_failed(
+        self, error_message, force_raise=False, print_msg=True
+    ):
         """Updates the internal status of the query's task(s) to 'failed'.
 
         Includes options to print an error message or raise a ToolchestException.
@@ -319,10 +350,7 @@ class Query:
     def _get_job_status(self):
         """Gets status of current job (tasks)."""
 
-        response = requests.get(
-            self.STATUS_URL,
-            headers=self.HEADERS
-        )
+        response = requests.get(self.STATUS_URL, headers=self.HEADERS)
         try:
             response.raise_for_status()
         except HTTPError:
@@ -339,7 +367,9 @@ class Query:
         """
 
         try:
-            self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_INSTANCE_ID)
+            self.output_s3_uri, output_file_keys = get_download_details(
+                self.PIPELINE_SEGMENT_INSTANCE_ID
+            )
             if output_path:
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
@@ -370,5 +400,5 @@ class Query:
             self._update_status_to_failed(
                 error_message="Terminating due to failure in sibling thread or parent process",
                 force_raise=False,
-                print_msg=False
+                print_msg=False,
             )

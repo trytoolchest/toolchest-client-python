@@ -34,8 +34,13 @@ def unpack_files(file_path_to_unpack, output_type):
         # Remove the unpacked .tar.gz file and empty unpacked output folder
         os.remove(file_path_to_unpack)
 
-        unpacked_paths = ["/".join([unpacked_outputs_dir, file_name]) for file_name in unpacked_file_names]
-        unpacked_file_paths = [os.path.normpath(path) for path in unpacked_paths if os.path.isfile(path)]
+        unpacked_paths = [
+            "/".join([unpacked_outputs_dir, file_name])
+            for file_name in unpacked_file_names
+        ]
+        unpacked_file_paths = [
+            os.path.normpath(path) for path in unpacked_paths if os.path.isfile(path)
+        ]
 
         # If only 1 file is unpacked, just return path instead of [path].
         # This is to be consistent with the return value from the other output types.
@@ -44,7 +49,9 @@ def unpack_files(file_path_to_unpack, output_type):
         return unpacked_file_paths
 
     else:
-        raise NotImplementedError(f"Output type {output_type} unpacking is not implemented")
+        raise NotImplementedError(
+            f"Output type {output_type} unpacking is not implemented"
+        )
 
 
 def get_file_type(file_path):
@@ -56,4 +63,6 @@ def get_file_type(file_path):
     for output_type in OutputType:
         if file_path.endswith(output_type.value):
             return output_type
-    raise NotImplementedError(f"Handling of output type for file at {file_path} is not implemented")
+    raise NotImplementedError(
+        f"Handling of output type for file at {file_path} is not implemented"
+    )

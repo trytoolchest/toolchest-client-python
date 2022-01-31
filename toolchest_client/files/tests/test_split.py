@@ -24,7 +24,7 @@ def test_split_small_fastq():
     split_file_paths = split_file_by_lines(
         input_file_path=f"{THIS_FILE_PATH}/data/eight_line.fastq",
         num_lines_in_group=4,
-        max_bytes=100
+        max_bytes=100,
     )
 
     for _, file_path in split_file_paths:
@@ -32,8 +32,12 @@ def test_split_small_fastq():
 
     assert len(new_file_paths) == 2
 
-    assert_files_eq(new_file_paths[0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
-    assert_files_eq(new_file_paths[1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
+    assert_files_eq(
+        new_file_paths[0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq"
+    )
+    assert_files_eq(
+        new_file_paths[1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq"
+    )
 
     delete_temp_files(new_file_paths)
 
@@ -43,7 +47,7 @@ def test_split_small_fastq_small_bytes():
     split_file_paths = split_file_by_lines(
         input_file_path=f"{THIS_FILE_PATH}/data/eight_line.fastq",
         num_lines_in_group=4,
-        max_bytes=1
+        max_bytes=1,
     )
 
     for _, file_path in split_file_paths:
@@ -51,8 +55,12 @@ def test_split_small_fastq_small_bytes():
 
     assert len(new_file_paths) == 2
 
-    assert_files_eq(new_file_paths[0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
-    assert_files_eq(new_file_paths[1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
+    assert_files_eq(
+        new_file_paths[0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq"
+    )
+    assert_files_eq(
+        new_file_paths[1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq"
+    )
 
     delete_temp_files(new_file_paths)
 
@@ -66,7 +74,7 @@ def test_split_paired_fastqs():
             f"{THIS_FILE_PATH}/data/paired_end/eight_line_R2.fastq",
         ],
         num_lines_in_group=4,
-        max_bytes=100
+        max_bytes=100,
     )
 
     for split_paired_input_files in split_file_paths:
@@ -78,9 +86,17 @@ def test_split_paired_fastqs():
     assert len(new_file_paths[0]) == 2
     assert len(new_file_paths[1]) == 2
 
-    assert_files_eq(new_file_paths[0][0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
-    assert_files_eq(new_file_paths[1][0], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
-    assert_files_eq(new_file_paths[0][1], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq")
-    assert_files_eq(new_file_paths[1][1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq")
+    assert_files_eq(
+        new_file_paths[0][0], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq"
+    )
+    assert_files_eq(
+        new_file_paths[1][0], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq"
+    )
+    assert_files_eq(
+        new_file_paths[0][1], f"{THIS_FILE_PATH}/data/eight_line_split_one.fastq"
+    )
+    assert_files_eq(
+        new_file_paths[1][1], f"{THIS_FILE_PATH}/data/eight_line_split_two.fastq"
+    )
 
     delete_temp_files(files_to_delete)

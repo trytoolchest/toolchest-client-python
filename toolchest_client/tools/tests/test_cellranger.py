@@ -11,7 +11,7 @@ def test_cellranger_equal_sign_tool_arg_parsing():
         tool_args=tool_args,
         inputs=f"{THIS_DIRECTORY}/test_cellranger.py",
         output_path="./output.tar.gz",
-        output_name='output',
+        output_name="output",
     )
     cellranger_mkfastq_instance._validate_args()
 

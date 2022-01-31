@@ -5,10 +5,27 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import (
+    Kraken2,
+    CellRangerMkfastq,
+    Bowtie2,
+    Megahit,
+    Shi7,
+    ShogunAlign,
+    ShogunFilter,
+    STARInstance,
+    Test,
+    Unicycler,
+)
 
 
-def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
+def bowtie2(
+    inputs,
+    output_path=None,
+    database_name="GRCh38_noalt_as",
+    database_version="1",
+    tool_args="",
+):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
@@ -33,11 +50,11 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 
     instance = Bowtie2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
     )
     output = instance.run()
     return output
@@ -69,7 +86,7 @@ def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args="")
 
     instance = CellRangerMkfastq(
         tool_args=tool_args,
-        output_name='output',
+        output_name="output",
         inputs=inputs,
         output_path=output_path,
     )
@@ -77,8 +94,15 @@ def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args="")
     return output
 
 
-def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None):
+def kraken2(
+    output_path=None,
+    inputs=[],
+    database_name="standard",
+    database_version="1",
+    tool_args="",
+    read_one=None,
+    read_two=None,
+):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -128,7 +152,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
 
     instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -138,8 +162,14 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     return output
 
 
-def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interleaved=None,
-            single_end=None):
+def megahit(
+    output_path=None,
+    tool_args="",
+    read_one=None,
+    read_two=None,
+    interleaved=None,
+    single_end=None,
+):
     """Runs Megahit via Toolchest.
 
     :param output_path: (optional) Path (client-side) where the output will be downloaded.
@@ -191,7 +221,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
     instance = Megahit(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
@@ -220,7 +250,7 @@ def shi7(inputs, output_path=None, tool_args=""):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
     )
@@ -228,7 +258,13 @@ def shi7(inputs, output_path=None, tool_args=""):
     return output
 
 
-def shogun_align(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_align(
+    inputs,
+    output_path=None,
+    database_name="shogun_standard",
+    database_version="1",
+    tool_args="",
+):
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -253,7 +289,7 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
 
     instance = ShogunAlign(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -263,7 +299,13 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
     return output
 
 
-def shogun_filter(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_filter(
+    inputs,
+    output_path=None,
+    database_name="shogun_standard",
+    database_version="1",
+    tool_args="",
+):
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -288,7 +330,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
 
     instance = ShogunFilter(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -298,7 +340,15 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return output
 
 
-def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="", parallelize=False):
+def STAR(
+    read_one,
+    database_name,
+    output_path=None,
+    database_version="1",
+    read_two=None,
+    tool_args="",
+    parallelize=False,
+):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -364,7 +414,7 @@ def test(inputs, output_path=None, tool_args=""):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        output_name="output.tar.gz",
         inputs=inputs,
         output_path=output_path,
     )
@@ -372,7 +422,9 @@ def test(inputs, output_path=None, tool_args=""):
     return output
 
 
-def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, tool_args=""):
+def unicycler(
+    output_path=None, read_one=None, read_two=None, long_reads=None, tool_args=""
+):
     """Runs Unicycler (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Unicycler.

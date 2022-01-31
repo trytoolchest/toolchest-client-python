@@ -6,6 +6,7 @@ from ...api.exceptions import ToolchestS3AccessError
 EXAMPLE_FASTQ_SIZE = 48468258
 EXAMPLE_FASTQ_URI = "s3://toolchest-public-examples/example.fastq"
 
+
 def test_s3_params():
     example_s3_uri = "s3://toolchest-public-examples/dummy-id/example.fastq"
     params = get_params_from_s3_uri(example_s3_uri)
@@ -14,7 +15,7 @@ def test_s3_params():
         "bucket": "toolchest-public-examples",
         "key": "dummy-id/example.fastq",
         "key_initial": "dummy-id",
-        "key_final": "example.fastq"
+        "key_final": "example.fastq",
     }
 
     assert params == target_params

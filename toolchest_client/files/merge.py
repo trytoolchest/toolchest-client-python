@@ -49,5 +49,5 @@ def merge_sam_files(input_file_paths, output_file_path):
         "--threads",
         f"{num_cores}",
         output_file_path,
-        *input_file_paths
+        *input_file_paths,
     )

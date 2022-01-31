@@ -12,7 +12,7 @@ def test_unknown_arg_handling():
         tool_args=tool_args,
         inputs=f"{THIS_DIRECTORY}/test_generic.py",
         output_path="./output.tar.gz",
-        output_name='output',
+        output_name="output",
     )
 
     with pytest.raises(ValueError):
@@ -25,7 +25,7 @@ def test_blacklisted_arg_handling():
         tool_args=tool_args,
         inputs=f"{THIS_DIRECTORY}/test_generic.py",
         output_path="./output.tar.gz",
-        output_name='output',
+        output_name="output",
     )
 
     with pytest.raises(ValueError):

@@ -16,8 +16,18 @@ class STARInstance(Tool):
     """
     The STAR implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 output_path, database_name, database_version, parallelize):
+
+    def __init__(
+        self,
+        tool_args,
+        output_name,
+        inputs,
+        input_prefix_mapping,
+        output_path,
+        database_name,
+        database_version,
+        parallelize,
+    ):
         super().__init__(
             tool_name="STAR",
             tool_version="2.7.9a",
@@ -30,7 +40,7 @@ class STARInstance(Tool):
             max_inputs=2,
             database_name=database_name,
             database_version=database_version,
-            parallel_enabled=False, # True if parallelize else False
+            parallel_enabled=False,  # True if parallelize else False
             max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
             max_input_bytes_per_file_parallel=4.5 * 1024 * 1024 * 1024,
             output_type=OutputType.SAM_FILE if parallelize else OutputType.GZ_TAR,
