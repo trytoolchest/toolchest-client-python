@@ -10,6 +10,7 @@ Query classes.
 """
 
 import os
+import sys
 
 import boto3
 from botocore.exceptions import ClientError
@@ -121,6 +122,10 @@ def _unpack_output(compressed_output_path, output_type=None):
         )
     except Exception as err:
         error_message = f"Failed to unpack file with type: {output_type}."
+        if sys.platform == "win32":
+            PATH_TOO_LONG_CODE = 206
+            if isinstance(err, FileNotFoundError) and err.winerror == PATH_TOO_LONG_CODE:
+                error_message += "\nLong file name support in Windows 10 must be enabled."
         raise ToolchestDownloadError(error_message) from err
     return unpacked_output_paths
 
