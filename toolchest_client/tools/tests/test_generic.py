@@ -7,7 +7,7 @@ THIS_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
 
 def test_unknown_arg_handling():
-    tool_args = f"--unknown arg"
+    tool_args = "--unknown arg"
     test_instance = Test(
         tool_args=tool_args,
         inputs=f"{THIS_DIRECTORY}/test_generic.py",
@@ -20,7 +20,7 @@ def test_unknown_arg_handling():
 
 
 def test_blacklisted_arg_handling():
-    tool_args = f"--bad arg"
+    tool_args = "--bad arg"
     test_instance = Test(
         tool_args=tool_args,
         inputs=f"{THIS_DIRECTORY}/test_generic.py",

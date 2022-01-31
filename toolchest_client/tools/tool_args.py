@@ -215,7 +215,7 @@ TOOL_ARG_LISTS = {
             "--outReadsUnmapped": 1,  # affects whether we can verify all outputs
             "--outSAMstrandField": 1,
             "--outSAMtype": VARIABLE_ARGS,  # affects whether we can verify all outputs
-            "--readFilesCommand": VARIABLE_ARGS, # affects how we can split input files
+            "--readFilesCommand": VARIABLE_ARGS,  # affects how we can split input files
             "--runRNGseed": 1,
             "--readFilesType": 1,
             "--readMapNumber": 1,
@@ -239,7 +239,7 @@ TOOL_ARG_LISTS = {
             "--seedPerWindowNmax": 1,
             "--seedNoneLociPerWindow": 1,
             "--seedSplitMin": 1,
-            "--sjdbInsertSave": 1, # affects whether we can verify all outputs
+            "--sjdbInsertSave": 1,  # affects whether we can verify all outputs
             "--twopassMode": 1,
             "--winAnchorMultimapNmax": 1,
             "--winBinNbits": 1,

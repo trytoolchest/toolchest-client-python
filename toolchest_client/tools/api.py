@@ -5,7 +5,8 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
+    STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
@@ -232,7 +233,7 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN. # noqa: E501
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -267,7 +268,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN. # noqa: E501
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -298,7 +299,8 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return output
 
 
-def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="", parallelize=False):
+def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="",
+         parallelize=False):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -326,7 +328,7 @@ def STAR(read_one, database_name, output_path=None, database_version="1", read_t
     """
 
     inputs = [read_one]
-    if read_two != None:
+    if read_two is not None:
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
