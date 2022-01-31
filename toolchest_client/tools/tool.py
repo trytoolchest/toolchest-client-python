@@ -120,7 +120,7 @@ class Tool:
         for arg in self.tool_args.split():
             # the minimal_tag for "--arg=a" is "--arg"
             # this allows matching args assigned via an "=" to match on the whitelist
-            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", rf"\1", arg)
+            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", r"\1", arg)
             tag_in_whitelist = minimal_tag in whitelist
             if num_args_remaining_after_tag == 0 and tag_in_whitelist:
                 # if the arg is a tag in the whitelist, add it
@@ -249,7 +249,7 @@ class Tool:
         Looks like: Running 2 jobs | Duration: 0:03:15 | 1 jobs complete | 1 jobs downloading
         """
         status_counts = {}
-        for thread_name, thread_status in self.query_thread_statuses.items():
+        for thread_status in self.query_thread_statuses.items():
             if status_counts.get(thread_status):
                 status_counts[thread_status] = status_counts[thread_status] + 1
             else:
@@ -275,7 +275,7 @@ class Tool:
         If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
         """
         if self.terminating:
-            raise InterruptedError(f"Toolchest client force killed")
+            raise InterruptedError("Toolchest client force killed")
         self.terminating = True
         self._kill_query_threads()
         raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
@@ -301,7 +301,7 @@ class Tool:
             thread_status = self.query_thread_statuses.get(thread_name)
             if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
                 self._kill_query_threads()
-                raise ToolchestException(f"A job irrecoverably failed. See logs above for details.")
+                raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
     def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
@@ -422,7 +422,7 @@ class Tool:
             new_thread.start()
             time.sleep(5)
 
-        print(f"Finished spawning jobs.")
+        print("Finished spawning jobs.")
 
         self._wait_for_threads_to_finish()
 

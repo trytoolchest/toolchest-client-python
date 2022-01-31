@@ -49,6 +49,7 @@ class Query:
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
+        self.output_s3_uri = ''
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,

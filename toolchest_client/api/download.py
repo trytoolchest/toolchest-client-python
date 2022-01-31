@@ -51,7 +51,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
             s3_uri_params = get_params_from_s3_uri(s3_uri)
             pipeline_segment_instance_id = s3_uri_params["key_initial"]
         if pipeline_segment_instance_id:
-            output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
+            output_file_keys = get_download_details(pipeline_segment_instance_id)
         else:
             error_message = "S3 URI of output not provided."
             raise ToolchestDownloadError(error_message) from None
