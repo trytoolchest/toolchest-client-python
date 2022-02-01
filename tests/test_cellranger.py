@@ -26,6 +26,7 @@ def test_cellranger_count():
     toolchest.download(
         output_path=output,
         s3_uri=output.s3_uri,
+        skip_decompression=True,
     )
     # Hash test here
 
@@ -43,6 +44,7 @@ def test_cellranger_count():
     toolchest.download(
         output_path=output,
         s3_uri=output.s3_uri,
+        skip_decompression=True,
     )
     # Hash test here
 
