@@ -14,7 +14,7 @@ class CellRangerMkfastq(Tool):
     def __init__(self, tool_args, output_name, inputs, output_path):
         super().__init__(
             tool_name="cellranger_mkfastq",
-            tool_version="6.1.1",  # todo: allow cellranger version to be set by the user
+            tool_version="6.1.2",  # todo: allow cellranger version to be set by the user
             tool_args=tool_args,
             output_name=output_name,
             output_path=output_path,
@@ -34,7 +34,7 @@ class CellRangerCount(Tool):
                  database_name, database_version):
         super().__init__(
             tool_name="cellranger_count",
-            tool_version="6.1.1",  # todo: allow cellranger version to be set by the user
+            tool_version="6.1.2",  # todo: allow cellranger version to be set by the user
             tool_args=tool_args,
             output_name=output_name,
             output_path=output_path,
