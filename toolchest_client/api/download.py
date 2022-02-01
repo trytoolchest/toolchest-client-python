@@ -123,4 +123,3 @@ def _unpack_output(compressed_output_path, output_type=None):
         error_message = f"Failed to unpack file with type: {output_type}."
         raise ToolchestDownloadError(error_message) from err
     return unpacked_output_paths
-

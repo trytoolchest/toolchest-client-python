@@ -12,6 +12,7 @@ tool output files themselves.
 
 from toolchest_client.api.download import download
 
+
 class Output:
     """A Toolchest query output.
 

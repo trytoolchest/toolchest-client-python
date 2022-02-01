@@ -65,6 +65,7 @@ def test_kraken2_paired_end():
     # Kraken 2 paired-end is not completely deterministic, and consistently alternates between these two hashes
     assert hash.unordered(output_file_path) in [1076645572, 1174140935]
 
+
 @pytest.mark.integration
 def test_kraken2_s3():
     """

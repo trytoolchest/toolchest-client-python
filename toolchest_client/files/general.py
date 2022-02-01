@@ -119,4 +119,3 @@ def sanity_check(file_path):
     assert_exists(file_path, must_be_file=True)
     if os.stat(file_path).st_size <= 5:
         raise ValueError(f"File at {file_path} is suspiciously small")
-
