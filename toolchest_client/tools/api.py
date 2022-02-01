@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerCount, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
@@ -73,40 +73,6 @@ def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool
         output_path=output_path,
         database_name=transcriptome_name,
         database_version="2020",
-    )
-    output = instance.run()
-    return output
-
-
-def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
-    """Runs Cell Ranger's mkfastq command via Toolchest.
-
-    :param inputs: Path (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
-    :param tool_args: Additional arguments to be passed to Cell Ranger.
-
-    Usage::
-
-        >>> import toolchest_client as toolchest
-        >>> toolchest.cellranger_mkfastq(
-        ...     tool_args="",
-        ...     samplesheet_name="sample_sheet.csv",
-        ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output.tar.gz",
-        ... )
-
-    """
-
-    # Add --samplesheet arg
-    assert_exists(f"{inputs}/{samplesheet_name}")
-    tool_args = f"--samplesheet={samplesheet_name} " + tool_args
-
-    instance = CellRangerMkfastq(
-        tool_args=tool_args,
-        output_name='output',
-        inputs=inputs,
-        output_path=output_path,
     )
     output = instance.run()
     return output
