@@ -2,7 +2,7 @@
 toolchest_client.tools.cellranger
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This contains the cellranger_mkfastq implementations of the Tool class.
+This contains the cellranger implementations of the Tool class.
 """
 from . import Tool
 
