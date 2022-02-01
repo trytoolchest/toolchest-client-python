@@ -55,9 +55,9 @@ def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.cellranger_mkfastq(
+        >>> toolchest.cellranger_count(
         ...     tool_args="",
-        ...     transcriptome_name="sample_sheet.csv",  # TODO: edit this default name
+        ...     transcriptome_name="GRCh38",
         ...     inputs="./path/to/input",
         ...     output_path="./path/to/output.tar.gz",
         ... )

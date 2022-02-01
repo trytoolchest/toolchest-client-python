@@ -122,12 +122,6 @@ TOOL_ARG_LISTS = {
             "--chemistry": 1,
         },
     },
-    "cellranger_mkfastq": {
-        "whitelist": {
-            "--samplesheet": 0,
-            # todo: add cellranger mkfastq args
-        },
-    },
     "kraken2": {
         "whitelist": {
             "--quick": 0,
