@@ -9,12 +9,20 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
+MIN_EXPECTED_ARCHIVE_SIZE = 34000000
+MAX_EXPECTED_ARCHIVE_SIZE = 38000000
+
+EXPECTED_SUMMARY_SIZE = 2744825
+EXPECTED_RAW_MATRIX_SIZE = 868393
+EXPECTED_RAW_MATRIX_HASH = "d00cca1d2b4344b03946eeaeedc17ed5"
+EXPECTED_FILTERED_MATRIX_SIZE = 503956
+
+
 @pytest.mark.integration
 def test_cellranger_count():
     test_dir = "test_cellranger_count"
     input_dir_path = f"./{test_dir}/inputs/"
     output_dir_path = f"./{test_dir}/output/"
-    output_file_path = f"{output_dir_path}output.tar.gz"
     os.makedirs(input_dir_path, exist_ok=True)
     os.makedirs(output_dir_path, exist_ok=True)
 
@@ -23,12 +31,10 @@ def test_cellranger_count():
         inputs="s3://toolchest-integration-tests/cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
         transcriptome_name="GRCh38",
     )
-    toolchest.download(
-        output_path=output,
-        s3_uri=output.s3_uri,
-        skip_decompression=True,
-    )
-    # Hash test here
+    verify_cellranger_count_outputs(output, output_dir_path)
+
+    shutil.rmtree(output_dir_path)
+    os.makedirs(output_dir_path, exist_ok=True)
 
     # Test from a directory of local inputs
     packed_inputs_path = f"{input_dir_path}/inputs.tar.gz"
@@ -41,11 +47,31 @@ def test_cellranger_count():
         inputs=input_dir_path,
         transcriptome_name="GRCh38",
     )
+    verify_cellranger_count_outputs(output, output_dir_path)
+
+
+def verify_cellranger_count_outputs(output, output_dir_path):
+    # Verify properties of packed archive
+    archive_path = f"{output_dir_path}output.tar.gz"
     toolchest.download(
-        output_path=output,
+        output_path=output_dir_path,
         s3_uri=output.s3_uri,
         skip_decompression=True,
     )
-    # Hash test here
+    archive_size = os.path.getsize(archive_path)
+    assert MIN_EXPECTED_ARCHIVE_SIZE <= archive_size <= MAX_EXPECTED_ARCHIVE_SIZE
 
+    shutil.unpack_archive(
+        filename=archive_path,
+        extract_dir=output_dir_path,
+        format="gztar",
+    )
 
+    # Verify properties of unpacked files
+    summary_path = f"{output_dir_path}outs/web_summary.html"
+    raw_matrix_path = f"{output_dir_path}outs/raw_feature_bc_matrix.h5"
+    filtered_matrix_path = f"{output_dir_path}outs/filtered_feature_bc_matrix.h5"
+    assert os.path.getsize(summary_path) == EXPECTED_SUMMARY_SIZE
+    assert os.path.getsize(raw_matrix_path) == EXPECTED_RAW_MATRIX_SIZE
+    assert os.path.getsize(filtered_matrix_path) == EXPECTED_FILTERED_MATRIX_SIZE
+    assert hash.binary_hash(raw_matrix_path) == EXPECTED_RAW_MATRIX_HASH
