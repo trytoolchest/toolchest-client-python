@@ -107,6 +107,19 @@ TOOL_ARG_LISTS = {
     },
     "cellranger_count": {
         "whitelist": {
+            "--no-bam": 0,
+            "--nosecondary": 0,
+            "--include-introns": 0,
+            "--no-libraries": 0,
+            "--no-target-umi-filter": 0,
+            "--lanes": VARIABLE_ARGS,
+            "--sample": VARIABLE_ARGS,
+            "--project": 1,
+            "--expect-cells": 1,
+            "--force-cells": 1,
+            "--r1-length": 1,
+            "--r2-length": 1,
+            "--chemistry": 1,
         },
     },
     "cellranger_mkfastq": {
