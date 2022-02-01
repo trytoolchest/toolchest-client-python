@@ -37,7 +37,7 @@ def test_cellranger_count():
     os.makedirs(output_dir_path, exist_ok=True)
 
     # Test from a directory of local inputs
-    packed_inputs_path = f"{input_dir_path}/inputs.tar.gz"
+    packed_inputs_path = f"./{test_dir}/inputs.tar.gz"
     s3.download_integration_test_input(
         s3_file_key="cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
         output_file_path=packed_inputs_path,
