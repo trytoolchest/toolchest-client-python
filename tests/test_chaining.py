@@ -48,4 +48,3 @@ def test_shi7_shogun_chaining():
 
     assert hash.unordered(output_file_path_shogun) == SHOGUN_CHAINED_HASH
     assert hash.unordered(output_shogun.output_path) == SHOGUN_CHAINED_HASH
-

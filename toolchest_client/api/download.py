@@ -131,4 +131,3 @@ def _unpack_output(compressed_output_path, output_type=None):
                 error_message += "\nLong file name support in Windows 10 must be enabled."
         raise ToolchestDownloadError(error_message) from err
     return unpacked_output_paths
-
