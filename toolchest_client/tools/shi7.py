@@ -27,5 +27,5 @@ class Shi7(Tool):
             max_input_bytes_per_file=16 * 1024 * 1024 * 1024,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["combined_seqs.fna", "combined_seqs_untrimmed.fna", "shi7.log"],
+            output_names=["combined_seqs.fna", "shi7.log"],
         )
