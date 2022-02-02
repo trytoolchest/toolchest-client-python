@@ -23,6 +23,7 @@ def test_cellranger_count_s3_inputs():
     )
     verify_cellranger_count_outputs(output, output_dir_path)
 
+
 @pytest.mark.integration
 def test_cellranger_count_local_inputs():
     test_dir = "test_cellranger_count_local_inputs"
