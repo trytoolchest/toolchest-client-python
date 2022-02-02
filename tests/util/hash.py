@@ -16,6 +16,7 @@ def unordered(file_path):
     print("Hash is", file_hash)
     return file_hash
 
+
 def binary_hash(file_path):
     """
     Generates an MD5 hash of a binary file.

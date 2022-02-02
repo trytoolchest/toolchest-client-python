@@ -4,7 +4,6 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
-from toolchest_client.files import assert_exists
 from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
     STARInstance, Test, Unicycler
 
