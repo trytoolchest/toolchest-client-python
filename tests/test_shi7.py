@@ -22,11 +22,10 @@ def test_shi7_single_end():
     If the Output class is modified, this test should be modified as well.
     """
 
-    test_dir = "test_shi7_single_end"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
-    input_one_file_path = f"./{test_dir}/shi7_input_R1.fastq.gz"
-    output_path = f"./{test_dir}/"
-    output_file_path = f"./{test_dir}/combined_seqs.fna"
+    test_dir = "./test_shi7_single_end"
+    os.makedirs(test_dir, exist_ok=True)
+    input_one_file_path = f"{test_dir}/shi7_input_R1.fastq.gz"
+    output_file_path = f"{test_dir}/combined_seqs.fna"
 
     s3.download_integration_test_input(
         s3_file_key="sample_r1.fastq.gz",
@@ -35,8 +34,8 @@ def test_shi7_single_end():
 
     output_shi7 = toolchest.shi7(
         tool_args="-SE",
-        inputs=f"./{test_dir}",
-        output_path=output_path,
+        inputs=test_dir,
+        output_path=test_dir,
     )
 
     # Note: since shi7 produces multiple files, output_shi7.output_path
@@ -56,12 +55,11 @@ def test_shi7_paired_end():
     Because of this, we should not recommend shi7 for use.
     """
 
-    test_dir = "test_shi7_paired_end"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
-    input_one_file_path = f"./{test_dir}/shi7_input_R1.fastq.gz"
-    input_two_file_path = f"./{test_dir}/shi7_input_R2.fastq.gz"
-    output_path = f"./{test_dir}/"
-    output_file_path = f"./{test_dir}/combined_seqs.fna"
+    test_dir = "./test_shi7_paired_end"
+    os.makedirs(test_dir, exist_ok=True)
+    input_one_file_path = f"{test_dir}/shi7_input_R1.fastq.gz"
+    input_two_file_path = f"{test_dir}/shi7_input_R2.fastq.gz"
+    output_file_path = f"{test_dir}/combined_seqs.fna"
 
     s3.download_integration_test_input(
         s3_file_key="sample_r1.fastq.gz",
@@ -73,8 +71,8 @@ def test_shi7_paired_end():
     )
 
     toolchest.shi7(
-        inputs=f"./{test_dir}",
-        output_path=output_path,
+        inputs=test_dir,
+        output_path=test_dir,
     )
 
     # Because shi7 paired-end is non-deterministic, we just make sure it's not equal to the single-end version
