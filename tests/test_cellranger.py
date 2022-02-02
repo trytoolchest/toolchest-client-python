@@ -9,21 +9,11 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-MIN_EXPECTED_ARCHIVE_SIZE = 34000000
-MAX_EXPECTED_ARCHIVE_SIZE = 38000000
-
-EXPECTED_SUMMARY_SIZE = 2744825
-EXPECTED_RAW_MATRIX_SIZE = 868393
-EXPECTED_RAW_MATRIX_HASH = "d00cca1d2b4344b03946eeaeedc17ed5"
-EXPECTED_FILTERED_MATRIX_SIZE = 503956
-
 
 @pytest.mark.integration
-def test_cellranger_count():
-    test_dir = "test_cellranger_count"
-    input_dir_path = f"./{test_dir}/inputs/"
+def test_cellranger_count_s3_inputs():
+    test_dir = "test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
-    os.makedirs(input_dir_path, exist_ok=True)
     os.makedirs(output_dir_path, exist_ok=True)
 
     # Test using a compressed archive in S3
@@ -33,7 +23,12 @@ def test_cellranger_count():
     )
     verify_cellranger_count_outputs(output, output_dir_path)
 
-    shutil.rmtree(output_dir_path)
+@pytest.mark.integration
+def test_cellranger_count_local_inputs():
+    test_dir = "test_cellranger_count_local_inputs"
+    input_dir_path = f"./{test_dir}/inputs/"
+    output_dir_path = f"./{test_dir}/output/"
+    os.makedirs(input_dir_path, exist_ok=True)
     os.makedirs(output_dir_path, exist_ok=True)
 
     # Test from a directory of local inputs
@@ -51,6 +46,14 @@ def test_cellranger_count():
 
 
 def verify_cellranger_count_outputs(output, output_dir_path):
+    # Expected properties of outputs
+    MIN_EXPECTED_ARCHIVE_SIZE = 34000000
+    MAX_EXPECTED_ARCHIVE_SIZE = 38000000
+    EXPECTED_SUMMARY_SIZE = 2744825
+    EXPECTED_RAW_MATRIX_SIZE = 868393
+    EXPECTED_RAW_MATRIX_HASH = "d00cca1d2b4344b03946eeaeedc17ed5"
+    EXPECTED_FILTERED_MATRIX_SIZE = 503956
+
     # Verify properties of packed archive
     archive_path = f"{output_dir_path}output.tar.gz"
     toolchest.download(
