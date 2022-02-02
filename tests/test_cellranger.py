@@ -19,7 +19,7 @@ def test_cellranger_count_s3_inputs():
     # Test using a compressed archive in S3
     output = toolchest.cellranger_count(
         inputs="s3://toolchest-integration-tests/cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
-        transcriptome_name="GRCh38",
+        database_name="GRCh38",
     )
     verify_cellranger_count_outputs(output, output_dir_path)
 
@@ -41,7 +41,7 @@ def test_cellranger_count_local_inputs():
     shutil.unpack_archive(packed_inputs_path, input_dir_path)
     output = toolchest.cellranger_count(
         inputs=input_dir_path,
-        transcriptome_name="GRCh38",
+        database_name="GRCh38",
     )
     verify_cellranger_count_outputs(output, output_dir_path)
 

@@ -43,12 +43,12 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     return output
 
 
-def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool_args=""):
+def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args=""):
     """Runs Cell Ranger's count command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param transcriptome_name: Name of transcriptome. Defaults to `GRCh38`.
+    :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
     Usage::
@@ -56,7 +56,7 @@ def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool
         >>> import toolchest_client as toolchest
         >>> toolchest.cellranger_count(
         ...     tool_args="",
-        ...     transcriptome_name="GRCh38",
+        ...     database_name="GRCh38",
         ...     inputs="./path/to/input",
         ...     output_path="./path/to/output.tar.gz",
         ... )
@@ -64,14 +64,14 @@ def cellranger_count(inputs, transcriptome_name="GRCh38", output_path=None, tool
     """
 
     # Note: all cellranger transcriptomes are registered as "cellranger_{name}" in the API
-    transcriptome_name = "cellranger_" + transcriptome_name
+    database_name = "cellranger_" + database_name
 
     instance = CellRangerCount(
         tool_args=tool_args,
         output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
-        database_name=transcriptome_name,
+        database_name=database_name,
         database_version="2020",
     )
     output = instance.run()
