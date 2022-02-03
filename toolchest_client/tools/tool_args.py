@@ -105,10 +105,21 @@ TOOL_ARG_LISTS = {
             "--non-deterministic": 0,
         },
     },
-    "cellranger_mkfastq": {
+    "cellranger_count": {
         "whitelist": {
-            "--samplesheet": 0,
-            # todo: add cellranger mkfastq args
+            "--no-bam": 0,
+            "--nosecondary": 0,
+            "--include-introns": 0,
+            "--no-libraries": 0,
+            "--no-target-umi-filter": 0,
+            "--lanes": VARIABLE_ARGS,
+            "--sample": VARIABLE_ARGS,
+            "--project": 1,
+            "--expect-cells": 1,
+            "--force-cells": 1,
+            "--r1-length": 1,
+            "--r2-length": 1,
+            "--chemistry": 1,
         },
     },
     "kraken2": {
@@ -215,7 +226,7 @@ TOOL_ARG_LISTS = {
             "--outReadsUnmapped": 1,  # affects whether we can verify all outputs
             "--outSAMstrandField": 1,
             "--outSAMtype": VARIABLE_ARGS,  # affects whether we can verify all outputs
-            "--readFilesCommand": VARIABLE_ARGS, # affects how we can split input files
+            "--readFilesCommand": VARIABLE_ARGS,  # affects how we can split input files
             "--runRNGseed": 1,
             "--readFilesType": 1,
             "--readMapNumber": 1,
@@ -239,7 +250,7 @@ TOOL_ARG_LISTS = {
             "--seedPerWindowNmax": 1,
             "--seedNoneLociPerWindow": 1,
             "--seedSplitMin": 1,
-            "--sjdbInsertSave": 1, # affects whether we can verify all outputs
+            "--sjdbInsertSave": 1,  # affects whether we can verify all outputs
             "--twopassMode": 1,
             "--winAnchorMultimapNmax": 1,
             "--winBinNbits": 1,

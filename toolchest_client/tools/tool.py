@@ -21,7 +21,7 @@ from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
     split_paired_files_by_lines, compress_files_in_path, OutputType
-from toolchest_client.files.s3 import inputs_are_in_s3
+from toolchest_client.files.s3 import inputs_are_in_s3, path_is_s3_uri
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
@@ -76,8 +76,12 @@ class Tool:
     def _prepare_inputs(self):
         """Prepares the input files."""
         if self.compress_inputs:
-            # Input files are all .tar.gz'd together, preserving directory structure
-            self.input_files = [compress_files_in_path(self.inputs)]
+            if path_is_s3_uri(self.inputs):
+                # If the given path is in S3, it is assumed to be compressed already.
+                self.input_files = [self.inputs]
+            else:
+                # Input files are all .tar.gz'd together, preserving directory structure
+                self.input_files = [compress_files_in_path(self.inputs)]
             self.num_input_files = 1
         else:
             # Input files are handled individually, destroying directory structure
@@ -120,7 +124,7 @@ class Tool:
         for arg in self.tool_args.split():
             # the minimal_tag for "--arg=a" is "--arg"
             # this allows matching args assigned via an "=" to match on the whitelist
-            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", rf"\1", arg)
+            minimal_tag = re.sub(r"([^=]+)(=[^\s]+)", r"\1", arg)
             tag_in_whitelist = minimal_tag in whitelist
             if num_args_remaining_after_tag == 0 and tag_in_whitelist:
                 # if the arg is a tag in the whitelist, add it
@@ -275,7 +279,7 @@ class Tool:
         If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
         """
         if self.terminating:
-            raise InterruptedError(f"Toolchest client force killed")
+            raise InterruptedError("Toolchest client force killed")
         self.terminating = True
         self._kill_query_threads()
         raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
@@ -301,7 +305,7 @@ class Tool:
             thread_status = self.query_thread_statuses.get(thread_name)
             if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
                 self._kill_query_threads()
-                raise ToolchestException(f"A job irrecoverably failed. See logs above for details.")
+                raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
     def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
@@ -422,7 +426,7 @@ class Tool:
             new_thread.start()
             time.sleep(5)
 
-        print(f"Finished spawning jobs.")
+        print("Finished spawning jobs.")
 
         self._wait_for_threads_to_finish()
 

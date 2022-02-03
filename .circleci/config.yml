@@ -64,10 +64,29 @@ jobs:
           path: test-results
       - store_artifacts:
           path: test-results
+  lint:
+    executor: python/default
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run flake8 linter
+          parallel: true
+          command: |
+            cd ~/repo
+            pip install flake8
+            flake8 ./ --output-file test-reports
+          no_output_timeout: 5m
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
 workflows:
   test:
     jobs:
       - unit-tests
+      - lint
       - integration-tests:
           filters:
             branches:

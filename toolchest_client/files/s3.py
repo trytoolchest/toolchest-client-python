@@ -79,6 +79,17 @@ def get_params_from_s3_uri(uri):
     return params
 
 
+def path_is_s3_uri(path):
+    """Returns whether the given path is an S3 URI.
+
+    :param path: An input path.
+    """
+    # Note: this is just a prefix check and does not validate whether
+    #       a file exists at the given URI.
+    S3_PREFIX = "s3://"
+    return path.startswith(S3_PREFIX)
+
+
 def inputs_are_in_s3(input_paths):
     """Returns a list of booleans describing which of the input files are S3 URIs.
 
@@ -87,5 +98,4 @@ def inputs_are_in_s3(input_paths):
     if isinstance(input_paths, str):
         input_paths = [input_paths]
 
-    S3_PREFIX = "s3://"
-    return [file_path.startswith(S3_PREFIX) for file_path in input_paths]
+    return [path_is_s3_uri(file_path) for file_path in input_paths]

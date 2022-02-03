@@ -4,8 +4,8 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
-from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
+    STARInstance, Test, Unicycler
 
 
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
@@ -43,35 +43,36 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     return output
 
 
-def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
-    """Runs Cell Ranger's mkfastq command via Toolchest.
+def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args=""):
+    """Runs Cell Ranger's count command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
+    :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.cellranger_mkfastq(
+        >>> toolchest.cellranger_count(
         ...     tool_args="",
-        ...     samplesheet_name="sample_sheet.csv",
+        ...     database_name="GRCh38",
         ...     inputs="./path/to/input",
         ...     output_path="./path/to/output.tar.gz",
         ... )
 
     """
 
-    # Add --samplesheet arg
-    assert_exists(f"{inputs}/{samplesheet_name}")
-    tool_args = f"--samplesheet={samplesheet_name} " + tool_args
+    # Note: all cellranger transcriptomes are registered as "cellranger_{name}" in the API
+    database_name = "cellranger_" + database_name
 
-    instance = CellRangerMkfastq(
+    instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        database_name=database_name,
+        database_version="2020",
     )
     output = instance.run()
     return output
@@ -232,7 +233,7 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN. # noqa: E501
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -267,7 +268,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
-    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN.
+    :param database_name: (optional) Name of database to use for Shogun alignment. Defaults to the pre-built DB files at https://github.com/knights-lab/SHOGUN. # noqa: E501
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
@@ -298,7 +299,8 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return output
 
 
-def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="", parallelize=False):
+def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="",
+         parallelize=False):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -326,7 +328,7 @@ def STAR(read_one, database_name, output_path=None, database_version="1", read_t
     """
 
     inputs = [read_one]
-    if read_two != None:
+    if read_two is not None:
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,

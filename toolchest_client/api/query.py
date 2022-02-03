@@ -21,7 +21,7 @@ from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_URL
-from toolchest_client.files import OutputType
+from toolchest_client.files import OutputType, path_is_s3_uri
 from .status import Status, ThreadStatus
 
 
@@ -191,9 +191,8 @@ class Query:
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
-        S3_PREFIX = "s3://"
         for file_path in input_file_paths:
-            input_is_in_s3 = file_path.startswith(S3_PREFIX)
+            input_is_in_s3 = path_is_s3_uri(file_path)
             input_prefix_details = input_prefix_mapping.get(file_path)
             input_prefix = input_prefix_details.get("prefix") if input_prefix_details else None
             input_order = input_prefix_details.get("order") if input_prefix_details else None
