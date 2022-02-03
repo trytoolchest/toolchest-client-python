@@ -28,14 +28,14 @@ def test_megahit_many_types():
 
     toolchest.megahit(
         interleaved=[
-            "s3://toolchest-integration-tests-public/megahit/r1.il.fa.gz",
-            "s3://toolchest-integration-tests-public/megahit/r2.il.fa.bz2",
+            "s3://toolchest-integration-tests/megahit/r1.il.fa.gz",
+            "s3://toolchest-integration-tests/megahit/r2.il.fa.bz2",
         ],
-        read_one="s3://toolchest-integration-tests-public/megahit/r3_1.fa",
-        read_two="s3://toolchest-integration-tests-public/megahit/r3_2.fa",
+        read_one="s3://toolchest-integration-tests/megahit/r3_1.fa",
+        read_two="s3://toolchest-integration-tests/megahit/r3_2.fa",
         single_end=[
-            "s3://toolchest-integration-tests-public/megahit/r4.fa",
-            "s3://toolchest-integration-tests-public/megahit/loop.fa",
+            "s3://toolchest-integration-tests/megahit/r4.fa",
+            "s3://toolchest-integration-tests/megahit/loop.fa",
         ],
         tool_args="--presets meta-large",
         output_path=output_dir_path,
@@ -60,12 +60,12 @@ def test_megahit_multiple_pairs():
 
     toolchest.megahit(
         read_one=[
-            "s3://toolchest-integration-tests-public/megahit/r3_1.fa",
-            "s3://toolchest-integration-tests-public/r1.fastq.gz",
+            "s3://toolchest-integration-tests/megahit/r3_1.fa",
+            "s3://toolchest-integration-tests/r1.fastq.gz",
         ],
         read_two=[
-            "s3://toolchest-integration-tests-public/megahit/r3_2.fa",
-            "s3://toolchest-integration-tests-public/r2.fastq.gz",
+            "s3://toolchest-integration-tests/megahit/r3_2.fa",
+            "s3://toolchest-integration-tests/r2.fastq.gz",
         ],
         tool_args="--presets meta-large",
         output_path=output_dir_path,

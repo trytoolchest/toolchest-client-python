@@ -33,7 +33,7 @@ def test_shi7_shogun_chaining():
 
     output_shi7 = toolchest.shi7(
         tool_args="-SE",
-        inputs="s3://toolchest-integration-tests-public/sample_r1.fastq.gz",
+        inputs="s3://toolchest-integration-tests/sample_r1.fastq.gz",
     )
 
     # Note: since output_path was omitted from the shi7 function call,
