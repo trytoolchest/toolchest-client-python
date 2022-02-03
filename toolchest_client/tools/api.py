@@ -4,8 +4,7 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
-from toolchest_client.files import assert_exists
-from toolchest_client.tools import Kraken2, CellRangerMkfastq, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
+from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
     STARInstance, Test, Unicycler
 
 
@@ -44,35 +43,36 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     return output
 
 
-def cellranger_mkfastq(inputs, samplesheet_name, output_path=None, tool_args=""):
-    """Runs Cell Ranger's mkfastq command via Toolchest.
+def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args=""):
+    """Runs Cell Ranger's count command via Toolchest.
 
     :param inputs: Path (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param samplesheet_name: Name of sample sheet. Expected to exist inside of "inputs".
+    :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
     :param tool_args: Additional arguments to be passed to Cell Ranger.
 
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.cellranger_mkfastq(
+        >>> toolchest.cellranger_count(
         ...     tool_args="",
-        ...     samplesheet_name="sample_sheet.csv",
+        ...     database_name="GRCh38",
         ...     inputs="./path/to/input",
         ...     output_path="./path/to/output.tar.gz",
         ... )
 
     """
 
-    # Add --samplesheet arg
-    assert_exists(f"{inputs}/{samplesheet_name}")
-    tool_args = f"--samplesheet={samplesheet_name} " + tool_args
+    # Note: all cellranger transcriptomes are registered as "cellranger_{name}" in the API
+    database_name = "cellranger_" + database_name
 
-    instance = CellRangerMkfastq(
+    instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output',
+        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        database_name=database_name,
+        database_version="2020",
     )
     output = instance.run()
     return output

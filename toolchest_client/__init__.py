@@ -23,5 +23,5 @@ from toolchest_client.api.download import download
 from toolchest_client.api.exceptions import ToolchestException, DataLimitError, ToolchestJobError, \
     ToolchestDownloadError
 from toolchest_client.api.query import Query
-from .tools.api import bowtie2, cellranger_mkfastq, kraken2, megahit, shi7, shogun_align, shogun_filter, STAR, test, \
+from .tools.api import bowtie2, cellranger_count, kraken2, megahit, shi7, shogun_align, shogun_filter, STAR, test, \
     unicycler
