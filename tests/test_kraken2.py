@@ -83,7 +83,7 @@ def test_kraken2_s3():
     )
 
     toolchest.kraken2(
-        inputs="s3://toolchest-integration-tests-public/synthetic_bacteroides_reads.fasta",
+        inputs="s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta",
         output_path=output_dir_path,
     )
 
