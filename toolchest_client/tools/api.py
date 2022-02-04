@@ -46,7 +46,7 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args=""):
     """Runs Cell Ranger's count command via Toolchest.
 
-    :param inputs: Path (client-side) to be passed in as input.
+    :param inputs: Path (client-side) to a directory of input FASTQ files that will be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
     :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
     :param tool_args: Additional arguments to be passed to Cell Ranger.
@@ -58,7 +58,7 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
         ...     tool_args="",
         ...     database_name="GRCh38",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output.tar.gz",
+        ...     output_path="./path/to/output",
         ... )
 
     """
