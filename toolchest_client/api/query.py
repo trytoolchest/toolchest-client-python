@@ -20,7 +20,7 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
-from toolchest_client.api.urls import PIPELINE_URL
+from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import OutputType, path_is_s3_uri
 from .status import Status, ThreadStatus
 
@@ -41,7 +41,7 @@ class Query:
     def __init__(self, stored_output=None):
         self.HEADERS = dict()
         self.PIPELINE_SEGMENT_INSTANCE_ID = ''
-        self.PIPELINE_SEGMENT_URL = ''
+        self.PIPELINE_SEGMENT_INSTANCE_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
         self.thread_name = ''
@@ -91,12 +91,12 @@ class Query:
         self._update_thread_status(ThreadStatus.INITIALIZED)
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
-        self.PIPELINE_SEGMENT_URL = "/".join([
-            PIPELINE_URL,
+        self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+            PIPELINE_SEGMENT_INSTANCES_URL,
             self.PIPELINE_SEGMENT_INSTANCE_ID
         ])
         self.STATUS_URL = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
         ])
         self.mark_as_failed = True
@@ -138,7 +138,7 @@ class Query:
         }
 
         create_response = requests.post(
-            PIPELINE_URL,
+            PIPELINE_SEGMENT_INSTANCES_URL,
             headers=self.HEADERS,
             json=create_body,
         )
@@ -154,7 +154,7 @@ class Query:
     # TODO: Deprecate this after confirming it doesn't affect the API.
     def _add_input_file(self, input_file_path, input_prefix, input_order, input_is_in_s3=False):
         add_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
         ])
         file_name = ntpath.basename(input_file_path)
