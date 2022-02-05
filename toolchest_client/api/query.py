@@ -165,7 +165,6 @@ class Query:
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
                 "tool_prefix_order": input_order,
-                "is_s3": input_is_in_s3,
                 "s3_uri": input_file_path if input_is_in_s3 else None,
             },
         )
