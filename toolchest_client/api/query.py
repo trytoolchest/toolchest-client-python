@@ -20,7 +20,7 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
-from toolchest_client.api.urls import PIPELINE_URL
+from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import OutputType, path_is_s3_uri
 from .status import Status, ThreadStatus
 
@@ -41,7 +41,7 @@ class Query:
     def __init__(self, stored_output=None):
         self.HEADERS = dict()
         self.PIPELINE_SEGMENT_INSTANCE_ID = ''
-        self.PIPELINE_SEGMENT_URL = ''
+        self.PIPELINE_SEGMENT_INSTANCE_URL = ''
         self.STATUS_URL = ''
         self.mark_as_failed = False
         self.thread_name = ''
@@ -91,12 +91,12 @@ class Query:
         self._update_thread_status(ThreadStatus.INITIALIZED)
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
-        self.PIPELINE_SEGMENT_URL = "/".join([
-            PIPELINE_URL,
+        self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+            PIPELINE_SEGMENT_INSTANCES_URL,
             self.PIPELINE_SEGMENT_INSTANCE_ID
         ])
         self.STATUS_URL = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
         ])
         self.mark_as_failed = True
@@ -138,7 +138,7 @@ class Query:
         }
 
         create_response = requests.post(
-            PIPELINE_URL,
+            PIPELINE_SEGMENT_INSTANCES_URL,
             headers=self.HEADERS,
             json=create_body,
         )
@@ -152,7 +152,7 @@ class Query:
 
     def _update_file_size(self, fileId):
         update_file_size_url = "/".join([
-            PIPELINE_URL,
+            PIPELINE_SEGMENT_INSTANCES_URL,
             'input-files',
             fileId,
             'update-file-size'
@@ -168,29 +168,28 @@ class Query:
             print(f"Failed to update size for file: {fileId}", file=sys.stderr)
             raise
 
-    # Note: input_is_in_s3 is False by default for backwards compatibility.
-    def _add_input_file(self, input_file_path, input_prefix, input_order, input_is_in_s3=False):
-        add_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+    def _register_input_file(self, input_file_path, input_prefix, input_order):
+        register_input_file_url = "/".join([
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
         ])
         file_name = ntpath.basename(input_file_path)
+        input_is_in_s3 = path_is_s3_uri(input_file_path)
 
         response = requests.post(
-            add_input_file_url,
+            register_input_file_url,
             headers=self.HEADERS,
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
                 "tool_prefix_order": input_order,
-                "is_s3": input_is_in_s3,
-                "s3_uri": input_file_path if input_is_in_s3 else "",
+                "s3_uri": input_file_path if input_is_in_s3 else None,
             },
         )
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to add input file at {input_file_path}", file=sys.stderr)
+            print(f"Failed to register input file at {input_file_path}", file=sys.stderr)
             raise
 
         if not input_is_in_s3:
@@ -217,19 +216,17 @@ class Query:
             # If the file is already in S3, there is no need to upload.
             if input_is_in_s3:
                 # Registers the file in the internal DB.
-                self._add_input_file(
+                self._register_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
-                    input_is_in_s3=input_is_in_s3,
                 )
             else:
                 print(f"Uploading {file_path}")
-                input_file_keys = self._add_input_file(
+                input_file_keys = self._register_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
-                    input_is_in_s3=input_is_in_s3,
                 )
 
                 try:
