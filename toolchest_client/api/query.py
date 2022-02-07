@@ -150,6 +150,24 @@ class Query:
 
         return create_response
 
+    def _update_file_size(self, fileId):
+        update_file_size_url = "/".join([
+            PIPELINE_SEGMENT_INSTANCES_URL,
+            'input-files',
+            fileId,
+            'update-file-size'
+        ])
+
+        response = requests.put(
+            update_file_size_url,
+            headers=self.HEADERS,
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(f"Failed to update size for file: {fileId}", file=sys.stderr)
+            raise
+
     def _register_input_file(self, input_file_path, input_prefix, input_order):
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
@@ -182,6 +200,7 @@ class Query:
                 "session_token": response_json.get('session_token'),
                 "bucket": response_json.get('bucket'),
                 "object_name": response_json.get('object_name'),
+                "file_id": response_json.get('file_id'),
             }
 
     def _upload(self, input_file_paths, input_prefix_mapping):
@@ -222,6 +241,7 @@ class Query:
                         input_file_keys["bucket"],
                         input_file_keys["object_name"],
                     )
+                    self._update_file_size(input_file_keys["file_id"])
                 except ClientError as e:
                     # todo: this isn't propagating as a failure
                     self._update_status_to_failed(
