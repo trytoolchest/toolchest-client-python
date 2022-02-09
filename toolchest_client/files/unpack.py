@@ -8,6 +8,7 @@ class OutputType(Enum):
     GZ_TAR = ".tar.gz"
     FLAT_TEXT = ".txt"
     SAM_FILE = ".sam"
+    S3 = ""
 
 
 def unpack_files(file_path_to_unpack, output_type):
@@ -18,6 +19,8 @@ def unpack_files(file_path_to_unpack, output_type):
     if output_type == OutputType.FLAT_TEXT:
         return file_path_to_unpack
     elif output_type == OutputType.SAM_FILE:
+        return file_path_to_unpack
+    elif output_type == OutputType.S3:
         return file_path_to_unpack
     elif output_type == OutputType.GZ_TAR:
         # Get names of files in archive

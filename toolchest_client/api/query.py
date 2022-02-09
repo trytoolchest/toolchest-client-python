@@ -85,6 +85,7 @@ class Query:
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
+            output_file_path=output_path
         )
         create_content = create_response.json()
 
@@ -121,7 +122,7 @@ class Query:
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, output_name,
-                              compress_output):
+                              compress_output, output_file_path):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -135,6 +136,7 @@ class Query:
             "output_file_name": output_name,
             "tool_name": tool_name,
             "tool_version": tool_version,
+            "output_file_path": output_file_path,
         }
 
         create_response = requests.post(
@@ -339,7 +341,7 @@ class Query:
 
         try:
             self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_INSTANCE_ID)
-            if output_path:
+            if output_path and not path_is_s3_uri(output_path):
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
                 self.unpacked_output_paths = download(

@@ -6,6 +6,7 @@ This is the Kraken2 implementation of the Tool class.
 """
 from . import Tool
 from toolchest_client.files import OutputType
+from toolchest_client.files.s3 import path_is_s3_uri
 
 
 class Kraken2(Tool):
@@ -26,7 +27,7 @@ class Kraken2(Tool):
             database_name=database_name,
             database_version=database_version,
             parallel_enabled=False,
-            output_type=OutputType.GZ_TAR,
+            output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
             output_is_directory=True,
             output_names=["kraken2_output.txt", "kraken2_report.txt"]
         )
