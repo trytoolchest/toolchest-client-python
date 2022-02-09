@@ -35,7 +35,7 @@ class Tool:
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT, output_is_directory=False,
+                 output_type=OutputType.FLAT_TEXT, output_is_directory=True,
                  output_names=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
@@ -225,7 +225,9 @@ class Tool:
                             f"{self.output_path} is a file. Please pass a directory instead of an output file."
                         )
                 else:
-                    os.makedirs(self.output_path)
+                    os.makedirs(self.output_path, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
 
             self._warn_if_outputs_exist()
 
