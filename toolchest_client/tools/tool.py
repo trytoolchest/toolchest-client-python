@@ -196,8 +196,6 @@ class Tool:
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
-            raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
