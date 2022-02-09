@@ -5,6 +5,7 @@ toolchest_client.tools.cellranger
 This contains the cellranger implementations of the Tool class.
 """
 from . import Tool
+from toolchest_client.files import OutputType
 
 
 class CellRangerCount(Tool):
@@ -26,5 +27,6 @@ class CellRangerCount(Tool):
             database_version=database_version,
             compress_inputs=True,
             max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
+            output_type=OutputType.GZ_TAR,
             output_is_directory=True,
         )
