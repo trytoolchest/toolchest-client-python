@@ -189,14 +189,15 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self.output_path and not os.access(
+        if self.output_path and not path_is_s3_uri(self.output_path) and not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
+        if self.output_is_directory and self.output_path and not path_is_s3_uri(self.output_path) \
+                and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
@@ -231,7 +232,7 @@ class Tool:
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.output_path:
+        if self.output_path and not path_is_s3_uri(self.output_path):
             if self.output_validation_enabled:
                 for output_name in self.output_names:
                     output_file_path = f"{self.output_path}/{output_name}"
@@ -390,9 +391,10 @@ class Tool:
         temp_input_file_paths = []
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            and self.output_path else self.output_path
+            and self.output_path and not path_is_s3_uri(self.output_path) else self.output_path
         for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
+            # TODO: handle parallel output for s3 uri
             temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
