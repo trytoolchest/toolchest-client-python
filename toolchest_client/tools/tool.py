@@ -30,7 +30,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  inputs, min_inputs, max_inputs=None, output_path=None,
-                 database_name=None, database_version=None,
+                 database_name=None, database_version=None, custom_database_path=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
@@ -58,6 +58,7 @@ class Tool:
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
+        self.custom_database_path = custom_database_path
         self.parallel_enabled = parallel_enabled
         self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
