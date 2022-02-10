@@ -27,6 +27,7 @@ class Kraken2(Tool):
             database_name=database_name,
             database_version=database_version,
             custom_database_path=custom_database_path,
+            max_input_bytes_per_file=64 * 1024 * 1024 * 1024,
             parallel_enabled=False,
             output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
             output_is_directory=True,
