@@ -414,6 +414,7 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
+                "custom_database_path": self.custom_database_path,
                 "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
