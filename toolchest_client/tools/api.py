@@ -79,7 +79,7 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None):
+            tool_args="", read_one=None, read_two=None, custom_database_path=None):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -88,6 +88,8 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
+    :param custom_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible from Toolchest.
     :param read_one: (optional) Path to read 1 of paired-read input files.
     :param read_two: (optional) Path to read 2 of paired-read input files.
 
@@ -98,6 +100,9 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
 
      If using `read_one` and `read_two`, these will be interpreted as the input files
      over anything given in `inputs`.
+
+     If using `custom_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
 
     Usage::
 
@@ -134,6 +139,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
+        custom_database_path=custom_database_path,
     )
     output = instance.run()
     return output

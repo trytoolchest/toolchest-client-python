@@ -30,7 +30,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  inputs, min_inputs, max_inputs=None, output_path=None,
-                 database_name=None, database_version=None,
+                 database_name=None, database_version=None, custom_database_path=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
@@ -58,6 +58,7 @@ class Tool:
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
+        self.custom_database_path = custom_database_path
         self.parallel_enabled = parallel_enabled
         self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
@@ -218,7 +219,7 @@ class Tool:
 
         # Check if the given output_path is a directory, if required by the tool
         # and if the user provides output_path.
-        if self.output_path:
+        if self._is_local_path():
             if self.output_is_directory:
                 if os.path.exists(self.output_path):
                     if os.path.isfile(self.output_path):
@@ -413,6 +414,7 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
+                "custom_database_path": self.custom_database_path,
                 "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
