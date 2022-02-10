@@ -222,7 +222,7 @@ class Tool:
 
         # Check if the given output_path is a directory, if required by the tool
         # and if the user provides output_path.
-        if self.output_path:
+        if self._is_local_path():
             if self.output_is_directory:
                 if os.path.exists(self.output_path):
                     if os.path.isfile(self.output_path):
