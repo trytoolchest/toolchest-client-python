@@ -35,13 +35,13 @@ class Tool:
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT, output_is_directory=False,
+                 output_type=OutputType.FLAT_TEXT, output_is_directory=True,
                  output_names=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
-        self.output_path = output_path
+        self.output_path = os.path.abspath(output_path)
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
@@ -96,7 +96,7 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
-    def _is_local_path(self):
+    def _output_path_is_local(self):
         return self.output_path and not path_is_s3_uri(self.output_path)
 
     def _validate_tool_args(self):
@@ -193,16 +193,13 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self._is_local_path() and not os.access(
+        if self._output_path_is_local() and not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and self._is_local_path() \
-                and not os.path.isdir(self.output_path):
-            raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
@@ -222,7 +219,7 @@ class Tool:
 
         # Check if the given output_path is a directory, if required by the tool
         # and if the user provides output_path.
-        if self._is_local_path():
+        if self._output_path_is_local():
             if self.output_is_directory:
                 if os.path.exists(self.output_path):
                     if os.path.isfile(self.output_path):
@@ -230,13 +227,15 @@ class Tool:
                             f"{self.output_path} is a file. Please pass a directory instead of an output file."
                         )
                 else:
-                    os.makedirs(self.output_path)
+                    os.makedirs(self.output_path, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
 
             self._warn_if_outputs_exist()
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self._is_local_path():
+        if self._output_path_is_local():
             if self.output_validation_enabled:
                 for output_name in self.output_names:
                     output_file_path = f"{self.output_path}/{output_name}"
@@ -395,7 +394,7 @@ class Tool:
         temp_input_file_paths = []
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            and self._is_local_path() else self.output_path
+            and self._output_path_is_local() else self.output_path
         for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             # TODO: handle parallel output for s3 uri
