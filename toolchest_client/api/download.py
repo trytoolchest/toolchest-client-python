@@ -19,7 +19,7 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestDownloadError
-from toolchest_client.api.urls import PIPELINE_URL
+from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
 
 
@@ -99,7 +99,7 @@ def get_download_details(pipeline_segment_instance_id):
     """Gets S3 URI and access keys for downloading output of query task(s)."""
 
     response = requests.get(
-        "/".join([PIPELINE_URL, pipeline_segment_instance_id, "downloads"]),
+        "/".join([PIPELINE_SEGMENT_INSTANCES_URL, pipeline_segment_instance_id, "downloads"]),
         headers=get_headers(),
     )
     try:
