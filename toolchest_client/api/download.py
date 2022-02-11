@@ -8,7 +8,7 @@ the Toolchest server, given access to an API key.
 Note: This module is used in downloading from the Output and
 Query classes.
 """
-
+import logging
 import os
 import sys
 
@@ -61,7 +61,10 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
     # Note: Assumes that output_path is a directory if it does not exist.
     # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
     # but support for non-dir output_path will likely be deprecated.
+    output_path = os.path.abspath(output_path)
     if not os.path.exists(output_path) and output_type is None:
+        if "." in os.path.basename(output_path):
+            logging.warning(f"Creating {os.path.basename(output_path)} as a directory along path {output_path}")
         os.makedirs(output_path, exist_ok=True)
 
     # If output_path is a directory, extract the filename from the target download.
