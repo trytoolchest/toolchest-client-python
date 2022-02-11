@@ -2,9 +2,7 @@ import filecmp
 import os
 import pathlib
 
-import pytest
-
-from .. import concatenate_files, merge_sam_files
+from .. import concatenate_files
 
 THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
 
