@@ -33,7 +33,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
     `get_download_details()`.
 
     :param output_path: Output path to which the file(s) will be downloaded.
-        This should be a directory, but direct filenames are also supported.
+        This should be a local directory, but direct filenames are also supported.
     :param s3_uri: URI of file contained in S3. This can be passed from
         the parameter `output.s3_uri` from the `output` returned by a previous
         job.
@@ -44,7 +44,6 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
     :param skip_decompression: Whether to skip decompression of the downloaded file archive.
     :param output_type: Output type of the produced output file. Used internally.
     """
-    # TODO: support output_path directory creation while supporting non-directory filetypes
 
     if output_file_keys is None:
         if s3_uri:
@@ -57,6 +56,13 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
         else:
             error_message = "S3 URI of output not provided."
             raise ToolchestDownloadError(error_message) from None
+
+    # Create output directories if output_path does not exist.
+    # Note: Assumes that output_path is a directory if it does not exist.
+    # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
+    # but support for non-dir output_path will likely be deprecated.
+    if not os.path.exists(output_path) and output_type is None:
+        os.makedirs(output_path, exist_ok=True)
 
     # If output_path is a directory, extract the filename from the target download.
     if os.path.isdir(output_path):
