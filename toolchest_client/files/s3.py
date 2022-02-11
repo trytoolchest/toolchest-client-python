@@ -87,7 +87,7 @@ def path_is_s3_uri(path):
     # Note: this is just a prefix check and does not validate whether
     #       a file exists at the given URI.
     S3_PREFIX = "s3://"
-    return path.startswith(S3_PREFIX)
+    return path and path.startswith(S3_PREFIX)
 
 
 def inputs_are_in_s3(input_paths):

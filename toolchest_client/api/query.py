@@ -52,7 +52,7 @@ class Query:
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  output_name="output", input_files=None,
+                  custom_database_path=None, output_name="output", input_files=None,
                   output_path=None, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
@@ -61,6 +61,7 @@ class Query:
         :param tool_args: Tool-specific arguments to be passed to the tool.
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
+        :param custom_database_path: Path (S3 URI) to a custom database.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1")
         :param output_name: (optional) Internal name of file outputted by the tool.
         :param input_files: List of paths to be passed in as input.
@@ -81,10 +82,12 @@ class Query:
             compress_output=True if output_type == OutputType.GZ_TAR else False,
             database_name=database_name,
             database_version=database_version,
+            custom_database_path=custom_database_path,
             output_name=output_name,
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
+            output_file_path=output_path,
         )
         create_content = create_response.json()
 
@@ -120,8 +123,8 @@ class Query:
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
-                              database_name, database_version, output_name,
-                              compress_output):
+                              database_name, database_version, custom_database_path,
+                              output_name, compress_output, output_file_path):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -130,11 +133,13 @@ class Query:
         create_body = {
             "compress_output": compress_output,
             "custom_tool_args": tool_args,
+            "custom_database_s3_location": custom_database_path,
             "database_name": database_name,
             "database_version": database_version,
             "output_file_name": output_name,
             "tool_name": tool_name,
             "tool_version": tool_version,
+            "output_file_path": output_file_path,
         }
 
         create_response = requests.post(
@@ -355,7 +360,7 @@ class Query:
 
         try:
             self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_INSTANCE_ID)
-            if output_path:
+            if output_path and not path_is_s3_uri(output_path):
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
                 self.unpacked_output_paths = download(

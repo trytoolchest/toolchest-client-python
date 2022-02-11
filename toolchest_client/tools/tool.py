@@ -30,7 +30,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  inputs, min_inputs, max_inputs=None, output_path=None,
-                 database_name=None, database_version=None,
+                 database_name=None, database_version=None, custom_database_path=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
@@ -58,6 +58,7 @@ class Tool:
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
+        self.custom_database_path = custom_database_path
         self.parallel_enabled = parallel_enabled
         self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
@@ -94,6 +95,9 @@ class Tool:
         if self.max_inputs and self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
+
+    def _is_local_path(self):
+        return self.output_path and not path_is_s3_uri(self.output_path)
 
     def _validate_tool_args(self):
         """
@@ -189,14 +193,15 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self.output_path and not os.access(
+        if self._is_local_path() and not os.access(
                 os.path.dirname(self.output_path),
                 os.W_OK | os.X_OK,
         ):
             raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
-        if self.output_is_directory and self.output_path and not os.path.isdir(self.output_path):
+        if self.output_is_directory and self._is_local_path() \
+                and not os.path.isdir(self.output_path):
             raise ValueError(f"Output path must be a directory. It is currently {self.output_path}")
 
     def _merge_outputs(self, output_file_paths):
@@ -217,7 +222,7 @@ class Tool:
 
         # Check if the given output_path is a directory, if required by the tool
         # and if the user provides output_path.
-        if self.output_path:
+        if self._is_local_path():
             if self.output_is_directory:
                 if os.path.exists(self.output_path):
                     if os.path.isfile(self.output_path):
@@ -231,7 +236,7 @@ class Tool:
 
     def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.output_path:
+        if self._is_local_path():
             if self.output_validation_enabled:
                 for output_name in self.output_names:
                     output_file_path = f"{self.output_path}/{output_name}"
@@ -390,9 +395,10 @@ class Tool:
         temp_input_file_paths = []
         temp_output_file_paths = []
         non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            and self.output_path else self.output_path
+            and self._is_local_path() else self.output_path
         for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
+            # TODO: handle parallel output for s3 uri
             temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
             if should_run_in_parallel:
                 temp_input_file_paths += input_files
@@ -409,6 +415,7 @@ class Tool:
                 "tool_args": self.tool_args,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
+                "custom_database_path": self.custom_database_path,
                 "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
