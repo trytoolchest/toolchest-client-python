@@ -54,7 +54,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
         if pipeline_segment_instance_id:
             output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
         else:
-            error_message = "S3 URI of output not provided."
+            error_message = "Details of files to download were not provided."
             raise ToolchestDownloadError(error_message) from None
 
     # Create output directories if output_path does not exist.
