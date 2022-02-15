@@ -367,6 +367,7 @@ class Query:
                     output_path=output_path,
                     output_file_keys=output_file_keys,
                     output_type=output_type,
+                    print_warning=False,
                 )
                 self._update_status(Status.TRANSFERRED_TO_CLIENT)
         except ToolchestDownloadError as err:

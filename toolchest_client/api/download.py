@@ -24,7 +24,8 @@ from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack
 
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
-             output_file_keys=None, skip_decompression=False, output_type=None):
+             output_file_keys=None, skip_decompression=False, output_type=None,
+             print_warning=True):
     """Downloads output to `output_path`.
 
     One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
@@ -43,6 +44,8 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
         Used internally.
     :param skip_decompression: Whether to skip decompression of the downloaded file archive.
     :param output_type: Output type of the produced output file. Used internally.
+    :param print_warning: Whether to print warning statements. Used internally.
+    :return: Path or list of paths to downloaded file(s).
     """
 
     if output_file_keys is None:
@@ -64,11 +67,14 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
     output_path = os.path.abspath(output_path)
     if not os.path.exists(output_path) and output_type is None:
         if "." in os.path.basename(output_path):
-            logging.warning(f"Creating {os.path.basename(output_path)} as a directory along path {output_path}")
+            if print_warning:
+                logging.warning(f"WARNING: Creating {os.path.basename(output_path)} as a directory along path {output_path}")
         os.makedirs(output_path, exist_ok=True)
 
     # If output_path is a directory, extract the filename from the target download.
     if os.path.isdir(output_path):
+        if os.listdir(output_path) and print_warning:
+            logging.warning(f"WARNING: files in {output_path} may be overwritten")
         file_name = output_file_keys["file_name"]
         output_path = "/".join([output_path, file_name])
 
