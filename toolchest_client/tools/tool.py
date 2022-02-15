@@ -41,7 +41,9 @@ class Tool:
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
-        self.output_path = os.path.abspath(output_path) if self._output_path_is_local() else output_path
+        self.output_path = output_path
+        if self._output_path_is_local():
+            self.output_path = os.path.abspath(output_path)
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
