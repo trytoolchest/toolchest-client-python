@@ -79,7 +79,8 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None, custom_database_path=None):
+            tool_args="", read_one=None, read_two=None, custom_database_path=None,
+            use_docker=False):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -140,6 +141,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         database_name=database_name,
         database_version=database_version,
         custom_database_path=custom_database_path,
+        use_docker=use_docker,
     )
     output = instance.run()
     return output

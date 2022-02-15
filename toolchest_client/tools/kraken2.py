@@ -14,10 +14,10 @@ class Kraken2(Tool):
     The Kraken2 implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version, custom_database_path):
+                 database_name, database_version, custom_database_path, use_docker):
         super().__init__(
-            tool_name="kraken2",
-            tool_version="2.1.1",  # todo: allow kraken 2 version to be set by the user
+            tool_name="kraken2_docker" if use_docker else "kraken2",
+            tool_version="2.1.2" if use_docker else "2.1.1",  # todo: allow kraken 2 version to be set by the user
             tool_args=tool_args,
             output_name=output_name,
             output_path=output_path,
@@ -31,5 +31,5 @@ class Kraken2(Tool):
             parallel_enabled=False,
             output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["kraken2_output.txt", "kraken2_report.txt"]
+            output_names=["kraken2_output.txt", "kraken2_report.txt", "kraken2_summary.txt"]
         )

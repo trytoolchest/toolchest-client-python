@@ -134,6 +134,18 @@ TOOL_ARG_LISTS = {
             "--paired": 0,
         },
     },
+    "kraken2_docker": {
+        "whitelist": {
+            "--quick": 0,
+            "--confidence": 1,
+            "--minimum-base-quality": 1,
+            "--use-names": 0,
+            "--gzip-compressed": 0,
+            "--bzip2-compressed": 0,
+            "--minimum-hit-groups": 1,
+            "--paired": 0,
+        },
+    },
     "megahit": {
         "blacklist": [
             "--continue",
