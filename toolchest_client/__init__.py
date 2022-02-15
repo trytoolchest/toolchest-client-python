@@ -10,7 +10,10 @@ try:
     import importlib.metadata as importlib_metadata
 except ImportError:
     import importlib_metadata as importlib_metadata
-__version__ = importlib_metadata.version(__package__ or __name__)
+try:
+    __version__ = importlib_metadata.version(__package__ or __name__)
+except importlib_metadata.PackageNotFoundError:
+    __version__ = None
 
 # .env load must be before imports that use environment variables
 load_dotenv(find_dotenv(".env"))
