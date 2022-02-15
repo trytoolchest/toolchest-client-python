@@ -13,7 +13,7 @@ class Megahit(Tool):
     The megahit implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 output_path):
+                 output_path, skip_decompression):
         super().__init__(
             tool_name="megahit",
             tool_version="1.2.9",  # todo: allow version to be set by the user
@@ -34,6 +34,7 @@ class Megahit(Tool):
                 "log",
                 "options.json",
             ],
+            skip_decompression=skip_decompression,
         )
 
     def _postflight(self):

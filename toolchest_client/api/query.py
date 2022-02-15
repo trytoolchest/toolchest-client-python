@@ -53,7 +53,7 @@ class Query:
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, output_name="output", input_files=None,
-                  output_path=None, thread_statuses=None):
+                  output_path=None, skip_decompression=False, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -112,7 +112,7 @@ class Query:
         self._update_thread_status(ThreadStatus.EXECUTING)
         self._wait_for_job()
 
-        self._download(output_path, output_type)
+        self._download(output_path, output_type, skip_decompression)
 
         self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
@@ -353,7 +353,7 @@ class Query:
 
         return response.json()["status"]
 
-    def _download(self, output_path, output_type):
+    def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
         downloads output to ``output_path`` and decompresses output archive, if necessary.
         """
@@ -367,6 +367,7 @@ class Query:
                     output_path=output_path,
                     output_file_keys=output_file_keys,
                     output_type=output_type,
+                    skip_decompression=skip_decompression,
                 )
                 self._update_status(Status.TRANSFERRED_TO_CLIENT)
         except ToolchestDownloadError as err:

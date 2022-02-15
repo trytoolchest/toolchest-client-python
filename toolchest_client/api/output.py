@@ -31,9 +31,10 @@ class Output:
     def __str__(self):
         return str(self.__dict__)
 
-    def download(self, output_dir):
+    def download(self, output_dir, skip_decompression=False):
         self.output_path = download(
             output_path=output_dir,
             s3_uri=self.s3_uri,
+            skip_decompression=skip_decompression,
         )
         return self.output_path

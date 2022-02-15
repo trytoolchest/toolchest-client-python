@@ -13,7 +13,7 @@ class ShogunAlign(Tool):
     The shogun_align implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version):
+                 database_name, database_version, skip_decompression):
         super().__init__(
             tool_name="shogun_align",
             tool_version="1.0.8",  # todo: allow shogun version to be set by the user
@@ -29,6 +29,7 @@ class ShogunAlign(Tool):
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
             output_names=["alignment.burst.b6"],
+            skip_decompression=skip_decompression,
         )
 
 
@@ -37,7 +38,7 @@ class ShogunFilter(Tool):
     The shogun_filter implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version):
+                 database_name, database_version, skip_decompression):
         super().__init__(
             tool_name="shogun_filter",
             tool_version="1.0.8",  # todo: allow shogun version to be set by the user
@@ -53,4 +54,5 @@ class ShogunFilter(Tool):
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
             output_names=["combined_seqs.filtered.fna", "alignment.burst.best.b6"],
+            skip_decompression=skip_decompression,
         )

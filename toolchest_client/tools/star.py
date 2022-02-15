@@ -17,7 +17,8 @@ class STARInstance(Tool):
     The STAR implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 output_path, database_name, database_version, parallelize):
+                 output_path, database_name, database_version, parallelize,
+                 skip_decompression):
         super().__init__(
             tool_name="STAR",
             tool_version="2.7.9a",
@@ -41,7 +42,8 @@ class STARInstance(Tool):
                 "Log.out",
                 "Log.progress.out",
                 "SJ.out.tab",
-            ]
+            ],
+            skip_decompression=skip_decompression,
         )
 
     def _merge_outputs(self, output_file_paths):

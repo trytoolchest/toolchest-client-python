@@ -12,7 +12,7 @@ class Shi7(Tool):
     """
     The shi7 implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path):
+    def __init__(self, tool_args, output_name, inputs, output_path, skip_decompression):
         super().__init__(
             tool_name="shi7",
             tool_version="1.0.3",  # todo: allow shi7 version to be set by the user
@@ -28,4 +28,5 @@ class Shi7(Tool):
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
             output_names=["combined_seqs.fna", "shi7.log"],
+            skip_decompression=skip_decompression,
         )

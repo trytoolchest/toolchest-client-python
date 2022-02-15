@@ -36,7 +36,7 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=True,
-                 output_names=None):
+                 output_names=None, skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -71,6 +71,7 @@ class Tool:
         self.output_type = output_type or OutputType.FLAT_TEXT
         self.thread_outputs = {}
         self.output_names = output_names or []
+        self.skip_decompression = skip_decompression
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -420,6 +421,7 @@ class Tool:
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,
+                "skip_decompression": self.skip_decompression,
             })
 
             # Add non-distinct dictionary for status updates
