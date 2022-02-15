@@ -13,7 +13,7 @@ except ImportError:
 try:
     __version__ = importlib_metadata.version(__package__ or __name__)
 except importlib_metadata.PackageNotFoundError:
-    __version__ = "0.0.0";
+    __version__ = "0.0.0"
 
 # .env load must be before imports that use environment variables
 load_dotenv(find_dotenv(".env"))
