@@ -19,6 +19,7 @@ def test_star_variable_arg_parsing_single():
         database_version="0.1.0",
         parallelize=False,
     )
+    print(star_instance.output_path)
     star_instance._validate_args()
 
     assert star_instance.tool_args == "--quantMode GeneCounts --scoreGap 1"
