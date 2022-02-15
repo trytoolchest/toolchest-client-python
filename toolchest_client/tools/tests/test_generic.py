@@ -13,6 +13,7 @@ def test_unknown_arg_handling():
         inputs=f"{THIS_DIRECTORY}/test_generic.py",
         output_path="./output.tar.gz",
         output_name='output',
+        skip_decompression=False,
     )
 
     with pytest.raises(ValueError):
@@ -26,6 +27,7 @@ def test_blacklisted_arg_handling():
         inputs=f"{THIS_DIRECTORY}/test_generic.py",
         output_path="./output.tar.gz",
         output_name='output',
+        skip_decompression=False,
     )
 
     with pytest.raises(ValueError):

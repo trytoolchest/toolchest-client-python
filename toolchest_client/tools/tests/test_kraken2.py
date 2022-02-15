@@ -15,6 +15,7 @@ def test_kraken2_preflight():
         database_name="standard",
         database_version=1,
         custom_database_path=None,
+        skip_decompression=False,
     )
     kraken_instance._preflight()
 
