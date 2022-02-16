@@ -231,19 +231,23 @@ class Tool:
                         )
                 else:
                     os.makedirs(self.output_path, exist_ok=True)
+                self._warn_if_outputs_exist()
             else:
                 os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
 
             self._warn_if_outputs_exist()
 
-    def _postflight(self):
+    def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
         if self._output_path_is_local():
             if self.output_validation_enabled:
                 print("Checking output...")
-                for output_name in self.output_names:
-                    output_file_path = f"{self.output_path}/{output_name}"
-                    sanity_check(output_file_path)
+                if self.output_is_directory:
+                    for output_name in self.output_names:
+                        output_file_path = f"{self.output_path}/{output_name}"
+                        sanity_check(output_file_path)
+                else:
+                    sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
