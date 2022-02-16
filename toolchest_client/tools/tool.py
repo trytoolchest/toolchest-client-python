@@ -236,22 +236,14 @@ class Tool:
 
             self._warn_if_outputs_exist()
 
-    def _postflight(self, output):
+    def _postflight(self):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self.is_async:
-            print(f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
-                  f"To check the status of this run, call get_status(run_id=\"{output.run_id}\").\n"
-                  f"Once it's ready to download, call download(run_id=\"{output.run_id}\", ...) within 7 days\n"
-                  )
-        elif self._output_path_is_local():
+        if self._output_path_is_local():
             if self.output_validation_enabled:
                 print("Checking output...")
                 for output_name in self.output_names:
                     output_file_path = f"{self.output_path}/{output_name}"
                     sanity_check(output_file_path)
-            print(f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
-                  f"If you need to re-download the results, run download(run_id=\"{output.run_id}\") within 7 days\n"
-                  )
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -469,7 +461,19 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            self._postflight(self.thread_outputs[0])
+            self._postflight()
+            run_id = self.thread_outputs[0].run_id
+            if self.is_async:
+                print(
+                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
+                    f"To check the status of this run, call get_status(run_id=\"{run_id}\").\n"
+                    f"Once it's ready to download, call download(run_id=\"{run_id}\", ...) within 7 days\n"
+                    )
+            else:
+                print(
+                    f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
+                    f"If you need to re-download the results, run download(run_id=\"{run_id}\") within 7 days\n"
+                    )
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:
