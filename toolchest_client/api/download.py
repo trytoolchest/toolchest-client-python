@@ -27,9 +27,9 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
              output_file_keys=None, skip_decompression=False, output_type=None):
     """Downloads output to `output_path`.
 
-    One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
+    One of `s3_uri`, `run_id`, or `output_file_keys` must
     be provided. If `output_file_keys` is omitted, this function will attempt to
-    extract access keys from `s3_uri` or `id` via
+    extract access keys from `s3_uri` or `run_id` via
     `get_download_details()`.
 
     :param output_path: Output path to which the file(s) will be downloaded.
@@ -52,9 +52,9 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
     if output_file_keys is None:
         if s3_uri:
             # Note: this assumes the pipeline segment instance ID is embedded in the egress S3 URI.
-            # This supersedes pipeline_segment_instance_id, if it is provided.
+            # This supersedes the pipeline_segment_instance_id, if it is provided.
             s3_uri_params = get_params_from_s3_uri(s3_uri)
-            run_id = s3_uri_params["key_initial"]
+            pipeline_segment_instance_id = s3_uri_params["key_initial"]
         if pipeline_segment_instance_id:
             output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
         else:

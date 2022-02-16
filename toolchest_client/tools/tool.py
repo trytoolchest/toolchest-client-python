@@ -397,7 +397,8 @@ class Tool:
             and (self.group_paired_ends or self.num_input_files == 1) \
             and self._system_supports_parallel_execution()
 
-        if should_run_in_parallel:
+        if should_run_in_parallel and self.is_async:
+            print("WARNING: Disabling async execution for parallel run. This run will be synchronous.")
             self.is_async = False
 
         jobs = self._generate_jobs(should_run_in_parallel)

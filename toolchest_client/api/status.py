@@ -2,7 +2,7 @@
 toolchest_client.api.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains a function to check pipeline_segment_instance statues and status enums.
+This module contains a function to check pipeline_segment_instance statuses and status enums.
 """
 
 from enum import Enum
