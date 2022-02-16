@@ -42,6 +42,8 @@ class Tool:
         self.tool_args = tool_args
         self.output_name = output_name
         self.output_path = output_path
+        if self._output_path_is_local():
+            self.output_path = output_path
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
@@ -98,7 +100,7 @@ class Tool:
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
     def _output_path_is_local(self):
-        return self.output_path and not path_is_s3_uri(self.output_path)
+        return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
 
     def _validate_tool_args(self):
         """
