@@ -341,11 +341,11 @@ class Query:
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
-        status = self._get_job_status()
+        status = self.get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status = self._get_job_status()
+            status = self.get_job_status()
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
