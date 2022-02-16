@@ -8,7 +8,7 @@ from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, S
     STARInstance, Test, Unicycler
 
 
-def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args=""):
+def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args="", **kwargs):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Bowtie 2.
@@ -37,13 +37,14 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
-        database_version=database_version
+        database_version=database_version,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args=""):
+def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args="", **kwargs):
     """Runs Cell Ranger's count command via Toolchest.
 
     :param inputs: Path (client-side) to a directory of input FASTQ files that will be passed in as input.
@@ -73,13 +74,14 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
         output_path=output_path,
         database_name=database_name,
         database_version="2020",
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None, custom_database_path=None):
+            tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -140,13 +142,14 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         database_name=database_name,
         database_version=database_version,
         custom_database_path=custom_database_path,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
 def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interleaved=None,
-            single_end=None):
+            single_end=None, **kwargs):
     """Runs Megahit via Toolchest.
 
     :param output_path: (optional) Path (client-side) where the output will be downloaded.
@@ -202,12 +205,13 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def shi7(inputs, output_path=None, tool_args=""):
+def shi7(inputs, output_path=None, tool_args="", **kwargs):
     """Runs shi7 via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to shi7.
@@ -230,12 +234,14 @@ def shi7(inputs, output_path=None, tool_args=""):
         output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def shogun_align(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_align(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args="",
+                 **kwargs):
     """Runs Shogun (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -265,12 +271,14 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def shogun_filter(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args=""):
+def shogun_filter(inputs, output_path=None, database_name="shogun_standard", database_version="1", tool_args="",
+                  **kwargs):
     """Runs Shogun (for filtering human genome content) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Shogun.
@@ -300,13 +308,14 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
 def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="",
-         parallelize=False):
+         parallelize=False, **kwargs):
     """Runs STAR (for alignment) via Toolchest.
 
     :param database_name: Name of database to use for STAR alignment.
@@ -348,12 +357,13 @@ def STAR(read_one, database_name, output_path=None, database_version="1", read_t
         database_name=database_name,
         database_version=database_version,
         parallelize=parallelize,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def test(inputs, output_path=None, tool_args=""):
+def test(inputs, output_path=None, tool_args="", **kwargs):
     """Run a test pipeline segment via Toolchest. A plain text file containing 'success' is returned."
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
@@ -375,12 +385,13 @@ def test(inputs, output_path=None, tool_args=""):
         output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        **kwargs,
     )
     output = instance.run()
     return output
 
 
-def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, tool_args=""):
+def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, tool_args="", **kwargs):
     """Runs Unicycler (for alignment) via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to Unicycler.
@@ -412,6 +423,7 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
         },
         inputs=[read_one, read_two, long_reads],
         output_path=output_path,
+        **kwargs,
     )
     output = instance.run()
     return output

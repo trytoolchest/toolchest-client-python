@@ -23,13 +23,13 @@ from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
 
 
-def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
+def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
              output_file_keys=None, skip_decompression=False, output_type=None):
     """Downloads output to `output_path`.
 
     One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
     be provided. If `output_file_keys` is omitted, this function will attempt to
-    extract access keys from `s3_uri` or `pipeline_segment_instance_id` via
+    extract access keys from `s3_uri` or `id` via
     `get_download_details()`.
 
     :param output_path: Output path to which the file(s) will be downloaded.
@@ -37,20 +37,24 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
     :param s3_uri: URI of file contained in S3. This can be passed from
         the parameter `output.s3_uri` from the `output` returned by a previous
         job.
-    :param pipeline_segment_instance_id: Pipeline segment instance ID of the job
+    :param pipeline_segment_instance_id: (Deprecated) Pipeline segment instance ID of the job
         producing the output you would like to download.
+    :param run_id: ID of the job producing the output you would like to download.
     :param output_file_keys: Access keys obtained from `get_download_details()`.
         Used internally.
     :param skip_decompression: Whether to skip decompression of the downloaded file archive.
     :param output_type: Output type of the produced output file. Used internally.
     """
 
+    # pipeline_segment_instance_id as a param is deprecated, remove it as default value eventually
+    pipeline_segment_instance_id = run_id or pipeline_segment_instance_id
+
     if output_file_keys is None:
         if s3_uri:
             # Note: this assumes the pipeline segment instance ID is embedded in the egress S3 URI.
             # This supersedes pipeline_segment_instance_id, if it is provided.
             s3_uri_params = get_params_from_s3_uri(s3_uri)
-            pipeline_segment_instance_id = s3_uri_params["key_initial"]
+            run_id = s3_uri_params["key_initial"]
         if pipeline_segment_instance_id:
             output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
         else:

@@ -2,10 +2,27 @@
 toolchest_client.api.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This module contains a Status class for status updates to the Toolchest API.
+This module contains a function to check pipeline_segment_instance statues and status enums.
 """
 
 from enum import Enum
+
+
+def get_status(run_id):
+    """Returns the status of the Toolchest run.
+
+        Call this less than once a second to avoid being rate-limited.
+
+        :param run_id: the ID returned by a tool. Internally, this ID is the pipeline_segment_instance_id.
+        """
+    from toolchest_client.api.query import Query  # local import to avoid circular dependency
+
+    query = Query(
+        is_async=True,
+        pipeline_segment_instance_id=run_id,
+    )
+
+    return query.get_job_status()
 
 
 class Status(str, Enum):
