@@ -231,10 +231,9 @@ class Tool:
                         )
                 else:
                     os.makedirs(self.output_path, exist_ok=True)
+                self._warn_if_outputs_exist()
             else:
                 os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
-
-            self._warn_if_outputs_exist()
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
@@ -246,9 +245,12 @@ class Tool:
         elif self._output_path_is_local():
             if self.output_validation_enabled:
                 print("Checking output...")
-                for output_name in self.output_names:
-                    output_file_path = f"{self.output_path}/{output_name}"
-                    sanity_check(output_file_path)
+                if self.output_is_directory:
+                    for output_name in self.output_names:
+                        output_file_path = f"{self.output_path}/{output_name}"
+                        sanity_check(output_file_path)
+                else:
+                    sanity_check(self.output_path)
             print(f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
                   f"If you need to re-download the results, run download(run_id=\"{output.run_id}\") within 7 days\n"
                   )
