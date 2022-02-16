@@ -37,19 +37,19 @@ def test_kraken2_output_manual_download():
     # If multiple files are returned, path_from_manual download will be a list,
     # so we simply check if kraken2_output.txt is contained in it
     if isinstance(path_from_manual_download, list):
-        path_from_manual_download = [os.path.normpath(path) for path in path_from_manual_download]
+        path_from_manual_download = [os.path.abspath(path) for path in path_from_manual_download]
     else:
         path_from_manual_download = [path_from_manual_download]
-    assert os.path.normpath(manual_output_file_path) in path_from_manual_download
+    assert os.path.abspath(manual_output_file_path) in path_from_manual_download
     assert hash.unordered(manual_output_file_path) == KRAKEN2_SINGLE_END_HASH
 
     # Test again with toolchest.download(), using S3 URI
     path_from_toolchest_download = toolchest.download(toolchest_s3_dir_path, s3_uri=output.s3_uri)
     if isinstance(path_from_toolchest_download, list):
-        path_from_toolchest_download = [os.path.normpath(path) for path in path_from_toolchest_download]
+        path_from_toolchest_download = [os.path.abspath(path) for path in path_from_toolchest_download]
     else:
         path_from_toolchest_download = [path_from_toolchest_download]
-    assert os.path.normpath(toolchest_s3_file_path) in path_from_toolchest_download
+    assert os.path.abspath(toolchest_s3_file_path) in path_from_toolchest_download
     assert hash.unordered(toolchest_s3_file_path) == KRAKEN2_SINGLE_END_HASH
 
     # Test again with toolchest.download(), using pipeline segment instance ID
@@ -60,8 +60,8 @@ def test_kraken2_output_manual_download():
         pipeline_segment_instance_id=pipeline_segment_instance_id,
     )
     if isinstance(path_from_toolchest_download, list):
-        path_from_toolchest_download = [os.path.normpath(path) for path in path_from_toolchest_download]
+        path_from_toolchest_download = [os.path.abspath(path) for path in path_from_toolchest_download]
     else:
         path_from_toolchest_download = [path_from_toolchest_download]
-    assert os.path.normpath(toolchest_pipeline_file_path) in path_from_toolchest_download
+    assert os.path.abspath(toolchest_pipeline_file_path) in path_from_toolchest_download
     assert hash.unordered(toolchest_pipeline_file_path) == KRAKEN2_SINGLE_END_HASH
