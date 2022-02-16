@@ -239,7 +239,7 @@ class Tool:
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self._output_path_is_local():
+        if self._output_path_is_local() and not self.is_async:
             if self.output_validation_enabled:
                 print("Checking output...")
                 if self.output_is_directory:
