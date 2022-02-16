@@ -465,7 +465,7 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            self._postflight()
+            self._postflight(self.thread_outputs[0])
             run_id = self.thread_outputs[0].run_id
             if self.is_async:
                 print(

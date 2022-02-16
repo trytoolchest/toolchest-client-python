@@ -37,7 +37,7 @@ class Megahit(Tool):
             **kwargs,
         )
 
-    def _postflight(self):
+    def _postflight(self, output):
         if self.output_validation_enabled:
             for output_name in self.output_names:
                 # Skip validation for the "done" file, which should be empty.
