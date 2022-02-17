@@ -20,7 +20,7 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
-from toolchest_client.api.urls import PIPELINE_URL
+from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import OutputType, path_is_s3_uri
 from .status import Status, ThreadStatus
 
@@ -38,17 +38,29 @@ class Query:
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
 
-    def __init__(self, stored_output=None):
+    def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None):
         self.HEADERS = dict()
-        self.PIPELINE_SEGMENT_INSTANCE_ID = ''
-        self.PIPELINE_SEGMENT_URL = ''
-        self.STATUS_URL = ''
+        if pipeline_segment_instance_id:
+            self.PIPELINE_SEGMENT_INSTANCE_ID = pipeline_segment_instance_id
+            self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+                PIPELINE_SEGMENT_INSTANCES_URL,
+                self.PIPELINE_SEGMENT_INSTANCE_ID,
+            ])
+            self.STATUS_URL = "/".join([
+                self.PIPELINE_SEGMENT_INSTANCE_URL,
+                "status",
+            ])
+
         self.mark_as_failed = False
         self.thread_name = ''
         self.thread_statuses = None
+        self.is_async = is_async
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
+
+        # Configure Toolchest API authorization.
+        self.HEADERS = get_headers()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -73,9 +85,6 @@ class Query:
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
 
-        # Configure Toolchest API authorization.
-        self.HEADERS = get_headers()
-
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
@@ -94,14 +103,16 @@ class Query:
         self._update_thread_status(ThreadStatus.INITIALIZED)
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
-        self.PIPELINE_SEGMENT_URL = "/".join([
-            PIPELINE_URL,
+        self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+            PIPELINE_SEGMENT_INSTANCES_URL,
             self.PIPELINE_SEGMENT_INSTANCE_ID
         ])
         self.STATUS_URL = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
         ])
+
+        self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
         self.mark_as_failed = True
 
         self._check_if_should_terminate()
@@ -110,6 +121,10 @@ class Query:
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
+
+        if self.is_async:
+            return self.output
+
         self._wait_for_job()
 
         self._download(output_path, output_type)
@@ -118,8 +133,8 @@ class Query:
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
-        self.output.s3_uri = self.output_s3_uri
-        self.output.output_path = self.unpacked_output_paths
+        self.output.set_s3_uri(self.output_s3_uri)
+        self.output.set_output_path(self.unpacked_output_paths)
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -143,7 +158,7 @@ class Query:
         }
 
         create_response = requests.post(
-            PIPELINE_URL,
+            PIPELINE_SEGMENT_INSTANCES_URL,
             headers=self.HEADERS,
             json=create_body,
         )
@@ -155,30 +170,46 @@ class Query:
 
         return create_response
 
-    # Note: input_is_in_s3 is False by default for backwards compatibility.
-    # TODO: Deprecate this after confirming it doesn't affect the API.
-    def _add_input_file(self, input_file_path, input_prefix, input_order, input_is_in_s3=False):
-        add_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_URL,
+    def _update_file_size(self, fileId):
+        update_file_size_url = "/".join([
+            PIPELINE_SEGMENT_INSTANCES_URL,
+            'input-files',
+            fileId,
+            'update-file-size'
+        ])
+
+        response = requests.put(
+            update_file_size_url,
+            headers=self.HEADERS,
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print(f"Failed to update size for file: {fileId}", file=sys.stderr)
+            raise
+
+    def _register_input_file(self, input_file_path, input_prefix, input_order):
+        register_input_file_url = "/".join([
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
         ])
         file_name = ntpath.basename(input_file_path)
+        input_is_in_s3 = path_is_s3_uri(input_file_path)
 
         response = requests.post(
-            add_input_file_url,
+            register_input_file_url,
             headers=self.HEADERS,
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
                 "tool_prefix_order": input_order,
-                "is_s3": input_is_in_s3,
-                "s3_uri": input_file_path if input_is_in_s3 else "",
+                "s3_uri": input_file_path if input_is_in_s3 else None,
             },
         )
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to add input file at {input_file_path}", file=sys.stderr)
+            print(f"Failed to register input file at {input_file_path}", file=sys.stderr)
             raise
 
         if not input_is_in_s3:
@@ -189,6 +220,7 @@ class Query:
                 "session_token": response_json.get('session_token'),
                 "bucket": response_json.get('bucket'),
                 "object_name": response_json.get('object_name'),
+                "file_id": response_json.get('file_id'),
             }
 
     def _upload(self, input_file_paths, input_prefix_mapping):
@@ -204,19 +236,17 @@ class Query:
             # If the file is already in S3, there is no need to upload.
             if input_is_in_s3:
                 # Registers the file in the internal DB.
-                self._add_input_file(
+                self._register_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
-                    input_is_in_s3=input_is_in_s3,
                 )
             else:
                 print(f"Uploading {file_path}")
-                input_file_keys = self._add_input_file(
+                input_file_keys = self._register_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
-                    input_is_in_s3=input_is_in_s3,
                 )
 
                 try:
@@ -231,6 +261,7 @@ class Query:
                         input_file_keys["bucket"],
                         input_file_keys["object_name"],
                     )
+                    self._update_file_size(input_file_keys["file_id"])
                 except ClientError as e:
                     # todo: this isn't propagating as a failure
                     self._update_status_to_failed(
@@ -310,32 +341,15 @@ class Query:
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
-        status = self._get_job_status()
+        status = self.get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status = self._get_job_status()
+            status = self.get_job_status()
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
-
-    def _get_job_status(self):
-        """Gets status of current job (tasks)."""
-
-        response = requests.get(
-            self.STATUS_URL,
-            headers=self.HEADERS
-        )
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            print("Job status retrieval failed.", file=sys.stderr)
-            # Assumes a job has already been marked as failed if failure is detected after execution begins.
-            self.mark_as_failed = False
-            self._raise_for_failed_response(response)
-
-        return response.json()["status"]
 
     def _download(self, output_path, output_type):
         """Retrieves information needed for downloading. If ``output_path`` is given,
@@ -376,3 +390,20 @@ class Query:
                 force_raise=False,
                 print_msg=False
             )
+
+    def get_job_status(self):
+        """Gets status of current job (tasks)."""
+
+        response = requests.get(
+            self.STATUS_URL,
+            headers=self.HEADERS
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Job status retrieval failed.", file=sys.stderr)
+            # Assumes a job has already been marked as failed if failure is detected after execution begins.
+            self.mark_as_failed = False
+            self._raise_for_failed_response(response)
+
+        return response.json()["status"]

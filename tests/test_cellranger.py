@@ -14,7 +14,6 @@ if toolchest_api_key:
 def test_cellranger_count_s3_inputs():
     test_dir = "test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
-    os.makedirs(output_dir_path, exist_ok=True)
 
     # Test using a compressed archive in S3
     output = toolchest.cellranger_count(
@@ -30,7 +29,6 @@ def test_cellranger_count_local_inputs():
     input_dir_path = f"./{test_dir}/inputs/"
     output_dir_path = f"./{test_dir}/output/"
     os.makedirs(input_dir_path, exist_ok=True)
-    os.makedirs(output_dir_path, exist_ok=True)
 
     # Test from a directory of local inputs
     packed_inputs_path = f"./{test_dir}/inputs.tar.gz"

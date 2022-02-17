@@ -8,7 +8,7 @@ the Toolchest server, given access to an API key.
 Note: This module is used in downloading from the Output and
 Query classes.
 """
-
+import logging
 import os
 import sys
 
@@ -19,44 +19,57 @@ from requests.exceptions import HTTPError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestDownloadError
-from toolchest_client.api.urls import PIPELINE_URL
+from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
 from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
 
 
-def download(output_path, s3_uri=None, pipeline_segment_instance_id=None,
+def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
              output_file_keys=None, skip_decompression=False, output_type=None):
     """Downloads output to `output_path`.
 
-    One of `s3_uri`, `pipeline_segment_instance_id`, or `output_file_keys` must
+    One of `s3_uri`, `run_id`, or `output_file_keys` must
     be provided. If `output_file_keys` is omitted, this function will attempt to
-    extract access keys from `s3_uri` or `pipeline_segment_instance_id` via
+    extract access keys from `s3_uri` or `run_id` via
     `get_download_details()`.
 
     :param output_path: Output path to which the file(s) will be downloaded.
-        This should be a directory that already exists, but direct filenames
-        are also supported.
+        This should be a local directory, but direct filenames are also supported.
     :param s3_uri: URI of file contained in S3. This can be passed from
         the parameter `output.s3_uri` from the `output` returned by a previous
         job.
-    :param pipeline_segment_instance_id: Pipeline segment instance ID of the job
+    :param pipeline_segment_instance_id: (Deprecated) Pipeline segment instance ID of the job
         producing the output you would like to download.
+    :param run_id: ID of the job producing the output you would like to download.
     :param output_file_keys: Access keys obtained from `get_download_details()`.
         Used internally.
     :param skip_decompression: Whether to skip decompression of the downloaded file archive.
     :param output_type: Output type of the produced output file. Used internally.
     """
 
+    # pipeline_segment_instance_id as a param is deprecated, remove it as default value eventually
+    pipeline_segment_instance_id = run_id or pipeline_segment_instance_id
+
     if output_file_keys is None:
         if s3_uri:
             # Note: this assumes the pipeline segment instance ID is embedded in the egress S3 URI.
-            # This supersedes pipeline_segment_instance_id, if it is provided.
+            # This supersedes the pipeline_segment_instance_id, if it is provided.
             s3_uri_params = get_params_from_s3_uri(s3_uri)
             pipeline_segment_instance_id = s3_uri_params["key_initial"]
         if pipeline_segment_instance_id:
             output_s3_uri, output_file_keys = get_download_details(pipeline_segment_instance_id)
         else:
-            error_message = "S3 URI of output not provided."
+            error_message = "Details of files to download were not provided."
             raise ToolchestDownloadError(error_message) from None
+
+    # Create output directories if output_path does not exist.
+    # Note: Assumes that output_path is a directory if it does not exist.
+    # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
+    # but support for non-dir output_path will likely be deprecated.
+    output_path = os.path.abspath(output_path)
+    if not os.path.exists(output_path) and output_type is None:
+        if "." in os.path.basename(output_path):
+            logging.warning(f"Creating {os.path.basename(output_path)} as a directory along path {output_path}")
+        os.makedirs(output_path, exist_ok=True)
 
     # If output_path is a directory, extract the filename from the target download.
     if os.path.isdir(output_path):
@@ -90,7 +103,7 @@ def get_download_details(pipeline_segment_instance_id):
     """Gets S3 URI and access keys for downloading output of query task(s)."""
 
     response = requests.get(
-        "/".join([PIPELINE_URL, pipeline_segment_instance_id, "downloads"]),
+        "/".join([PIPELINE_SEGMENT_INSTANCES_URL, pipeline_segment_instance_id, "downloads"]),
         headers=get_headers(),
     )
     try:
