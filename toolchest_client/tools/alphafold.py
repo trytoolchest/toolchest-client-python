@@ -1,8 +1,8 @@
 """
-toolchest_client.tools.bowtie2
+toolchest_client.tools.AlphaFold
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the bowtie2 implementation of the Tool class.
+This is the AlphaFold implementation of the Tool class.
 """
 from toolchest_client.files import OutputType
 from datetime import date
@@ -11,7 +11,7 @@ from . import Tool
 
 class AlphaFold(Tool):
     """
-    The bowtie2 implementation of the Tool class.
+    The AlphaFold implementation of the Tool class.
     """
     def __init__(self, inputs, output_path, model_preset=None, max_template_date=None, use_reduced_dbs=False,
                  is_prokaryote_list=None, **kwargs):
