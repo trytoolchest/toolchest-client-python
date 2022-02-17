@@ -1,4 +1,5 @@
 from .tool import Tool
+from .alphafold import AlphaFold
 from .bowtie2 import Bowtie2
 from .cellranger import CellRangerCount
 from .kraken2 import Kraken2
