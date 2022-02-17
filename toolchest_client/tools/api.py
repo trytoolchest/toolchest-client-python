@@ -17,9 +17,9 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     :param max_template_date: (optional) Allows for predicting structure of protiens already in the database by setting
         a date before it was added. Will use today's date if not provided.
     :param use_reduced_dbs: (optional) Uses a smaller version of the BFD database that will reduce run time at the cost
-        result quality
+        result quality. Not currently enabled
     :type is_prokaryote_list: (optional) takes a list of booleans that determine whether all input sequences in the
-        given fasta file are prokaryotic
+        given fasta file are prokaryotic. Not currently enabled
     :param inputs: Path or list of paths (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
 
