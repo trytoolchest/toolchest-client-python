@@ -14,7 +14,7 @@ class AlphaFold(Tool):
     The bowtie2 implementation of the Tool class.
     """
     def __init__(self, inputs, output_path, model_preset=None, max_template_date=None, use_reduced_dbs=False,
-                 is_prokaryote_list=None):
+                 is_prokaryote_list=None, **kwargs):
         tool_args = (
             (f"--model_preset={model_preset} " if model_preset is not None else "") +
             (f"--max_template_date={max_template_date} " if max_template_date is not None
@@ -36,4 +36,5 @@ class AlphaFold(Tool):
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
             output_is_directory=True,
+            **kwargs,
         )

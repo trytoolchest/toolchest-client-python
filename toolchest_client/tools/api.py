@@ -48,6 +48,7 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     output = instance.run()
     return output
 
+
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args="", **kwargs):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
