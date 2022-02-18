@@ -26,6 +26,14 @@ user-provided inputs).
 VARIABLE_ARGS = "variable"
 
 TOOL_ARG_LISTS = {
+    "alphafold": {
+        "whitelist": {
+            "--model_preset": 0,
+            "--max_template_date": 0,
+            "--is_prokaryote_list": 0,
+            "--db_preset": 0,
+        },  # Alphafold args are hardcoded based on tool input
+    },
     "bowtie2": {
         "whitelist": {
             "-q": 0,

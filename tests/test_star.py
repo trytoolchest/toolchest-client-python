@@ -36,7 +36,6 @@ def test_star_grch38():
 
 
 @pytest.mark.integration
-@pytest.mark.skip(reason="Hotfix")
 def test_star_grch38_parallel():
     """
     Tests STAR against the grch38 database, using parallel mode
@@ -88,7 +87,7 @@ def test_star_grch38_dangerous_arg():
     )
 
     # Because STAR is non-deterministic and BAMs are are compressed verify that the number of bytes is in range
-    assert 38236020 <= os.path.getsize(output_file_path) <= 38236030
+    assert 38236020 <= os.path.getsize(output_file_path) <= 38236040
 
     # Make sure all non-parallel files exist as well
     assert os.path.isfile(f"{output_dir_path}Log.final.out")
