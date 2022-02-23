@@ -7,7 +7,4 @@ from botocore.exceptions import ClientError
 def download_integration_test_input(s3_file_key, output_file_path, is_private=False):
     s3_client = boto3.client('s3')
     bucket_name = 'toolchest-integration-tests-private' if is_private else 'toolchest-integration-tests'
-    try:
-        s3_client.download_file(bucket_name, s3_file_key, output_file_path)
-    except ClientError as err:
-        raise err
+    s3_client.download_file(bucket_name, s3_file_key, output_file_path)
