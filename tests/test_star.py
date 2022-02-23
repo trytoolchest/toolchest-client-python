@@ -23,6 +23,7 @@ def test_star_grch38():
     s3.download_integration_test_input(
         s3_file_key="small_star_500k.fastq",
         output_file_path=input_file_path,
+        is_private=True,
     )
 
     toolchest.STAR(
@@ -49,6 +50,7 @@ def test_star_grch38_parallel():
     s3.download_integration_test_input(
         s3_file_key="large_star_15GB.fastq",
         output_file_path=input_file_path,
+        is_private=True,
     )
 
     toolchest.STAR(
@@ -76,6 +78,7 @@ def test_star_grch38_dangerous_arg():
     s3.download_integration_test_input(
         s3_file_key="small_star_500k.fastq",
         output_file_path=input_file_path,
+        is_private=True,
     )
 
     toolchest.STAR(
