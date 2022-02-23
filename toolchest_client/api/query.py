@@ -79,6 +79,7 @@ class Query:
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
+        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
         self.thread_name = threading.current_thread().getName()

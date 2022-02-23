@@ -74,6 +74,7 @@ class Tool:
         self.thread_outputs = {}
         self.output_names = output_names or []
         self.is_async = is_async
+        self.skip_decompression = skip_decompression
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
