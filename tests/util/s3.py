@@ -1,5 +1,4 @@
 import boto3
-from botocore.exceptions import ClientError
 
 
 # Downloads input from S3 to local file path.
