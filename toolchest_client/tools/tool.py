@@ -36,12 +36,14 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=True,
-                 output_names=None, skip_decompression=False):
+                 output_names=None, is_async=False, skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
-        self.output_path = os.path.abspath(output_path)
+        self.output_path = output_path
+        if self._output_path_is_local():
+            self.output_path = output_path
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
@@ -71,7 +73,7 @@ class Tool:
         self.output_type = output_type or OutputType.FLAT_TEXT
         self.thread_outputs = {}
         self.output_names = output_names or []
-        self.skip_decompression = skip_decompression
+        self.is_async = is_async
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -98,7 +100,7 @@ class Tool:
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
     def _output_path_is_local(self):
-        return self.output_path and not path_is_s3_uri(self.output_path)
+        return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
 
     def _validate_tool_args(self):
         """
@@ -229,18 +231,23 @@ class Tool:
                         )
                 else:
                     os.makedirs(self.output_path, exist_ok=True)
+                self._warn_if_outputs_exist()
             else:
                 os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
 
             self._warn_if_outputs_exist()
 
-    def _postflight(self):
+    def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
-        if self._output_path_is_local():
+        if self._output_path_is_local() and not self.is_async:
             if self.output_validation_enabled:
-                for output_name in self.output_names:
-                    output_file_path = f"{self.output_path}/{output_name}"
-                    sanity_check(output_file_path)
+                print("Checking output...")
+                if self.output_is_directory:
+                    for output_name in self.output_names:
+                        output_file_path = f"{self.output_path}/{output_name}"
+                        sanity_check(output_file_path)
+                else:
+                    sanity_check(self.output_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
@@ -388,6 +395,10 @@ class Tool:
             and (self.group_paired_ends or self.num_input_files == 1) \
             and self._system_supports_parallel_execution()
 
+        if should_run_in_parallel and self.is_async:
+            print("WARNING: Disabling async execution for parallel run. This run will be synchronous.")
+            self.is_async = False
+
         jobs = self._generate_jobs(should_run_in_parallel)
 
         # Set up the individual queries for parallelization
@@ -406,7 +417,10 @@ class Tool:
 
             # Create a new Output for the thread.
             self.thread_outputs[thread_index] = Output()
-            q = Query(stored_output=self.thread_outputs[thread_index])
+            q = Query(
+                stored_output=self.thread_outputs[thread_index],
+                is_async=self.is_async,
+            )
 
             # Deep copy to make thread safe
             query_args = copy.deepcopy({
@@ -438,8 +452,6 @@ class Tool:
 
         self._wait_for_threads_to_finish()
 
-        print("Finished execution of parallel segments. Checking output...")
-
         # Do basic check for completion, merge output files, delete temporary files
         if should_run_in_parallel:
             for temp_parallel_output_file_path in temp_output_file_paths:
@@ -454,9 +466,19 @@ class Tool:
                 os.remove(temporary_file_path)
             print("Temporary files deleted.")
         else:
-            self._postflight()
-
-        print("Analysis run complete!")
+            self._postflight(self.thread_outputs[0])
+            run_id = self.thread_outputs[0].run_id
+            if self.is_async:
+                print(
+                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
+                    f"To check the status of this run, call get_status(run_id=\"{run_id}\").\n"
+                    f"Once it's ready to download, call download(run_id=\"{run_id}\", ...) within 7 days\n"
+                    )
+            else:
+                print(
+                    f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
+                    f"If you need to re-download the results, run download(run_id=\"{run_id}\") within 7 days\n"
+                    )
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:

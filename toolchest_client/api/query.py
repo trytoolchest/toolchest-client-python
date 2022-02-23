@@ -38,17 +38,29 @@ class Query:
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
 
-    def __init__(self, stored_output=None):
+    def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None):
         self.HEADERS = dict()
-        self.PIPELINE_SEGMENT_INSTANCE_ID = ''
-        self.PIPELINE_SEGMENT_INSTANCE_URL = ''
-        self.STATUS_URL = ''
+        if pipeline_segment_instance_id:
+            self.PIPELINE_SEGMENT_INSTANCE_ID = pipeline_segment_instance_id
+            self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+                PIPELINE_SEGMENT_INSTANCES_URL,
+                self.PIPELINE_SEGMENT_INSTANCE_ID,
+            ])
+            self.STATUS_URL = "/".join([
+                self.PIPELINE_SEGMENT_INSTANCE_URL,
+                "status",
+            ])
+
         self.mark_as_failed = False
         self.thread_name = ''
         self.thread_statuses = None
+        self.is_async = is_async
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
+
+        # Configure Toolchest API authorization.
+        self.HEADERS = get_headers()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -72,9 +84,6 @@ class Query:
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
-
-        # Configure Toolchest API authorization.
-        self.HEADERS = get_headers()
 
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
@@ -102,6 +111,8 @@ class Query:
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
         ])
+
+        self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
         self.mark_as_failed = True
 
         self._check_if_should_terminate()
@@ -110,6 +121,10 @@ class Query:
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
+
+        if self.is_async:
+            return self.output
+
         self._wait_for_job()
 
         self._download(output_path, output_type, skip_decompression)
@@ -118,8 +133,8 @@ class Query:
         self._update_status(Status.COMPLETE)
         self._update_thread_status(ThreadStatus.COMPLETE)
 
-        self.output.s3_uri = self.output_s3_uri
-        self.output.output_path = self.unpacked_output_paths
+        self.output.set_s3_uri(self.output_s3_uri)
+        self.output.set_output_path(self.unpacked_output_paths)
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -326,32 +341,15 @@ class Query:
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
-        status = self._get_job_status()
+        status = self.get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status = self._get_job_status()
+            status = self.get_job_status()
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
-
-    def _get_job_status(self):
-        """Gets status of current job (tasks)."""
-
-        response = requests.get(
-            self.STATUS_URL,
-            headers=self.HEADERS
-        )
-        try:
-            response.raise_for_status()
-        except HTTPError:
-            print("Job status retrieval failed.", file=sys.stderr)
-            # Assumes a job has already been marked as failed if failure is detected after execution begins.
-            self.mark_as_failed = False
-            self._raise_for_failed_response(response)
-
-        return response.json()["status"]
 
     def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
@@ -393,3 +391,20 @@ class Query:
                 force_raise=False,
                 print_msg=False
             )
+
+    def get_job_status(self):
+        """Gets status of current job (tasks)."""
+
+        response = requests.get(
+            self.STATUS_URL,
+            headers=self.HEADERS
+        )
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Job status retrieval failed.", file=sys.stderr)
+            # Assumes a job has already been marked as failed if failure is detected after execution begins.
+            self.mark_as_failed = False
+            self._raise_for_failed_response(response)
+
+        return response.json()["status"]

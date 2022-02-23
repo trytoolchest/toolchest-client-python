@@ -13,7 +13,7 @@ class Megahit(Tool):
     The megahit implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, input_prefix_mapping,
-                 output_path, skip_decompression):
+                 output_path, **kwargs):
         super().__init__(
             tool_name="megahit",
             tool_version="1.2.9",  # todo: allow version to be set by the user
@@ -34,10 +34,10 @@ class Megahit(Tool):
                 "log",
                 "options.json",
             ],
-            skip_decompression=skip_decompression,
+            **kwargs,
         )
 
-    def _postflight(self):
+    def _postflight(self, output):
         if self.output_validation_enabled:
             for output_name in self.output_names:
                 # Skip validation for the "done" file, which should be empty.

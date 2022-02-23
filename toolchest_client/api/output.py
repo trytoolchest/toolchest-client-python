@@ -11,6 +11,7 @@ tool output files themselves.
 """
 
 from toolchest_client.api.download import download
+from toolchest_client.api.status import get_status
 
 
 class Output:
@@ -21,9 +22,10 @@ class Output:
 
     """
 
-    def __init__(self, s3_uri=None, output_path=None):
+    def __init__(self, s3_uri=None, output_path=None, run_id=None):
         self.s3_uri = s3_uri
         self.output_path = output_path
+        self.run_id = run_id,
 
     def __repr__(self):
         return str(self.__dict__)
@@ -31,10 +33,28 @@ class Output:
     def __str__(self):
         return str(self.__dict__)
 
+    def set_run_id(self, run_id):
+        self.run_id = run_id
+
+    def set_s3_uri(self, s3_uri):
+        self.s3_uri = s3_uri
+
+    def set_output_path(self, output_path):
+        self.output_path = output_path
+
     def download(self, output_dir, skip_decompression=False):
         self.output_path = download(
             output_path=output_dir,
             s3_uri=self.s3_uri,
+            run_id=self.run_id,
             skip_decompression=skip_decompression,
         )
         return self.output_path
+
+    def get_status(self):
+        """
+        Returns the status of a run. Only for use when the Output instance is initialized with a run_id.
+        """
+        if not self.run_id:
+            raise ValueError("Cannot get status on an output that has no run_id")
+        return get_status(self.run_id)
