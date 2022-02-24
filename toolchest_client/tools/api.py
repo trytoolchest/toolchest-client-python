@@ -4,16 +4,16 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+from datetime import date
 from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
     STARInstance, Test, Unicycler, AlphaFold
-from datetime import date
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
               is_prokaryote_list=None, **kwargs):
-    """Runs Alphafold via Toolchest.
+    """Runs AlphaFold via Toolchest.
 
-    :param model_preset: (optional) Allows you to choose a specific AplhaFold model from
+    :param model_preset: (optional) Allows you to choose a specific AlphaFold model from
         [monomer, monomer_casp14, monomer_ptm, multimer]. Default mode if not provided is monomer.
     :param max_template_date: (optional) Allows for predicting structure of protiens already in the database by setting
         a date before it was added in YYYY-MM-DD format. Will use today's date if not provided.
@@ -23,7 +23,7 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
         given fasta file are prokaryotic. Expects the string that would normally input into AlphaFold (e.g. "true,true"
         if there are two prokaryote inputs)
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output directory will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded
 
     Usage::
 
