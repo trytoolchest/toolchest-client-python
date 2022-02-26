@@ -24,6 +24,7 @@ def test_shogun_filter_and_align():
     s3.download_integration_test_input(
         s3_file_key="combined_seqs_unfiltered.fna",
         output_file_path=input_file_path,
+        is_private=True,
     )
 
     toolchest.shogun_filter(

@@ -4,24 +4,26 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+from datetime import date
 from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
     STARInstance, Test, Unicycler, AlphaFold
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
               is_prokaryote_list=None, **kwargs):
-    """Runs Alphafold via Toolchest.
+    """Runs AlphaFold via Toolchest.
 
-    :param model_preset: (optional) Allows you to choose a specific AplhaFold model from
+    :param model_preset: (optional) Allows you to choose a specific AlphaFold model from
         [monomer, monomer_casp14, monomer_ptm, multimer]. Default mode if not provided is monomer.
     :param max_template_date: (optional) Allows for predicting structure of protiens already in the database by setting
-        a date before it was added. Will use today's date if not provided.
+        a date before it was added in YYYY-MM-DD format. Will use today's date if not provided.
     :param use_reduced_dbs: (optional) Uses a smaller version of the BFD database that will reduce run time at the cost
-        result quality. Not currently enabled
+        result quality.
     :type is_prokaryote_list: (optional) takes a list of booleans that determine whether all input sequences in the
-        given fasta file are prokaryotic. Not currently enabled
+        given fasta file are prokaryotic. Expects the string that would normally input into AlphaFold (e.g. "true,true"
+        if there are two prokaryote inputs)
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded
 
     Usage::
 
@@ -36,13 +38,17 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
         ... )
 
     """
+    tool_args = (
+        (f"--model_preset={model_preset} " if model_preset is not None else "") +
+        (f"--max_template_date={max_template_date} " if max_template_date is not None
+         else f"--max_template_date={date.today().strftime('%Y-%m-%d')} ") +
+        (f"--is_prokaryote_list={is_prokaryote_list} " if is_prokaryote_list is not None else "") +
+        ("--db_preset=reduced_dbs " if use_reduced_dbs else "")
+    )
     instance = AlphaFold(
         inputs=inputs,
         output_path=output_path,
-        model_preset=model_preset,
-        max_template_date=max_template_date,
-        use_reduced_dbs=use_reduced_dbs,
-        is_prokaryote_list=is_prokaryote_list,
+        tool_args=tool_args,
         **kwargs,
     )
     output = instance.run()
@@ -355,11 +361,11 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return output
 
 
-def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="",
+def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1", read_two=None, tool_args="",
          parallelize=False, **kwargs):
     """Runs STAR (for alignment) via Toolchest.
 
-    :param database_name: Name of database to use for STAR alignment.
+    :param database_name: Name of database to use for STAR alignment (defaults to GRCh38).
     :param database_version: Version of database to use for STAR alignment (defaults to 1).
     :type database_version: str
     :param tool_args: (optional) Additional arguments to be passed to STAR.
