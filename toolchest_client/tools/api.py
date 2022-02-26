@@ -361,11 +361,11 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     return output
 
 
-def STAR(read_one, database_name, output_path=None, database_version="1", read_two=None, tool_args="",
+def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1", read_two=None, tool_args="",
          parallelize=False, **kwargs):
     """Runs STAR (for alignment) via Toolchest.
 
-    :param database_name: Name of database to use for STAR alignment.
+    :param database_name: Name of database to use for STAR alignment (defaults to GRCh38).
     :param database_version: Version of database to use for STAR alignment (defaults to 1).
     :type database_version: str
     :param tool_args: (optional) Additional arguments to be passed to STAR.
