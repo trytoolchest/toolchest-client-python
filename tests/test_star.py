@@ -37,7 +37,6 @@ def test_star_grch38():
 
 
 @pytest.mark.integration
-@pytest.mark.skip(reason="Pysam removed so parallelization is disabled until a new sam file merger is written or found")
 def test_star_grch38_parallel():
     """
     Tests STAR against the grch38 database, using parallel mode
