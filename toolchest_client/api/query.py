@@ -349,7 +349,10 @@ class Query:
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status = self.get_job_status()
+            status_response = self.get_job_status(return_error=True)
+            status = status_response['status']
+            if status == Status.FAILED:
+                raise ToolchestJobError(status_response['error_message'])
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
@@ -395,7 +398,7 @@ class Query:
                 print_msg=False
             )
 
-    def get_job_status(self):
+    def get_job_status(self, return_error=False):
         """Gets status of current job (tasks)."""
 
         response = requests.get(
@@ -409,5 +412,6 @@ class Query:
             # Assumes a job has already been marked as failed if failure is detected after execution begins.
             self.mark_as_failed = False
             self._raise_for_failed_response(response)
-
+        if return_error:
+            return response.json()
         return response.json()["status"]
