@@ -6,7 +6,7 @@ This module contains the API for using Toolchest tools.
 """
 from datetime import date
 from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
-    STARInstance, Test, Unicycler, AlphaFold
+    STARInstance, Test, Unicycler, AlphaFold, ClustalO
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -126,6 +126,35 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
     output = instance.run()
     return output
 
+def clustalo(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs Clustal Omega via Toolchest.
+
+    :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
+    :param tool_args: Additional arguments to be passed to Cell Ranger.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.cellranger_count(
+        ...     tool_args="",
+        ...     database_name="GRCh38",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = ClustalO(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):

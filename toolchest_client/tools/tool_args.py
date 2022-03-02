@@ -130,6 +130,9 @@ TOOL_ARG_LISTS = {
             "--chemistry": 1,
         },
     },
+    "clustalo": {
+        "whitelist": {}  # Current Clustal Omega needs are just input and output flags
+    },
     "kraken2": {
         "whitelist": {
             "--quick": 0,
