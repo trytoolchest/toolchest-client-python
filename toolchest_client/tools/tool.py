@@ -198,11 +198,6 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self._output_path_is_local() and not os.access(
-                os.path.dirname(self.output_path),
-                os.W_OK | os.X_OK,
-        ):
-            raise OSError("Output file path must be writable.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
 
