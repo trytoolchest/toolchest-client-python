@@ -131,7 +131,59 @@ TOOL_ARG_LISTS = {
         },
     },
     "clustalo": {
-        "whitelist": {}  # Current Clustal Omega needs are just input and output flags
+        "blacklist": [
+            "-i",  # Input args (most disabled)
+            "--in",
+            "--infile",
+            "--hmm-in",
+            "--profile1",
+            "--p1",
+            "--profile2",
+            "--p2",
+            "--distmat-in",  # Clustering args (all disabled)
+            "--distmat-out",
+            "--guidetree-in",
+            "--guidetree-out",
+            "--full",
+            "--full-iter",
+            "--cluster-size",
+            "--clustering-out",
+            "--use-kimura",
+            "--percent-id",
+            "-o",  # Output args (most disabled)
+            "--out",
+            "--outfile",
+            "--threads",  # Misc
+            "-l",
+            "--log",
+            "-h",
+            "--help",
+            "--version",
+            "--long-version",
+            "--force",
+            "-v",
+            "--verbose",
+        ],
+        "whitelist": {
+            "--dealign": 0,
+            "--is-profile": 0,
+            "-t": 1,
+            "--seqtype": 1,
+            "--infmt": 1,
+            "--outfmt": 1,
+            "--residuenumber": 0,
+            "--resno": 0,
+            "--wrap": 1,
+            "--output-order": 1,
+            "--iterations": 1,
+            "--iter": 1,
+            "--max-guidetree-iterations": 1,
+            "--max-hmm-iterations": 1,
+            "--maxnumseq": 1,
+            "--maxseqlen": 1,
+            "--auto": 0,
+
+        }
     },
     "kraken2": {
         "whitelist": {

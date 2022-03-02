@@ -30,7 +30,8 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args, output_name,
                  inputs, min_inputs, max_inputs=None, output_path=None,
-                 database_name=None, database_version=None, custom_database_path=None,
+                 output_primary_name=None, database_name=None,
+                 database_version=None, custom_database_path=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
@@ -41,6 +42,7 @@ class Tool:
         self.tool_version = tool_version
         self.tool_args = tool_args
         self.output_name = output_name
+        self.output_primary_name = output_primary_name
         self.output_path = output_path
         if self._output_path_is_local():
             self.output_path = output_path
@@ -431,6 +433,7 @@ class Tool:
                 "database_version": self.database_version,
                 "custom_database_path": self.custom_database_path,
                 "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
+                "output_primary_name": self.output_primary_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,

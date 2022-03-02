@@ -94,6 +94,8 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args="", **kwargs):
     """Runs Cell Ranger's count command via Toolchest.
 
+    This tool is only available to users who already have a license to use Cell Ranger.
+
     :param inputs: Path (client-side) to a directory of input FASTQ files that will be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
     :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
@@ -126,22 +128,21 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
     output = instance.run()
     return output
 
-def clustalo(inputs, output_path=None, tool_args="", **kwargs):
+
+def clustalo(inputs, output_path=None, output_name="", tool_args="", **kwargs):
     """Runs Clustal Omega via Toolchest.
 
     :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
-    :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
-    :param tool_args: Additional arguments to be passed to Cell Ranger.
+    :param tool_args: Additional arguments to be passed to Clustal Omega.
 
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.cellranger_count(
+        >>> toolchest.clustalo(
         ...     tool_args="",
-        ...     database_name="GRCh38",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output",
+        ...     output_path="./path/to/output.fasta",
         ... )
 
     """
@@ -155,6 +156,7 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
     )
     output = instance.run()
     return output
+
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
