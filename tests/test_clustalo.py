@@ -1,12 +1,13 @@
 import os
 import pytest
 
-from tests.util import s3, hash
+from tests.util import hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
+
 
 @pytest.mark.integration
 def test_clustalo_standard():
