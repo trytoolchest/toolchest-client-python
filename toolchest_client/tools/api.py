@@ -6,7 +6,7 @@ This module contains the API for using Toolchest tools.
 """
 from datetime import date
 from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
-    STARInstance, Test, Unicycler, AlphaFold
+    STARInstance, Test, Unicycler, AlphaFold, ClustalO
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -94,6 +94,8 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args="", **kwargs):
     """Runs Cell Ranger's count command via Toolchest.
 
+    This tool is only available to users who already have a license to use Cell Ranger.
+
     :param inputs: Path (client-side) to a directory of input FASTQ files that will be passed in as input.
     :param output_path: (optional) Path (client-side) where the output file will be downloaded.
     :param database_name: Name of transcriptome (reference genome database). Defaults to `GRCh38`.
@@ -121,6 +123,35 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
         output_path=output_path,
         database_name=database_name,
         database_version="2020",
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def clustalo(inputs, output_path=None, output_name="", tool_args="", **kwargs):
+    """Runs Clustal Omega via Toolchest.
+
+    :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param tool_args: Additional arguments to be passed to Clustal Omega.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.clustalo(
+        ...     tool_args="",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output.fasta",
+        ... )
+
+    """
+
+    instance = ClustalO(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
         **kwargs,
     )
     output = instance.run()
