@@ -61,6 +61,10 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
             error_message = "Details of files to download were not provided."
             raise ToolchestDownloadError(error_message) from None
 
+    # If the output path is /path/sample.fastq but the run also has tarred log files, we want to unpack at the directory
+    if output_file_keys["primary_name"]:
+        output_path = os.path.dirname(output_path)
+
     # Create output directories if output_path does not exist.
     # Note: Assumes that output_path is a directory if it does not exist.
     # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
@@ -122,6 +126,7 @@ def get_download_details(pipeline_segment_instance_id):
         "bucket": response_json.get('bucket'),
         "object_name": response_json.get('object_name'),
         "file_name": response_json.get('file_name'),
+        "primary_name": response_json.get('primary_name'),
     }
     return output_s3_uri, output_file_keys
 
