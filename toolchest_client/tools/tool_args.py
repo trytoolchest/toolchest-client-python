@@ -182,7 +182,6 @@ TOOL_ARG_LISTS = {
             "--maxnumseq": 1,
             "--maxseqlen": 1,
             "--auto": 0,
-
         }
     },
     "kraken2": {
