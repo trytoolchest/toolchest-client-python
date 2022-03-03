@@ -9,7 +9,9 @@ Toolchest queries and API calls.
 import os
 
 # Base URLs used by the server API.
-BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
+# BASE_URL = os.environ.get("BASE_URL", "https://api.toolche.st")
+BASE_URL = "http://toolchest-env.eba-wgpwdhhs.us-east-1.elasticbeanstalk.com"
+# BASE_URL = "http://localhost:3001"
 
 PIPELINE_SEGMENT_INSTANCES_ROUTE = "/pipeline-segment-instances"
 PIPELINE_SEGMENT_INSTANCES_URL = BASE_URL + PIPELINE_SEGMENT_INSTANCES_ROUTE
