@@ -461,7 +461,7 @@ class Tool:
             print(
                 "\nToolchest run failed. "
                 "For support, contact Toolchest with the error log (above) and the following details:\n\n"
-                f"run_id: \n{pretty_print_run_ids}"
+                f"run_id: \n{pretty_print_run_ids}\n"
             )
             return
 
