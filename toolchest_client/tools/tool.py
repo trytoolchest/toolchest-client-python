@@ -452,9 +452,11 @@ class Tool:
         self._wait_for_threads_to_finish()
 
         # Check for interrupted or failed threads
-        run_failed = not all(status == ThreadStatus.COMPLETE for status in self.query_thread_statuses.values())
+        # Note: if async, then the query exits at thread status "executing"
+        success_status = ThreadStatus.EXECUTING if self.is_async else ThreadStatus.COMPLETE
+        run_failed = not all(status == success_status for status in self.query_thread_statuses.values())
         if run_failed or self.terminating:
-            run_ids = [thread_output.run_id for thread_output in self.thread_outputs]
+            run_ids = [thread_output.run_id for thread_output in self.thread_outputs.values()]
             # Prints each run_id to a new line, surrounded by quotes, prefaced by tab
             pretty_print_run_ids = '\t\"' + '\"\n\t\"'.join(run_ids) + '\"'
             print(
@@ -462,6 +464,8 @@ class Tool:
                 "For support, contact Toolchest with the error log (above) and the following details:\n\n"
                 f"run_id: \n{pretty_print_run_ids}\n"
             )
+            if not should_run_in_parallel:
+                return self.thread_outputs[0]
             return
 
         # Do basic check for completion, merge output files, delete temporary files
