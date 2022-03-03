@@ -452,9 +452,8 @@ class Tool:
         self._wait_for_threads_to_finish()
 
         # Check for interrupted or failed threads
-        if ThreadStatus.INTERRUPTING in self.query_thread_statuses.values() \
-            or ThreadStatus.FAILED in self.query_thread_statuses.values() \
-                or self.terminating:
+        run_failed = not all(status == ThreadStatus.COMPLETE for status in self.query_thread_statuses.values())
+        if run_failed or self.terminating:
             run_ids = [thread_output.run_id for thread_output in self.thread_outputs]
             # Prints each run_id to a new line, surrounded by quotes, prefaced by tab
             pretty_print_run_ids = '\t\"' + '\"\n\t\"'.join(run_ids) + '\"'
