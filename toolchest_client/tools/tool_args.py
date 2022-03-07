@@ -184,6 +184,31 @@ TOOL_ARG_LISTS = {
             "--auto": 0,
         }
     },
+    "demucs": {
+        "blacklist": [
+            "tracks",
+            "-o",
+            "--out",
+            "-d",
+            "--device",
+            "-j",
+            "--jobs"
+        ],
+        "whitelist": {
+            "-v": 0,
+            "--verbose": 0,
+            "--shifts": 1,
+            "--overlap": 1,
+            "--no-split": 0,
+            "--two-stems": 0,
+            "--int24": 0,
+            "--float32": 0,
+            "--clip-mode": 1,
+            "--mp3": 0,
+            "--mp3-bitrate": 1,
+            "-n": 1,
+        },
+    },
     "kraken2": {
         "whitelist": {
             "--quick": 0,

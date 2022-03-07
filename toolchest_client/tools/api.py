@@ -5,8 +5,8 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from datetime import date
-from toolchest_client.tools import Kraken2, CellRangerCount, Bowtie2, Megahit, Shi7, ShogunAlign, ShogunFilter, \
-    STARInstance, Test, Unicycler, AlphaFold, ClustalO
+from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, Kraken2, Megahit, Shi7, \
+    ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -129,7 +129,7 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
     return output
 
 
-def clustalo(inputs, output_path=None, output_name="", tool_args="", **kwargs):
+def clustalo(inputs, output_path=None, tool_args="", **kwargs):
     """Runs Clustal Omega via Toolchest.
 
     :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
@@ -148,6 +148,35 @@ def clustalo(inputs, output_path=None, output_name="", tool_args="", **kwargs):
     """
 
     instance = ClustalO(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def demucs(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs demucs via Toolchest.
+
+    :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
+    :param output_path: (optional) Path where the output will be downloaded.
+    :param tool_args: Additional arguments to be passed to demucs.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.demucs(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.wav",
+        ...     output_path="./path/to/output/",
+        ... )
+
+    """
+
+    instance = Demucs(
         tool_args=tool_args,
         output_name='output.tar.gz',
         inputs=inputs,
