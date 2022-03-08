@@ -10,7 +10,7 @@ from toolchest_client.files import OutputType
 
 class Demucs(Tool):
     """
-    The Demucs Omega implementation of the Tool class.
+    The Demucs implementation of the Tool class.
     """
     def __init__(self, tool_args, output_name, inputs, output_path, **kwargs):
         super().__init__(
