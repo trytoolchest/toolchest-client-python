@@ -198,11 +198,8 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self._output_path_is_local() and not os.access(
-                os.path.dirname(self.output_path),
-                os.W_OK | os.X_OK,
-        ):
-            raise OSError("Output file path must be writable.")
+        if self._output_path_is_local() and self.output_path.startswith("~"):
+            raise OSError("Output file path must be an absolute path.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
 
@@ -453,6 +450,23 @@ class Tool:
         print("Finished spawning jobs.")
 
         self._wait_for_threads_to_finish()
+
+        # Check for interrupted or failed threads
+        # Note: if async, then the query exits at thread status "executing"
+        success_status = ThreadStatus.EXECUTING if self.is_async else ThreadStatus.COMPLETE
+        run_failed = not all(status == success_status for status in self.query_thread_statuses.values())
+        if run_failed or self.terminating:
+            run_ids = [thread_output.run_id for thread_output in self.thread_outputs.values()]
+            # Prints each run_id to a new line, surrounded by quotes, prefaced by tab
+            pretty_print_run_ids = '\t\"' + '\"\n\t\"'.join(run_ids) + '\"'
+            print(
+                "\nToolchest run failed. "
+                "For support, contact Toolchest with the error log (above) and the following details:\n\n"
+                f"run_id: {pretty_print_run_ids}\n"
+            )
+            if not should_run_in_parallel:
+                return self.thread_outputs[0]
+            return
 
         # Do basic check for completion, merge output files, delete temporary files
         if should_run_in_parallel:
