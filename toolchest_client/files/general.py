@@ -8,6 +8,7 @@ General file handling functions.
 import shutil
 import os
 
+from .http import get_url_with_protocol, path_is_http_url, get_http_url_file_size
 from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
 
 
@@ -38,13 +39,16 @@ def check_file_size(file_path, max_size_bytes=None):
     :param max_size_bytes: Maximum number of bytes allowed for a file. Throws error if above limit.
     :type max_size_bytes: int | None
     """
-    if not path_is_s3_uri(file_path):
-        assert_exists(file_path, must_be_file=True)
-        file_size_bytes = os.stat(file_path).st_size
-    else:
+    if path_is_s3_uri(file_path):
         # Get file size S3 metadata, via API.
         # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
         file_size_bytes = get_s3_file_size(file_path)
+    elif path_is_http_url(file_path):
+        # Get file size via a HEAD request.
+        file_size_bytes = get_http_url_file_size(file_path)
+    else:
+        assert_exists(file_path, must_be_file=True)
+        file_size_bytes = os.stat(file_path).st_size
 
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
@@ -71,6 +75,10 @@ def files_in_path(files):
     if path_is_s3_uri(files):
         assert_accessible_s3(files)
         return [files]
+
+    # If it's an HTTP or HTTPS URL, treat it as a file
+    if path_is_http_url(files):
+        return [get_url_with_protocol(files)]
 
     # If it's a path to something that doesn't exist, error
     assert_exists(files, must_be_file=False)
