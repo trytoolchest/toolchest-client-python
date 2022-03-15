@@ -4,7 +4,6 @@ toolchest_client.files.http
 
 Functions for handling files given by HTTP / HTTPS URLs.
 """
-from json.decoder import JSONDecodeError
 from urllib.parse import urlparse
 
 import requests
