@@ -4,6 +4,7 @@ toolchest_client.files.http
 
 Functions for handling files given by HTTP / HTTPS URLs.
 """
+from json.decoder import JSONDecodeError
 from urllib.parse import urlparse
 
 import requests
@@ -40,4 +41,8 @@ def get_http_url_file_size(url):
     :param url: An input URL.
     """
     response = requests.head(url)
-    return int(response.get('content-length'))
+    response.raise_for_status()
+    try:
+        return int(response.json().get('content-length', 0))
+    except JSONDecodeError:
+        return 0

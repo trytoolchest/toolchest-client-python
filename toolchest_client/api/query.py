@@ -199,7 +199,7 @@ class Query:
         ])
         file_name = os.path.basename(input_file_path)
         input_is_in_s3 = path_is_s3_uri(input_file_path)
-        input_is_http_url = path_is_http_url()
+        input_is_http_url = path_is_http_url(input_file_path)
 
         response = requests.post(
             register_input_file_url,
