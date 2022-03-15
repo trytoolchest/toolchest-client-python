@@ -8,7 +8,7 @@ if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
 
-@pytest.mark.integration2
+@pytest.mark.integration
 def test_http_input():
     """
     Tests test function with an http input
