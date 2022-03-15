@@ -42,7 +42,4 @@ def get_http_url_file_size(url):
     """
     response = requests.head(url)
     response.raise_for_status()
-    try:
-        return int(response.json().get('content-length', 0))
-    except JSONDecodeError:
-        return 0
+    return int(response.headers.get('content-length', 0))
