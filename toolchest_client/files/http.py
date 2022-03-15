@@ -41,4 +41,3 @@ def get_http_url_file_size(url):
     """
     response = requests.head(url)
     return int(response.get('content-length'))
-
