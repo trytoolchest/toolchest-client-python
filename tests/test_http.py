@@ -25,5 +25,4 @@ def test_http_input():
     )
 
     with open(output_file_path, "r") as f:
-        for line in f:
-            assert line == "success"
+        assert f.read().strip() == "success"
