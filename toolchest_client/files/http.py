@@ -7,7 +7,7 @@ Functions for handling files given by HTTP / HTTPS URLs.
 from urllib.parse import urlparse
 
 import requests
-from requests.exceptions import HTTPError, InvalidURL
+from requests.exceptions import HTTPError, InvalidURL, InvalidSchema
 
 
 def get_url_with_protocol(url):
@@ -28,7 +28,7 @@ def path_is_http_url(path):
     """
     try:
         get_http_url_file_size(get_url_with_protocol(path))
-    except (InvalidURL, HTTPError):
+    except (InvalidURL, HTTPError, InvalidSchema):
         return False
 
     return True
