@@ -6,7 +6,7 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
-import ntpath
+import os
 import sys
 import threading
 import time
@@ -21,7 +21,7 @@ from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
-from toolchest_client.files import OutputType, path_is_s3_uri
+from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url
 from .status import Status, ThreadStatus
 
 
@@ -174,11 +174,11 @@ class Query:
 
         return create_response
 
-    def _update_file_size(self, fileId):
+    def _update_file_size(self, file_id):
         update_file_size_url = "/".join([
             PIPELINE_SEGMENT_INSTANCES_URL,
             'input-files',
-            fileId,
+            file_id,
             'update-file-size'
         ])
 
@@ -189,7 +189,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to update size for file: {fileId}", file=sys.stderr)
+            print(f"Failed to update size for file: {file_id}", file=sys.stderr)
             raise
 
     def _register_input_file(self, input_file_path, input_prefix, input_order):
@@ -197,8 +197,9 @@ class Query:
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
         ])
-        file_name = ntpath.basename(input_file_path)
+        file_name = os.path.basename(input_file_path)
         input_is_in_s3 = path_is_s3_uri(input_file_path)
+        input_is_http_url = path_is_http_url(input_file_path)
 
         response = requests.post(
             register_input_file_url,
@@ -208,6 +209,7 @@ class Query:
                 "tool_prefix": input_prefix,
                 "tool_prefix_order": input_order,
                 "s3_uri": input_file_path if input_is_in_s3 else None,
+                "http_url": input_file_path if input_is_http_url else None,
             },
         )
         try:
@@ -234,11 +236,12 @@ class Query:
 
         for file_path in input_file_paths:
             input_is_in_s3 = path_is_s3_uri(file_path)
+            input_is_http_url = path_is_http_url(file_path)
             input_prefix_details = input_prefix_mapping.get(file_path)
             input_prefix = input_prefix_details.get("prefix") if input_prefix_details else None
             input_order = input_prefix_details.get("order") if input_prefix_details else None
             # If the file is already in S3, there is no need to upload.
-            if input_is_in_s3:
+            if input_is_in_s3 or input_is_http_url:
                 # Registers the file in the internal DB.
                 self._register_input_file(
                     input_file_path=file_path,
