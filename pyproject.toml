@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.8.11"
+version = "0.9.0"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bcai@trytoolchest.com>",
@@ -28,6 +28,7 @@ python = "^3.6"
 requests = "^2.25.1"
 python-dotenv = "^0.18.0"
 importlib-metadata = { version = "~=1.0", python = "<3.8" }
+sentry-sdk = "^1.5.8"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
