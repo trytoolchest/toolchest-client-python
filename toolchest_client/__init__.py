@@ -3,6 +3,7 @@
 import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
+import sentry_sdk
 
 # set __version__ module
 try:
@@ -29,3 +30,9 @@ from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, kraken2, megahit, shi7, shogun_align,\
     shogun_filter, STAR, test, unicycler
+
+sentry_sdk.init(
+    "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
+
+    traces_sample_rate=1.0
+)
