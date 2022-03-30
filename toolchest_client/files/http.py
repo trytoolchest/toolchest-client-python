@@ -5,6 +5,7 @@ toolchest_client.files.http
 Functions for handling files given by HTTP / HTTPS URLs.
 """
 from urllib.parse import urlparse
+from urllib3.exceptions import LocationParseError
 
 import requests
 from requests.exceptions import HTTPError, InvalidURL, InvalidSchema
@@ -28,7 +29,7 @@ def path_is_http_url(path):
     """
     try:
         get_http_url_file_size(get_url_with_protocol(path))
-    except (InvalidURL, HTTPError, InvalidSchema):
+    except (InvalidURL, HTTPError, InvalidSchema, LocationParseError):
         return False
 
     return True
