@@ -28,7 +28,7 @@ class ShogunAlign(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["alignment.burst.b6"],
+            output_names=["alignment.bowtie2.sam"],
             **kwargs,
         )
 
