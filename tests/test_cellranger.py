@@ -19,8 +19,10 @@ def test_cellranger_count_s3_inputs():
     output = toolchest.cellranger_count(
         inputs="s3://toolchest-integration-tests/cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
         database_name="GRCh38",
+        output_path=output_dir_path,
+        skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output, output_dir_path)
+    verify_cellranger_count_outputs(output.output_path, output_dir_path)
 
 
 @pytest.mark.integration
@@ -40,11 +42,13 @@ def test_cellranger_count_local_inputs():
     output = toolchest.cellranger_count(
         inputs=input_dir_path,
         database_name="GRCh38",
+        output_path=output_dir_path,
+        skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output, output_dir_path)
+    verify_cellranger_count_outputs(output.output_path, output_dir_path)
 
 
-def verify_cellranger_count_outputs(output, output_dir_path):
+def verify_cellranger_count_outputs(archive_path, output_dir_path):
     # Expected properties of outputs
     MIN_EXPECTED_ARCHIVE_SIZE = 34000000
     MAX_EXPECTED_ARCHIVE_SIZE = 38000000
@@ -54,12 +58,6 @@ def verify_cellranger_count_outputs(output, output_dir_path):
     EXPECTED_FILTERED_MATRIX_SIZE = 503956
 
     # Verify properties of packed archive
-    archive_path = f"{output_dir_path}output.tar.gz"
-    toolchest.download(
-        output_path=output_dir_path,
-        s3_uri=output.s3_uri,
-        skip_decompression=True,
-    )
     archive_size = os.path.getsize(archive_path)
     assert MIN_EXPECTED_ARCHIVE_SIZE <= archive_size <= MAX_EXPECTED_ARCHIVE_SIZE
 

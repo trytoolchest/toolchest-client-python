@@ -42,11 +42,12 @@ class Output:
     def set_output_path(self, output_path):
         self.output_path = output_path
 
-    def download(self, output_dir):
+    def download(self, output_dir, skip_decompression=False):
         self.output_path = download(
             output_path=output_dir,
             s3_uri=self.s3_uri,
             run_id=self.run_id,
+            skip_decompression=skip_decompression,
         )
         return self.output_path
 
