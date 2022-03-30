@@ -6,7 +6,7 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 
-import ntpath
+import os
 import sys
 import threading
 import time
@@ -21,7 +21,7 @@ from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
-from toolchest_client.files import OutputType, path_is_s3_uri
+from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url
 from .status import Status, ThreadStatus
 
 
@@ -64,8 +64,8 @@ class Query:
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  custom_database_path=None, output_name="output", input_files=None,
-                  output_path=None, skip_decompression=False, thread_statuses=None):
+                  custom_database_path=None, output_name="output", output_primary_name=None,
+                  input_files=None, output_path=None, skip_decompression=False, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -76,6 +76,7 @@ class Query:
         :param custom_database_path: Path (S3 URI) to a custom database.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1")
         :param output_name: (optional) Internal name of file outputted by the tool.
+        :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
@@ -94,6 +95,7 @@ class Query:
             database_version=database_version,
             custom_database_path=custom_database_path,
             output_name=output_name,
+            output_primary_name=output_primary_name,
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
@@ -140,7 +142,8 @@ class Query:
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, custom_database_path,
-                              output_name, compress_output, output_file_path):
+                              output_name, output_primary_name, output_file_path,
+                              compress_output):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -153,6 +156,7 @@ class Query:
             "database_name": database_name,
             "database_version": database_version,
             "output_file_name": output_name,
+            "output_file_primary_name": output_primary_name,
             "tool_name": tool_name,
             "tool_version": tool_version,
             "output_file_path": output_file_path,
@@ -171,11 +175,11 @@ class Query:
 
         return create_response
 
-    def _update_file_size(self, fileId):
+    def _update_file_size(self, file_id):
         update_file_size_url = "/".join([
             PIPELINE_SEGMENT_INSTANCES_URL,
             'input-files',
-            fileId,
+            file_id,
             'update-file-size'
         ])
 
@@ -186,7 +190,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to update size for file: {fileId}", file=sys.stderr)
+            print(f"Failed to update size for file: {file_id}", file=sys.stderr)
             raise
 
     def _register_input_file(self, input_file_path, input_prefix, input_order):
@@ -194,8 +198,9 @@ class Query:
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
         ])
-        file_name = ntpath.basename(input_file_path)
+        file_name = os.path.basename(input_file_path)
         input_is_in_s3 = path_is_s3_uri(input_file_path)
+        input_is_http_url = path_is_http_url(input_file_path)
 
         response = requests.post(
             register_input_file_url,
@@ -205,6 +210,7 @@ class Query:
                 "tool_prefix": input_prefix,
                 "tool_prefix_order": input_order,
                 "s3_uri": input_file_path if input_is_in_s3 else None,
+                "http_url": input_file_path if input_is_http_url else None,
             },
         )
         try:
@@ -231,11 +237,12 @@ class Query:
 
         for file_path in input_file_paths:
             input_is_in_s3 = path_is_s3_uri(file_path)
+            input_is_http_url = path_is_http_url(file_path)
             input_prefix_details = input_prefix_mapping.get(file_path)
             input_prefix = input_prefix_details.get("prefix") if input_prefix_details else None
             input_order = input_prefix_details.get("order") if input_prefix_details else None
             # If the file is already in S3, there is no need to upload.
-            if input_is_in_s3:
+            if input_is_in_s3 or input_is_http_url:
                 # Registers the file in the internal DB.
                 self._register_input_file(
                     input_file_path=file_path,
@@ -346,7 +353,10 @@ class Query:
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status = self.get_job_status()
+            status_response = self.get_job_status(return_error=True)
+            status = status_response['status']
+            if status == Status.FAILED:
+                raise ToolchestJobError(status_response['error_message'])
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
@@ -393,7 +403,7 @@ class Query:
                 print_msg=False
             )
 
-    def get_job_status(self):
+    def get_job_status(self, return_error=False):
         """Gets status of current job (tasks)."""
 
         response = requests.get(
@@ -407,5 +417,6 @@ class Query:
             # Assumes a job has already been marked as failed if failure is detected after execution begins.
             self.mark_as_failed = False
             self._raise_for_failed_response(response)
-
+        if return_error:
+            return response.json()
         return response.json()["status"]
