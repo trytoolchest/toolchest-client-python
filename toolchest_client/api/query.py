@@ -65,7 +65,7 @@ class Query:
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, output_name="output", output_primary_name=None,
-                  input_files=None, output_path=None, thread_statuses=None):
+                  input_files=None, output_path=None, skip_decompression=False, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -80,6 +80,7 @@ class Query:
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
+        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
         self.thread_name = threading.current_thread().getName()
@@ -129,7 +130,7 @@ class Query:
 
         self._wait_for_job()
 
-        self._download(output_path, output_type)
+        self._download(output_path, output_type, skip_decompression)
 
         self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
@@ -361,7 +362,7 @@ class Query:
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
 
-    def _download(self, output_path, output_type):
+    def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
         downloads output to ``output_path`` and decompresses output archive, if necessary.
         """
@@ -375,6 +376,7 @@ class Query:
                     output_path=output_path,
                     output_file_keys=output_file_keys,
                     output_type=output_type,
+                    skip_decompression=skip_decompression,
                 )
                 self._update_status(Status.TRANSFERRED_TO_CLIENT)
         except ToolchestDownloadError as err:
