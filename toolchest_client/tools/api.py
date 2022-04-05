@@ -157,6 +157,7 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
     output = instance.run()
     return output
 
+
 def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     """Runs diamond blastp via Toolchest.
 
@@ -185,6 +186,7 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     )
     output = instance.run()
     return output
+
 
 def demucs(inputs, output_path=None, tool_args="", **kwargs):
     """Runs demucs via Toolchest.

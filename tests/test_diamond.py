@@ -10,6 +10,7 @@ if toolchest_api_key:
 
 DEFAULT_OUTPUT_HASH = 952562472
 
+
 @pytest.mark.integration
 def test_diamond_blastp_standard():
     """
