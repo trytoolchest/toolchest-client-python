@@ -234,8 +234,6 @@ TOOL_ARG_LISTS = {
             "--id",  # this option reduces performance
             "--query-cover",  # this option reduces performance
             "--subject-cover",  # this option reduces performance
-            "",
-            "",
         ],
         "whitelist": {
             "--fast": 0,
@@ -251,8 +249,8 @@ TOOL_ARG_LISTS = {
             "-f": 1,  # this does not allow mode 6 which requires varargs
             "--salltitles": 0,
             "--sallseqid": 0,
-            "--unal ": 1,
-            "--no-self-hits ": 0,
+            "--unal": 1,
+            "--no-self-hits": 0,
         }
     },
     "demucs": {
