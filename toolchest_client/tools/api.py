@@ -5,8 +5,8 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from datetime import date
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, Kraken2, Megahit, Shi7, \
-    ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, Demucs, Kraken2, \
+    Megahit, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -152,6 +152,36 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
         output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs diamond blastp via Toolchest.
+
+      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+        gzip compressed)
+      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
+        downloaded in the same directory as the out file
+      :param tool_args: Additional arguments to be passed to demucs.
+
+      Usage::
+
+          >>> import toolchest_client as toolchest
+          >>> toolchest.diamond_blastp(
+          ...     tool_args="",
+          ...     inputs="./path/to/input.fa",
+          ...     output_path="./path/to/output/out_file.tsv",
+          ... )
+
+      """
+    instance = DiamondBlastp(
+        inputs=inputs,
+        output_name='output.tar.gz',
+        output_path=output_path,
+        tool_args=tool_args,
         **kwargs,
     )
     output = instance.run()
