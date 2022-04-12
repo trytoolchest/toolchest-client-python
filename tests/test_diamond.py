@@ -27,3 +27,22 @@ def test_diamond_blastp_standard():
     )
 
     assert hash.unordered(output_file_path) == DEFAULT_OUTPUT_HASH
+
+
+@pytest.mark.skip(reason="need to find faster test file then it's hash")
+@pytest.mark.integration
+def test_diamond_blastx_standard():
+    """
+    Tests Diamond blastx mode
+    """
+    test_dir = "test_diamond_blastx_standard"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}/"
+    output_file_path = f"{output_dir_path}sample_output.tsv"
+
+    toolchest.diamond_blastx(
+        inputs="s3://toolchest-integration-tests/sample_r1.fastq.gz",
+        output_path=output_file_path,
+    )
+
+    assert hash.unordered(output_file_path) == "find hash"

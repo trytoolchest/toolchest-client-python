@@ -32,3 +32,27 @@ class DiamondBlastp(Tool):
             output_is_directory=False,
             **kwargs,
         )
+
+
+class DiamondBlastx(Tool):
+    """
+    The Diamond Blastx implementation of the Tool class.
+    """
+    def __init__(self, inputs, output_name, output_path, tool_args, **kwargs):
+        super().__init__(
+            tool_name="diamond_blastx",
+            tool_version="2.0.13",
+            tool_args=tool_args,
+            output_name=output_name,
+            output_primary_name=os.path.basename(output_path),
+            inputs=inputs,
+            min_inputs=1,
+            max_inputs=1,
+            database_name="diamond_blastx_standard",
+            database_version="1",
+            parallel_enabled=False,
+            output_type=OutputType.GZ_TAR,
+            output_path=output_path,
+            output_is_directory=False,
+            **kwargs,
+        )
