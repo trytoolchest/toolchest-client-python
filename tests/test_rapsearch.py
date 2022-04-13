@@ -9,7 +9,7 @@ if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
 
-@pytest.mark.integration2
+@pytest.mark.integration
 def test_rapsearch():
     """
     Tests rapsearch2 on SeqScreen DB
