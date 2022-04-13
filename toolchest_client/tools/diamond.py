@@ -30,6 +30,7 @@ class DiamondBlastp(Tool):
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
             output_is_directory=False,
+            output_names=[output_name, "diamond.log"],
             **kwargs,
         )
 
@@ -54,5 +55,6 @@ class DiamondBlastx(Tool):
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
             output_is_directory=False,
+            output_names=[output_name, "diamond.log"],
             **kwargs,
         )
