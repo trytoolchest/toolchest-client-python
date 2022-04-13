@@ -18,8 +18,6 @@ All tools should be able to be called directly as
 
 .. autofunction:: bowtie2
 
-.. autofunction:: cutadapt
-
 .. autofunction:: kraken2
 
 .. autofunction:: STAR
