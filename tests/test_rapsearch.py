@@ -26,5 +26,8 @@ def test_rapsearch():
         output_path=f"{test_dir}/rapsearch2",
     )
 
-    hash.unordered(output_file_path_m8)
-    hash.unordered(output_file_path_aln)
+    # m8 output is nondeterministic, so we check file size
+    assert 71362000 <= os.path.getsize(output_file_path_m8) <= 71362200
+
+    assert 321661100 <= os.path.getsize(output_file_path_aln) <= 321661300
+    assert hash.unordered(output_file_path_aln) == 2129168459

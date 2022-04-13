@@ -32,6 +32,6 @@ class Rapsearch(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=False,
-            output_names=[f"{output_primary_name}.m8"],
+            output_names=[f"{output_primary_name}.m8"],  # .aln output may be omitted with certain args
             **kwargs,
         )
