@@ -8,7 +8,8 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-DEFAULT_OUTPUT_HASH = 952562472
+DEFAULT_BLASTP_OUTPUT_HASH = 952562472
+DEFAULT_BLASTX_OUTPUT_HASH = 883070112
 
 
 @pytest.mark.integration
@@ -26,7 +27,7 @@ def test_diamond_blastp_standard():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == DEFAULT_OUTPUT_HASH
+    assert hash.unordered(output_file_path) == DEFAULT_BLASTP_OUTPUT_HASH
 
 
 @pytest.mark.integration
@@ -44,4 +45,4 @@ def test_diamond_blastx_standard():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == "883070112"
+    assert hash.unordered(output_file_path) == DEFAULT_BLASTX_OUTPUT_HASH
