@@ -44,4 +44,4 @@ def test_diamond_blastx_standard():
         output_path=output_file_path,
     )
 
-    assert hash.unordered(output_file_path) == "find hash"
+    assert hash.unordered(output_file_path) == "883070112"
