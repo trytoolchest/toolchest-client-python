@@ -188,6 +188,32 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
+def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs diamond blastx via Toolchest.
+      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+        gzip compressed)
+      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
+        downloaded in the same directory as the out file
+      :param tool_args: Additional arguments to be passed to demucs.
+      Usage::
+          >>> import toolchest_client as toolchest
+          >>> toolchest.diamond_blastp(
+          ...     tool_args="",
+          ...     inputs="./path/to/input.fa",
+          ...     output_path="./path/to/output/out_file.tsv",
+          ... )
+      """
+    instance = DiamondBlastx(
+        inputs=inputs,
+        output_name='output.tar.gz',
+        output_path=output_path,
+        tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def demucs(inputs, output_path=None, tool_args="", **kwargs):
     """Runs demucs via Toolchest.
 
@@ -346,6 +372,42 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     )
     output = instance.run()
     return output
+
+
+def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", database_version="1",
+              tool_args="", **kwargs):
+    """Runs Rapsearch 2 via Toolchest.
+    :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
+    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
+    (Functions the same way as the "-o" tag for Rapsearch.)
+    :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
+    :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to standard DB.
+    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
+    :type database_version: str
+    Usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.rapsearch(
+        ...     tool_args="",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output/base",  # outputs
+        ... )
+    """
+
+    instance = Rapsearch(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        database_name=database_name,
+        database_version=database_version,
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+# Adds rapsearch2 as an alias for rapsearch
+rapsearch2 = rapsearch
 
 
 def shi7(inputs, output_path=None, tool_args="", **kwargs):
