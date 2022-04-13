@@ -5,8 +5,8 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from datetime import date
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, Demucs, Kraken2, \
-    Megahit, Rapsearch, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, DiamondBlastx, Demucs,\
+    Kraken2, Megahit, Rapsearch, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -64,7 +64,7 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path to directory where the output file(s) will be downloaded
+    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
 
     Usage::
 
@@ -346,46 +346,6 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     )
     output = instance.run()
     return output
-
-
-def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", database_version="1",
-              tool_args="", **kwargs):
-    """Runs Rapsearch 2 via Toolchest.
-
-    :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
-    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
-    (Functions the same way as the "-o" tag for Rapsearch.)
-    :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
-    :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to standard DB.
-    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
-    :type database_version: str
-
-    Usage::
-
-        >>> import toolchest_client as toolchest
-        >>> toolchest.rapsearch(
-        ...     tool_args="",
-        ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output/base",  # outputs
-        ... )
-
-    """
-
-    instance = Rapsearch(
-        tool_args=tool_args,
-        output_name='output.tar.gz',
-        database_name=database_name,
-        database_version=database_version,
-        inputs=inputs,
-        output_path=output_path,
-        **kwargs,
-    )
-    output = instance.run()
-    return output
-
-
-# Adds rapsearch2 as an alias for rapsearch
-rapsearch2 = rapsearch
 
 
 def shi7(inputs, output_path=None, tool_args="", **kwargs):
