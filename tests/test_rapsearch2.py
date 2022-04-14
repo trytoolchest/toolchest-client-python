@@ -10,7 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_rapsearch():
+def test_rapsearch2():
     """
     Tests rapsearch2 on SeqScreen DB
     """
@@ -20,7 +20,7 @@ def test_rapsearch():
     output_file_path_aln = f"./{test_dir}/rapsearch2.aln"
     output_file_path_m8 = f"./{test_dir}/rapsearch2.m8"
 
-    toolchest.rapsearch(
+    toolchest.rapsearch2(
         tool_args="-e 1e-9",
         inputs="s3://toolchest-integration-tests/example.fastq",
         output_path=f"{test_dir}/rapsearch2",

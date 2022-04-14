@@ -6,7 +6,7 @@ This module contains the API for using Toolchest tools.
 """
 from datetime import date
 from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, DiamondBlastx, Demucs,\
-    Kraken2, Megahit, Rapsearch, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+    Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -374,7 +374,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", database_version="1",
+def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
               tool_args="", **kwargs):
     """Runs Rapsearch 2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
@@ -382,7 +382,7 @@ def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", dat
     (Functions the same way as the "-o" tag for Rapsearch.)
     :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
     :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to standard DB.
-    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
+    :param database_version: (optional) Version of database to use for Rapsearch 2 alignment. Defaults to 1.
     :type database_version: str
     Usage::
         >>> import toolchest_client as toolchest
@@ -393,7 +393,7 @@ def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", dat
         ... )
     """
 
-    instance = Rapsearch(
+    instance = Rapsearch2(
         tool_args=tool_args,
         output_name='output.tar.gz',
         database_name=database_name,
@@ -406,8 +406,8 @@ def rapsearch(inputs, output_path=None, database_name="rapsearch_seqscreen", dat
     return output
 
 
-# Adds rapsearch2 as an alias for rapsearch
-rapsearch2 = rapsearch
+# Adds rapsearch as an alias for rapsearch2
+rapsearch = rapsearch2
 
 
 def shi7(inputs, output_path=None, tool_args="", **kwargs):

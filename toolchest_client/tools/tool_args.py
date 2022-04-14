@@ -385,7 +385,7 @@ TOOL_ARG_LISTS = {
             "--min-contig-len": 1,
         },
     },
-    "rapsearch": {
+    "rapsearch2": {
         "blacklist": [
             "-q",
             "-d",

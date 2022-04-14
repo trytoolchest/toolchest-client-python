@@ -7,7 +7,7 @@ from .diamond import DiamondBlastp, DiamondBlastx
 from .demucs import Demucs
 from .kraken2 import Kraken2
 from .megahit import Megahit
-from .rapsearch import Rapsearch
+from .rapsearch2 import Rapsearch2
 from .shi7 import Shi7
 from .shogun import ShogunAlign, ShogunFilter
 from .star import STARInstance

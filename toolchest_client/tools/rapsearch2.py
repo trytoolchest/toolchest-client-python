@@ -10,7 +10,7 @@ from . import Tool
 from toolchest_client.files import OutputType
 
 
-class Rapsearch(Tool):
+class Rapsearch2(Tool):
     """
     The Rapsearch implementation of the Tool class.
     """
@@ -18,7 +18,7 @@ class Rapsearch(Tool):
                  database_name, database_version, **kwargs):
         output_primary_name = os.path.basename(output_path)
         super().__init__(
-            tool_name="rapsearch",
+            tool_name="rapsearch2",
             tool_version="2.24",
             tool_args=tool_args,
             output_name=output_name,
