@@ -16,8 +16,8 @@ def test_http_input():
     test_dir = "test_http"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "https://toolchest-public-examples-no-encryption.s3.amazonaws.com/example.fastq"
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}test_output.txt"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/test_output.txt"
 
     toolchest.test(
         inputs=input_file_path,

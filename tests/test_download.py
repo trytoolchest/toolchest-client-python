@@ -19,12 +19,12 @@ def test_kraken2_output_manual_download():
     """
     test_dir = "test_kraken2_output_manual_download"
     input_file_s3_uri = "s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta"
-    manual_output_dir_path = f"./{test_dir}/manual/"
-    manual_output_file_path = f"{manual_output_dir_path}kraken2_output.txt"
-    toolchest_s3_dir_path = f"./{test_dir}/toolchest/s3/"
-    toolchest_s3_file_path = f"{toolchest_s3_dir_path}kraken2_output.txt"
-    toolchest_pipeline_dir_path = f"./{test_dir}/toolchest/id/"
-    toolchest_pipeline_file_path = f"{toolchest_pipeline_dir_path}kraken2_output.txt"
+    manual_output_dir_path = f"./{test_dir}/manual"
+    manual_output_file_path = f"{manual_output_dir_path}/kraken2_output.txt"
+    toolchest_s3_dir_path = f"./{test_dir}/toolchest/s3"
+    toolchest_s3_file_path = f"{toolchest_s3_dir_path}/kraken2_output.txt"
+    toolchest_pipeline_dir_path = f"./{test_dir}/toolchest/id"
+    toolchest_pipeline_file_path = f"{toolchest_pipeline_dir_path}/kraken2_output.txt"
 
     # Run job without downloading
     output = toolchest.kraken2(
