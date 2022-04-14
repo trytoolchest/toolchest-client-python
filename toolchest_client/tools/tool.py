@@ -89,11 +89,11 @@ class Tool:
                 self.input_files = [self.inputs]
             else:
                 # Input files are all .tar.gz'd together, preserving directory structure
-                self.input_files = [compress_files_in_path(self.inputs)]
+                self.input_files = [compress_files_in_path(os.path.expanduser(self.inputs))]
             self.num_input_files = 1
         else:
             # Input files are handled individually, destroying directory structure
-            self.input_files = files_in_path(self.inputs)
+            self.input_files = files_in_path(self.inputs)  # expands ~ in filepath if local
             self.num_input_files = len(self.input_files)
 
         if self.num_input_files < self.min_inputs:
