@@ -375,7 +375,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 
 def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
-              tool_args="", **kwargs):
+               tool_args="", **kwargs):
     """Runs Rapsearch 2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
     :param output_path: (optional) Base path to where the output file(s) will be downloaded.
