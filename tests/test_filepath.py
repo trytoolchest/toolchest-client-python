@@ -31,7 +31,7 @@ def test_tilde_filepath():
 
     assert hash.unordered(output_file_path) == 886254946
 
-    manual_download_dir_path = f"{test_dir}/manual_download"
+    manual_download_dir_path = f"{output_dir_path}/manual_download"
     manual_download_file_path = os.path.expanduser(f"{manual_download_dir_path}/kraken2_output.txt")
     toolchest.download(
         manual_download_dir_path,  # contains tilde
