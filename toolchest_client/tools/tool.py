@@ -45,7 +45,8 @@ class Tool:
         self.output_primary_name = output_primary_name
         self.output_path = output_path
         if self._output_path_is_local():
-            self.output_path = output_path
+            # absolutize path, expand user tilde if present
+            self.output_path = os.path.abspath(os.path.expanduser(output_path))
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
@@ -199,8 +200,6 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self._output_path_is_local() and self.output_path.startswith("~"):
-            raise OSError("Output file path must be an absolute path.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
 
@@ -248,7 +247,6 @@ class Tool:
                         output_file_path = f"{self.output_path}/{output_name}"
                         sanity_check(output_file_path)
                 else:
-                    # TODO: verify that this works with absolute pathing
                     for output_name in self.output_names:
                         output_file_path = f"{os.path.dirname(self.output_path)}/{output_name}"
                         sanity_check(output_file_path)
