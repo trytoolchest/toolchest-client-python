@@ -385,6 +385,29 @@ TOOL_ARG_LISTS = {
             "--min-contig-len": 1,
         },
     },
+    "rapsearch2": {
+        "blacklist": [
+            "-q",
+            "-d",
+            "-o",
+            "-u",
+            "-z",
+        ],
+        "whitelist": {
+            "-s": 1,
+            "-e": 1,
+            "-i": 1,
+            "-l": 1,
+            "-v": 1,
+            "-b": 1,
+            "-t": 1,
+            "-p": 1,
+            "-g": 1,
+            "-a": 1,
+            "-w": 1,
+            "-x": 1,
+        },
+    },
     "shi7": {
         "whitelist": {
             "--debug": 0,

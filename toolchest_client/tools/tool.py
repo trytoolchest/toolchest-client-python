@@ -210,8 +210,9 @@ class Tool:
 
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
+        output_dir = self.output_path if self.output_is_directory else os.path.dirname(self.output_path)
         for file_path in self.output_names + ["output", "output.tar.gz"]:
-            joined_file_path = os.path.join(self.output_path, file_path)
+            joined_file_path = os.path.join(output_dir, file_path)
             if os.path.exists(joined_file_path):
                 print(f"WARNING: {joined_file_path} already exists and will be overwritten")
 
@@ -247,7 +248,10 @@ class Tool:
                         output_file_path = f"{self.output_path}/{output_name}"
                         sanity_check(output_file_path)
                 else:
-                    sanity_check(self.output_path)
+                    # TODO: verify that this works with absolute pathing
+                    for output_name in self.output_names:
+                        output_file_path = f"{os.path.dirname(self.output_path)}/{output_name}"
+                        sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.

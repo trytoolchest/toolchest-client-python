@@ -30,7 +30,7 @@ from toolchest_client.api.exceptions import ToolchestException, DataLimitError, 
 from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, diamond_blastp, diamond_blastx, demucs, kraken2,\
-    megahit, shi7, shogun_align, shogun_filter, STAR, test, unicycler
+    megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
 
 sentry_sdk.init(
     "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
