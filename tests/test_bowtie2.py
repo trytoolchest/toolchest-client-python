@@ -8,8 +8,6 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-DEFAULT_OUTPUT_HASH = 1557898163
-
 
 @pytest.mark.integration
 def test_bowtie2():
@@ -26,4 +24,4 @@ def test_bowtie2():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(f"{output_dir_path}/bowtie2_output.sam") == DEFAULT_OUTPUT_HASH
+    assert hash.unordered(f"{output_dir_path}bowtie2_output.sam") == 1557898163
