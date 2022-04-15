@@ -8,8 +8,6 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-DEFAULT_OUTPUT_HASH = 1022436992
-
 
 @pytest.mark.integration
 def test_diamond_blastp_standard():
@@ -27,4 +25,4 @@ def test_diamond_blastp_standard():
         long_reads="s3://toolchest-integration-tests/long_reads.fasta.gz"
     )
 
-    assert hash.unordered(f"{output_dir_path}assembly.fasta") == DEFAULT_OUTPUT_HASH
+    assert hash.unordered(f"{output_dir_path}assembly.fasta") == 1022436992
