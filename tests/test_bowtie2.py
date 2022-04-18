@@ -19,9 +19,9 @@ def test_bowtie2():
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
 
-    toolchest.diamond_blastp(
+    toolchest.bowtie2(
         inputs="s3://toolchest-integration-tests/sample_r1.fastq.gz",
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(f"{output_dir_path}bowtie2_output.sam") == 1557898163
+    assert hash.unordered(f"{output_dir_path}bowtie2_output.sam") == 370259722
