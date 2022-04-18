@@ -1,7 +1,6 @@
 import os
 import pytest
 
-from tests.util import hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -24,4 +23,5 @@ def test_bowtie2():
         output_path=output_dir_path,
     )
 
-    assert hash.unordered(f"{output_dir_path}bowtie2_output.sam") == 370259722
+    # Bowtie2 hash is non-deterministic but size is consistent between runs
+    assert os.path.getsize(f"{output_dir_path}bowtie2_output.sam") == 739943628
