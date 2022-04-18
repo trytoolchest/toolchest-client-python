@@ -10,11 +10,12 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_diamond_blastp_standard():
+def test_unicycler():
     """
     Tests Unicycler
     """
-    test_dir = "test_diamond_blastp_standard"
+
+    test_dir = "test_unicycler"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
 
@@ -25,4 +26,4 @@ def test_diamond_blastp_standard():
         long_reads="s3://toolchest-integration-tests/long_reads.fasta.gz"
     )
 
-    assert hash.unordered(f"{output_dir_path}assembly.fasta") == 1022436992
+    assert hash.unordered(f"{output_dir_path}assembly.fasta") == 882369120
