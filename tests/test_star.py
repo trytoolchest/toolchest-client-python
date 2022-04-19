@@ -104,7 +104,7 @@ def test_star_grch38_dangerous_arg():
     assert 38236000 <= os.path.getsize(output_file_path) <= 38236100  # expected size 38236044
 
     # Make sure all non-parallel files exist as well
-    assert os.path.isfile(f"{output_dir_path}Log.final.out")
-    assert os.path.isfile(f"{output_dir_path}Log.out")
-    assert os.path.isfile(f"{output_dir_path}Log.progress.out")
-    assert os.path.isfile(f"{output_dir_path}SJ.out.tab")
+    assert os.path.isfile(f"{output_dir_path}/Log.final.out")
+    assert os.path.isfile(f"{output_dir_path}/Log.out")
+    assert os.path.isfile(f"{output_dir_path}/Log.progress.out")
+    assert os.path.isfile(f"{output_dir_path}/SJ.out.tab")
