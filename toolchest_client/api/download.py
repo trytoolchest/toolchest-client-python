@@ -24,7 +24,8 @@ from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack
 
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
-             output_file_keys=None, skip_decompression=False, output_type=None):
+             output_file_keys=None, skip_decompression=False, output_type=None,
+             compress_output=True):
     """Downloads output to `output_path`.
 
     One of `s3_uri`, `run_id`, or `output_file_keys` must
@@ -44,6 +45,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
         Used internally.
     :param skip_decompression: Whether to skip decompression of the downloaded file archive.
     :param output_type: Output type of the produced output file. Used internally.
+    :param compress_output: Whether the output has been compressed. Used internally.
     """
 
     # pipeline_segment_instance_id as a param is deprecated, remove it as default value eventually

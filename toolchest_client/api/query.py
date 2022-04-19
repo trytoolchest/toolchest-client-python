@@ -132,7 +132,7 @@ class Query:
 
         self._wait_for_job()
 
-        self._download(output_path, output_type, skip_decompression)
+        self._download(output_path, output_type, skip_decompression, compress_output)
 
         self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
