@@ -79,6 +79,7 @@ class Tool:
         self.output_names = output_names or []
         self.is_async = is_async
         self.skip_decompression = skip_decompression
+        self.compress_output = compress_output
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -440,6 +441,7 @@ class Tool:
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_type": self.output_type,
                 "skip_decompression": self.skip_decompression,
+                "compress_output": self.compress_output,
             })
 
             # Add non-distinct dictionary for status updates
