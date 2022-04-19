@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from tests.util import s3
+from tests.util import s3, hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -19,6 +19,7 @@ def test_star_grch38():
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}/"
     output_file_path = f"{output_dir_path}Aligned.out.sam"
+    filtered_output_file_path = f"{output_dir_path}Aligned.filtered.out.sam"
 
     s3.download_integration_test_input(
         s3_file_key="small_star_500k.fastq",
@@ -34,6 +35,12 @@ def test_star_grch38():
 
     # Because STAR output contains run ID (non-deterministic), verify that the number of bytes is in range
     assert 185952700 <= os.path.getsize(output_file_path) <= 185952900  # expected size 185952796
+
+    # Filter non-deterministic metadata lines
+    with open(filtered_output_file_path, "w") as outfile:
+        with open(output_file_path, "r") as infile:
+            outfile.writelines([line for line in infile if not line.startswith("@PG") and not line.startswith("@CO")])
+    assert hash.unordered(filtered_output_file_path) == 2099424598
 
 
 @pytest.mark.integration
