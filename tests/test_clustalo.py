@@ -16,8 +16,8 @@ def test_clustalo_standard():
     """
     test_dir = "test_clustalo_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}sample_output.fasta"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/sample_output.fasta"
 
     toolchest.clustalo(
         inputs="s3://toolchest-integration-tests/clustalo_input.fasta",

@@ -19,8 +19,8 @@ def test_kraken2_standard():
     test_dir = "test_kraken2_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./kraken_input.fasta"
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}kraken2_output.txt"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/kraken2_output.txt"
 
     s3.download_integration_test_input(
         s3_file_key="synthetic_bacteroides_reads.fasta",
@@ -44,8 +44,8 @@ def test_kraken2_paired_end():
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_one_file_path = f"./{test_dir}/kraken_input_read1.fastq.gz"
     input_two_file_path = f"./{test_dir}/kraken_input_read2.fastq.gz"
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}kraken2_output.txt"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/kraken2_output.txt"
 
     s3.download_integration_test_input(
         s3_file_key="sample_r1.fastq.gz",
@@ -73,8 +73,8 @@ def test_kraken2_s3():
     """
     test_dir = "test_kraken2_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}kraken2_output.txt"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/kraken2_output.txt"
 
     toolchest.kraken2(
         inputs="s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta",
@@ -93,8 +93,8 @@ def test_kraken2_custom_db():
 
     test_dir = "test_kraken2_custom_db"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}kraken2_output.txt"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/kraken2_output.txt"
 
     custom_db = "s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/"
     toolchest.kraken2(
