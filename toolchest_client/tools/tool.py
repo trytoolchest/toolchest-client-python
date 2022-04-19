@@ -37,7 +37,8 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=True,
-                 output_names=None, is_async=False, skip_decompression=False):
+                 output_names=None, is_async=False, skip_decompression=False,
+                 compress_output=True):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args

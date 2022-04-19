@@ -65,7 +65,8 @@ class Query:
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, output_name="output", output_primary_name=None,
-                  input_files=None, output_path=None, skip_decompression=False, thread_statuses=None):
+                  input_files=None, output_path=None, compress_output=True, skip_decompression=False,
+                  thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -80,6 +81,7 @@ class Query:
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file
+        :param compress_output: Whether to download compressed outputs, then decompress locally (vs. download uncompressed outputs)
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
@@ -90,7 +92,7 @@ class Query:
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
-            compress_output=True if output_type == OutputType.GZ_TAR else False,
+            compress_output=True if output_type == OutputType.GZ_TAR and compress_output else False,
             database_name=database_name,
             database_version=database_version,
             custom_database_path=custom_database_path,
