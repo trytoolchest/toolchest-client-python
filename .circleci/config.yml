@@ -33,7 +33,7 @@ jobs:
   integration-tests:
     executor: python/default
     working_directory: ~/repo
-    parallelism: 2
+    parallelism: 4
     steps:
       - checkout
       - run:
@@ -58,7 +58,7 @@ jobs:
             shopt -u globstar
             poetry install
             mkdir -p test-results
-            poetry run pytest -v -m integration --junitxml=test-results/junit.xml $TESTFILES
+            poetry run pytest -v -m integration --durations=0 --junitxml=test-results/junit.xml $TESTFILES
           no_output_timeout: 1h
       - store_test_results:
           path: test-results
