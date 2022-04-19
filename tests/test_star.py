@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from tests.util import s3
+from tests.util import s3, hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -19,6 +19,7 @@ def test_star_grch38():
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}/"
     output_file_path = f"{output_dir_path}Aligned.out.sam"
+    filtered_output_file_path = f"{output_dir_path}Aligned.filtered.out.sam"
 
     s3.download_integration_test_input(
         s3_file_key="small_star_500k.fastq",
@@ -32,8 +33,14 @@ def test_star_grch38():
         database_name="GRCh38",
     )
 
-    # Because STAR is non-deterministic, verify that the number of bytes is in range
-    assert 185952744 <= os.path.getsize(output_file_path) <= 185952766
+    # Because STAR output contains run ID (non-deterministic), verify that the number of bytes is in range
+    assert 185952700 <= os.path.getsize(output_file_path) <= 185952900  # expected size 185952796
+
+    # Filter non-deterministic metadata lines
+    with open(filtered_output_file_path, "w") as outfile:
+        with open(output_file_path, "r") as infile:
+            outfile.writelines([line for line in infile if not line.startswith("@PG") and not line.startswith("@CO")])
+    assert hash.unordered(filtered_output_file_path) == 2099424598
 
 
 @pytest.mark.integration
@@ -61,7 +68,9 @@ def test_star_grch38_parallel():
         parallelize=True,
     )
 
-    # Because STAR is non-deterministic, verify that the number of bytes is in range
+    # Because STAR output contains run ID (non-deterministic), verify that the number of bytes is in range
+    # TODO: verify new file size with dockerized STAR after re-enabling parallelization
+    # TODO: add a hash test of output file without @PG and @CO lines
     assert 33292990718 <= os.path.getsize(output_file_path) <= 33292994718
 
 
@@ -90,8 +99,9 @@ def test_star_grch38_dangerous_arg():
         parallelize=True,  # this should be deliberately ignored
     )
 
-    # Because STAR is non-deterministic and BAMs are are compressed verify that the number of bytes is in range
-    assert 38236020 <= os.path.getsize(output_file_path) <= 38236040
+    # Because STAR output contains run ID (non-deterministic) and BAMs are compressed,
+    # verify that the number of bytes is in range
+    assert 38236000 <= os.path.getsize(output_file_path) <= 38236100  # expected size 38236044
 
     # Make sure all non-parallel files exist as well
     assert os.path.isfile(f"{output_dir_path}Log.final.out")
