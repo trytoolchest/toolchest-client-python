@@ -12,7 +12,6 @@ import threading
 import time
 
 import boto3
-from botocore.exceptions import ClientError
 import requests
 from requests.exceptions import HTTPError
 
@@ -270,8 +269,7 @@ class Query:
                         input_file_keys["object_name"],
                     )
                     self._update_file_size(input_file_keys["file_id"])
-                except ClientError as e:
-                    # todo: this isn't propagating as a failure
+                except Exception as e:
                     self._update_status_to_failed(
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
