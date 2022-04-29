@@ -13,7 +13,7 @@ import requests
 from requests.exceptions import HTTPError
 
 from toolchest_client.api.exceptions import ToolchestKeyError
-from toolchest_client.api.urls import BASE_URL
+from toolchest_client.api.urls import API_URL
 
 
 def get_key():
@@ -53,7 +53,7 @@ def validate_key():
     """Validates Toolchest API key, retrieved from get_key()."""
 
     validation_response = requests.get(
-        BASE_URL,
+        API_URL,
         headers=get_headers(),
     )
     try:
