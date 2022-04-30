@@ -29,7 +29,7 @@ def path_is_http_url(path):
     """
     try:
         get_http_url_file_size(get_url_with_protocol(path))
-    except (InvalidURL, HTTPError, InvalidSchema, LocationParseError, UnicodeError):
+    except (InvalidURL, HTTPError, InvalidSchema, LocationParseError, UnicodeError, Exception):
         return False
 
     return True

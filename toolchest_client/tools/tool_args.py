@@ -184,6 +184,144 @@ TOOL_ARG_LISTS = {
             "--auto": 0,
         }
     },
+    "diamond_blastp": {
+        "blacklist": [
+            "--query",  # handled via input param
+            "-q",  # handled via input param
+            # mode commands
+            "makedb",
+            "prepdb",
+            "blastp",
+            "blastx",
+            "view",
+            "version",
+            "dbinfo",
+            "help",
+            "test",
+            # Makedb options
+            "--in",
+            "--db",
+            "-d",
+            "--taxonmap",  # May need to be supported in future but requires file path
+            "--taxonnodes",  # May need to be supported in future but requires file path
+            "--taxonnames",  # May need to be supported in future but requires file path
+            # General options
+            "--threads",
+            "-p",
+            "--quiet",
+            "--verbose",
+            "-v",
+            "--log",
+            # Input options (unique ones only)
+            "--taxonlist",
+            "--seqidlist",  # Requires BLAST database
+            "--query-gencode",  # blastx param
+            # Alignment options (only listing a few for now)
+            "--iterate",  # runs through multiple sensitivities so will need to evaluate later
+            "--frameshift",
+            # Output options
+            "--out",
+            "-o",
+            "--compress",
+            "--max-target-seqs",  # increases output and changes algorithm
+            "-k",  # increases output and changes algorithm
+            "--max-hsps",  # reduce performance substantially
+            "--range-culling",  # requires frameshift
+            "--evalue",
+            "-e",
+            "--min-score",
+            "--id",  # this option reduces performance
+            "--query-cover",  # this option reduces performance
+            "--subject-cover",  # this option reduces performance
+        ],
+        "whitelist": {
+            "--fast": 0,
+            "--mid-sensitive": 0,
+            "--sensitive": 0,
+            "--more-sensitive": 0,
+            "--very-sensitive": 0,
+            "--ultra-sensitive": 0,
+            "--strand": 1,
+            "--min-orf": 1,
+            "-l": 1,
+            "--outfmt": 1,  # this does not allow mode 6 which requires varargs
+            "-f": 1,  # this does not allow mode 6 which requires varargs
+            "--salltitles": 0,
+            "--sallseqid": 0,
+            "--unal": 1,
+            "--no-self-hits": 0,
+        }
+    },
+    "diamond_blastx": {
+        "blacklist": [
+            "--query",  # handled via input param
+            "-q",  # handled via input param
+            # mode commands
+            "makedb",
+            "prepdb",
+            "blastp",
+            "blastx",
+            "view",
+            "version",
+            "dbinfo",
+            "help",
+            "test",
+            # Makedb options
+            "--in",
+            "--db",
+            "-d",
+            "--taxonmap",  # May need to be supported in future but requires file path
+            "--taxonnodes",  # May need to be supported in future but requires file path
+            "--taxonnames",  # May need to be supported in future but requires file path
+            # General options
+            "--threads",
+            "-p",
+            "--quiet",
+            "--verbose",
+            "-v",
+            "--log",
+            # Input options (unique ones only)
+            "--taxonlist",
+            "--seqidlist",  # Requires BLAST database
+            "--query-gencode",  # blastx param
+            # Alignment options (only listing a few for now)
+            "--iterate",  # runs through multiple sensitivities so will need to evaluate later
+            "--frameshift",
+            "--fast",
+            "--mid-sensitive",
+            "--sensitive",
+            "--more-sensitive",
+            "--very-sensitive",
+            "--ultra-sensitive",
+            # Output options
+            "--out",
+            "-o",
+            "--compress",
+            "--max-target-seqs",  # increases output and changes algorithm
+            "-k",  # increases output and changes algorithm
+            "--max-hsps",  # reduce performance substantially
+            "--range-culling",  # requires frameshift
+            "--min-score",
+            "--id",  # this option reduces performance
+            "--query-cover",  # this option reduces performance
+            "--subject-cover",  # this option reduces performance
+        ],
+        "whitelist": {
+            "--strand": 1,
+            "--min-orf": 1,
+            "-l": 1,
+            "--evalue": 1,
+            "-e": 1,
+            "--outfmt": VARIABLE_ARGS,
+            "-f": VARIABLE_ARGS,
+            "--salltitles": 0,
+            "--sallseqid": 0,
+            "--top": 1,
+            "--unal": 1,
+            "--no-self-hits": 0,
+            "--masking": 1
+        }
+    },
     "demucs": {
         "blacklist": [
             "tracks",
@@ -245,6 +383,29 @@ TOOL_ARG_LISTS = {
             "--kmin-1pass": 1,
             "--presets": 1,
             "--min-contig-len": 1,
+        },
+    },
+    "rapsearch2": {
+        "blacklist": [
+            "-q",
+            "-d",
+            "-o",
+            "-u",
+            "-z",
+        ],
+        "whitelist": {
+            "-s": 1,
+            "-e": 1,
+            "-i": 1,
+            "-l": 1,
+            "-v": 1,
+            "-b": 1,
+            "-t": 1,
+            "-p": 1,
+            "-g": 1,
+            "-a": 1,
+            "-w": 1,
+            "-x": 1,
         },
     },
     "shi7": {

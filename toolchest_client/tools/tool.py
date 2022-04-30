@@ -45,7 +45,8 @@ class Tool:
         self.output_primary_name = output_primary_name
         self.output_path = output_path
         if self._output_path_is_local():
-            self.output_path = output_path
+            # absolutize path, expand user tilde if present
+            self.output_path = os.path.abspath(os.path.expanduser(output_path))
         self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
@@ -88,11 +89,11 @@ class Tool:
                 self.input_files = [self.inputs]
             else:
                 # Input files are all .tar.gz'd together, preserving directory structure
-                self.input_files = [compress_files_in_path(self.inputs)]
+                self.input_files = [compress_files_in_path(os.path.expanduser(self.inputs))]
             self.num_input_files = 1
         else:
             # Input files are handled individually, destroying directory structure
-            self.input_files = files_in_path(self.inputs)
+            self.input_files = files_in_path(self.inputs)  # expands ~ in filepath if local
             self.num_input_files = len(self.input_files)
 
         if self.num_input_files < self.min_inputs:
@@ -199,8 +200,6 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if self._output_path_is_local() and self.output_path.startswith("~"):
-            raise OSError("Output file path must be an absolute path.")
         if not self.output_name:
             raise ValueError("Output name must be non-empty.")
 
@@ -210,8 +209,9 @@ class Tool:
 
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
+        output_dir = self.output_path if self.output_is_directory else os.path.dirname(self.output_path)
         for file_path in self.output_names + ["output", "output.tar.gz"]:
-            joined_file_path = os.path.join(self.output_path, file_path)
+            joined_file_path = os.path.join(output_dir, file_path)
             if os.path.exists(joined_file_path):
                 print(f"WARNING: {joined_file_path} already exists and will be overwritten")
 
@@ -247,7 +247,9 @@ class Tool:
                         output_file_path = f"{self.output_path}/{output_name}"
                         sanity_check(output_file_path)
                 else:
-                    sanity_check(self.output_path)
+                    for output_name in self.output_names:
+                        output_file_path = f"{os.path.dirname(self.output_path)}/{output_name}"
+                        sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.

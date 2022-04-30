@@ -23,8 +23,8 @@ def test_megahit_many_types():
     """
     test_dir = "test_megahit_many_types"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}final.contigs.fa"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/final.contigs.fa"
 
     toolchest.megahit(
         interleaved=[
@@ -55,8 +55,8 @@ def test_megahit_multiple_pairs():
     """
     test_dir = "test_megahit_two_pairs"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
-    output_file_path = f"{output_dir_path}final.contigs.fa"
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/final.contigs.fa"
 
     toolchest.megahit(
         read_one=[

@@ -69,7 +69,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
     # Note: Assumes that output_path is a directory if it does not exist.
     # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
     # but support for non-dir output_path will likely be deprecated.
-    output_path = os.path.abspath(output_path)
+    output_path = os.path.abspath(os.path.expanduser(output_path))
     if not os.path.exists(output_path) and output_type is None:
         if "." in os.path.basename(output_path):
             logging.warning(f"Creating {os.path.basename(output_path)} as a directory along path {output_path}")

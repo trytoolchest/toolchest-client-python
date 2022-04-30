@@ -5,8 +5,8 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from datetime import date
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, Kraken2, Megahit, Shi7, \
-    ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, DiamondBlastx, Demucs,\
+    Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -152,6 +152,62 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
         output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs diamond blastp via Toolchest.
+
+      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+        gzip compressed)
+      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
+        downloaded in the same directory as the out file
+      :param tool_args: Additional arguments to be passed to demucs.
+
+      Usage::
+
+          >>> import toolchest_client as toolchest
+          >>> toolchest.diamond_blastp(
+          ...     tool_args="",
+          ...     inputs="./path/to/input.fa",
+          ...     output_path="./path/to/output/out_file.tsv",
+          ... )
+
+      """
+    instance = DiamondBlastp(
+        inputs=inputs,
+        output_name='output.tar.gz',
+        output_path=output_path,
+        tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs diamond blastx via Toolchest.
+      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+        gzip compressed)
+      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
+        downloaded in the same directory as the out file
+      :param tool_args: Additional arguments to be passed to demucs.
+      Usage::
+          >>> import toolchest_client as toolchest
+          >>> toolchest.diamond_blastp(
+          ...     tool_args="",
+          ...     inputs="./path/to/input.fa",
+          ...     output_path="./path/to/output/out_file.tsv",
+          ... )
+      """
+    instance = DiamondBlastx(
+        inputs=inputs,
+        output_name='output.tar.gz',
+        output_path=output_path,
+        tool_args=tool_args,
         **kwargs,
     )
     output = instance.run()
@@ -316,6 +372,42 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     )
     output = instance.run()
     return output
+
+
+def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
+               tool_args="", **kwargs):
+    """Runs Rapsearch 2 via Toolchest.
+    :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
+    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
+    (Functions the same way as the "-o" tag for Rapsearch.)
+    :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
+    :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to standard DB.
+    :param database_version: (optional) Version of database to use for Rapsearch 2 alignment. Defaults to 1.
+    :type database_version: str
+    Usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.rapsearch(
+        ...     tool_args="",
+        ...     inputs="./path/to/input",
+        ...     output_path="./path/to/output/base",  # outputs
+        ... )
+    """
+
+    instance = Rapsearch2(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        database_name=database_name,
+        database_version=database_version,
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+# Adds rapsearch as an alias for rapsearch2
+rapsearch = rapsearch2
 
 
 def shi7(inputs, output_path=None, tool_args="", **kwargs):

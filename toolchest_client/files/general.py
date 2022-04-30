@@ -5,8 +5,8 @@ toolchest_client.files.general
 General file handling functions.
 """
 
-import shutil
 import os
+import shutil
 
 from .http import get_url_with_protocol, path_is_http_url, get_http_url_file_size
 from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
@@ -79,6 +79,9 @@ def files_in_path(files):
     # If it's an HTTP or HTTPS URL, treat it as a file
     if path_is_http_url(files):
         return [get_url_with_protocol(files)]
+
+    # Path is local, expand ~ in path if present
+    files = os.path.expanduser(files)
 
     # If it's a path to something that doesn't exist, error
     assert_exists(files, must_be_file=False)
