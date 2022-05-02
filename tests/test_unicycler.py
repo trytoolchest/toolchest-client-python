@@ -9,7 +9,6 @@ if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
 
-@pytest.mark.skip("Takes significant time to run and unicycler is not used in prod currently")
 @pytest.mark.integration
 def test_unicycler():
     """
