@@ -24,4 +24,4 @@ def test_bowtie2():
     )
 
     # Bowtie2 hash is non-deterministic but size is consistent between runs
-    assert os.path.getsize(f"{output_dir_path}bowtie2_output.sam") == 739943628
+    assert os.path.getsize(f"{output_dir_path}bowtie2_output.sam") == 1043855350
