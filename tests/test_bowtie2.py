@@ -19,9 +19,9 @@ def test_bowtie2():
     output_dir_path = f"./{test_dir}/"
 
     toolchest.bowtie2(
-        inputs="s3://toolchest-integration-tests/sample_r1.fastq.gz",
+        inputs="s3://toolchest-integration-tests/DRR000006.fastq.gz",
         output_path=output_dir_path,
     )
 
     # Bowtie2 hash is non-deterministic but size is consistent between runs
-    assert os.path.getsize(f"{output_dir_path}bowtie2_output.sam") == 739943628
+    assert os.path.getsize(f"{output_dir_path}bowtie2_output.sam") == 1043855350

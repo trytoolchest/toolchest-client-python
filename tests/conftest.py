@@ -8,4 +8,4 @@ def pytest_configure(config):
     file after command line options have been parsed.
     """
     if os.environ.get("DEPLOY_ENVIRONMENT") == "staging":
-        os.environ["BASE_URL"] = os.environ["TOOLCHEST_STAGING_URL"]
+        os.environ["TOOLCHEST_API_URL"] = os.environ["TOOLCHEST_STAGING_URL"]
