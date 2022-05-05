@@ -29,6 +29,7 @@ from toolchest_client.api.exceptions import ToolchestException, DataLimitError, 
     ToolchestDownloadError
 from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
+from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, diamond_blastp, diamond_blastx, demucs, kraken2,\
     megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
 

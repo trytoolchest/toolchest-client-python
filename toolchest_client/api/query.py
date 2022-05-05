@@ -19,7 +19,7 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
-from toolchest_client.api.urls import PIPELINE_SEGMENT_INSTANCES_URL
+from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url
 from .status import Status, ThreadStatus
 
@@ -42,7 +42,7 @@ class Query:
         if pipeline_segment_instance_id:
             self.PIPELINE_SEGMENT_INSTANCE_ID = pipeline_segment_instance_id
             self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
-                PIPELINE_SEGMENT_INSTANCES_URL,
+                get_pipeline_segment_instances_url(),
                 self.PIPELINE_SEGMENT_INSTANCE_ID,
             ])
             self.STATUS_URL = "/".join([
@@ -106,7 +106,7 @@ class Query:
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
         self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
-            PIPELINE_SEGMENT_INSTANCES_URL,
+            get_pipeline_segment_instances_url(),
             self.PIPELINE_SEGMENT_INSTANCE_ID
         ])
         self.STATUS_URL = "/".join([
@@ -162,7 +162,7 @@ class Query:
         }
 
         create_response = requests.post(
-            PIPELINE_SEGMENT_INSTANCES_URL,
+            get_pipeline_segment_instances_url(),
             headers=self.HEADERS,
             json=create_body,
         )
@@ -176,7 +176,7 @@ class Query:
 
     def _update_file_size(self, file_id):
         update_file_size_url = "/".join([
-            PIPELINE_SEGMENT_INSTANCES_URL,
+            get_pipeline_segment_instances_url(),
             'input-files',
             file_id,
             'update-file-size'
