@@ -47,4 +47,4 @@ Contact Toolchest if:
 -   you’ve forgotten your key
 -   the key is producing authentication errors.
 
-## Documentation & User Guide available at [Read the Docs](https://toolchest-python-client.readthedocs.io/en/latest/)
+## Documentation & User Guide available at [Readme.io](https://toolchest.readme.io/docs/getting-started)
