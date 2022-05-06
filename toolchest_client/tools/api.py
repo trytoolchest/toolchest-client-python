@@ -255,10 +255,10 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     :type database_version: str
     :param custom_database_path: (optional) Path to a custom database.
     This must be an AWS S3 URI accessible from Toolchest.
-    :param read_one: (optional) Path to read 1 of paired-read input files.
-    :param read_two: (optional) Path to read 2 of paired-read input files.
+    :param read_one: (optional) Path to read 1 of paired-end read input files.
+    :param read_two: (optional) Path to read 2 of paired-end read input files.
 
-    .. note:: Paired-read inputs can be provided either through `inputs` or
+    .. note:: Paired-end read inputs can be provided either through `inputs` or
      through `read_one` and `read_two`.
 
      If using `inputs`, use a list of two filepaths: `inputs=['/path/to/read_1', '/path_to/read_2']`
