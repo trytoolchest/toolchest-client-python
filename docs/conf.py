@@ -21,8 +21,8 @@ import toolchest_client as toolchest
 project = 'Python Client for Toolchest (Deprecated)'
 copyright = '2021, Toolchest Inc'
 author = 'Bryce Cai, Toolchest'
-version = toolchest.__version__
-release = toolchest.__version__
+version = '0.9'
+release = '0.9'
 
 
 # -- General configuration ---------------------------------------------------

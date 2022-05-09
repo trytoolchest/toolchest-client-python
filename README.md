@@ -29,7 +29,7 @@ toolchest.kraken2(
 )
 ```
 
-For a list of available tools, see the [documentation](https://toolchest.readme.io/docs/getting-started).
+For a list of available tools, see the [documentation](https://toolchest.readme.io).
 
 ## Configuration
 
@@ -47,4 +47,4 @@ Contact Toolchest if:
 -   you’ve forgotten your key
 -   the key is producing authentication errors.
 
-## Documentation & User Guide available at [Readme.io](https://toolchest.readme.io/docs/getting-started)
+## Documentation & User Guide available at [Readme.io](https://toolchest.readme.io)
