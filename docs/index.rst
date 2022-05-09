@@ -6,4 +6,4 @@
 Toolchest Client Documentation (Deprecated)
 =======================================================
 
-This documentation page has been deprecated. Visit `our new documentation page <https://toolchest.readme.io/>`.
+This documentation page has been deprecated. Visit `our new documentation page <https://toolchest.readme.io/>`_.
