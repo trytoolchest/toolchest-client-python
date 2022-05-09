@@ -248,7 +248,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
-    :param output_path: (optional) Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
