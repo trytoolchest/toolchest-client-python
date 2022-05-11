@@ -385,6 +385,11 @@ TOOL_ARG_LISTS = {
             "--min-contig-len": 1,
         },
     },
+    "python3": {
+        "whitelist": {
+            "*": VARIABLE_ARGS
+        }
+    },
     "rapsearch2": {
         "blacklist": [
             "-q",

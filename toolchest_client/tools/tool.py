@@ -125,6 +125,9 @@ class Tool:
         dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist", [])  # some tools have a dangerlist
         blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist", [])  # some tools have a blacklist
 
+        if (len(whitelist.keys()) == 1 and "*" in whitelist.keys()):
+            return
+
         sanitized_args = []  # arguments that are explicitly allowed
         unknown_args = []  # all arguments that were not included
         blacklisted_args = []  # arguments that are known to not work

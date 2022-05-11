@@ -4,9 +4,10 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+import os.path
 from datetime import date
 from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
-    Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+    Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -381,6 +382,32 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         tool_args=tool_args,
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+def python3(script, output_name, inputs=[], output_path=None, tool_args="", **kwargs):
+    """Runs Python3 via Toolchest.
+    :param script: Path to the python script to run
+    :param inputs: (optional) Path(s) to the input files  to run with the python script.
+    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Python3.
+    Usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.python3(
+        ...     script="./path/to/script.py",
+        ...     output_path="./path/to/output/base",  # outputs
+        ...     tool_args="",
+        ... )
+    """
+    inputs.append(script)
+    tool_args = 'input/' + os.path.basename(script) + tool_args
+    instance = Python3(
+        tool_args=tool_args,
+        output_name=output_name,
+        inputs=inputs,
         output_path=output_path,
         **kwargs,
     )
