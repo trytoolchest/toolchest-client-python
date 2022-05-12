@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.9.5"
+version = "0.9.6"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bcai@trytoolchest.com>",
@@ -10,7 +10,7 @@ license = "AGPL-3.0-only"
 readme = "README.md"
 homepage = "https://github.com/trytoolchest/toolchest-client-python"
 repository = "https://github.com/trytoolchest/toolchest-client-python"
-documentation = "https://toolchest-python-client.readthedocs.io/en/latest/"
+documentation = "https://docs.trytoolchest.com/"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
