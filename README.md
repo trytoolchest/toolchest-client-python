@@ -8,6 +8,8 @@ servers.
 This package contains the **Python** client for using Toolchest.
 For the **R** client, [see here](https://github.com/trytoolchest/toolchest-client-r).
 
+## [Documentation & User Guide](https://docs.trytoolchest.com/)
+
 ## Installation
 
 The Toolchest client is available [on PyPI](https://pypi.org/project/toolchest-client):
@@ -29,7 +31,7 @@ toolchest.kraken2(
 )
 ```
 
-For a list of available tools, see the [documentation](https://toolchest.readme.io).
+For a list of available tools, see the [documentation](https://docs.trytoolchest.com/).
 
 ## Configuration
 
@@ -46,5 +48,3 @@ Contact Toolchest if:
 -   you need a key
 -   you’ve forgotten your key
 -   the key is producing authentication errors.
-
-## Documentation & User Guide available at [Readme.io](https://toolchest.readme.io)
