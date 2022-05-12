@@ -1,9 +1,7 @@
 # Toolchest Python Client
 
-**Toolchest** provides APIs for scientific and bioinformatic data analysis.
-It allows you to abstract away the costliness of running tools on your
-own resources by running the same jobs on secure, powerful remote
-servers.
+**Toolchest** runs computational biology software in the cloud with just a few lines of code. 
+You can call Toolchest from anywhere Python or R runs, using input files located on your computer or S3.
 
 This package contains the **Python** client for using Toolchest.
 For the **R** client, [see here](https://github.com/trytoolchest/toolchest-client-r).
