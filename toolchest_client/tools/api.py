@@ -248,17 +248,17 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
-    :param output_path: (optional) Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
     :param custom_database_path: (optional) Path to a custom database.
     This must be an AWS S3 URI accessible from Toolchest.
-    :param read_one: (optional) Path to read 1 of paired-read input files.
-    :param read_two: (optional) Path to read 2 of paired-read input files.
+    :param read_one: (optional) Path to read 1 of paired-end read input files.
+    :param read_two: (optional) Path to read 2 of paired-end read input files.
 
-    .. note:: Paired-read inputs can be provided either through `inputs` or
+    .. note:: Paired-end read inputs can be provided either through `inputs` or
      through `read_one` and `read_two`.
 
      If using `inputs`, use a list of two filepaths: `inputs=['/path/to/read_1', '/path_to/read_2']`
