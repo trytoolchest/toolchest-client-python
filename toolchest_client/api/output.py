@@ -25,7 +25,7 @@ class Output:
     def __init__(self, s3_uri=None, output_path=None, run_id=None):
         self.s3_uri = s3_uri
         self.output_path = output_path
-        self.run_id = run_id,
+        self.run_id = run_id
 
     def __repr__(self):
         return str(self.__dict__)
