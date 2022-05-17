@@ -314,6 +314,7 @@ TOOL_ARG_LISTS = {
             "-l": 1,
             "--evalue": 1,
             "-e": 1,
+            "--max-target-seqs": 1,  # affects whether we can verify the output
             "--outfmt": VARIABLE_ARGS,
             "-f": VARIABLE_ARGS,
             "--salltitles": 0,
