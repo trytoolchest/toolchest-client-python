@@ -297,7 +297,6 @@ TOOL_ARG_LISTS = {
             "--out",
             "-o",
             "--compress",
-            "--max-target-seqs",  # increases output and changes algorithm
             "-k",  # increases output and changes algorithm
             "--max-hsps",  # reduce performance substantially
             "--range-culling",  # requires frameshift
@@ -306,12 +305,16 @@ TOOL_ARG_LISTS = {
             "--query-cover",  # this option reduces performance
             "--subject-cover",  # this option reduces performance
         ],
+        "dangerlist": [
+            "--max-target-seqs",  # changes the output, flagged by diamond / others as often unintentionally used
+        ],
         "whitelist": {
             "--strand": 1,
             "--min-orf": 1,
             "-l": 1,
             "--evalue": 1,
             "-e": 1,
+            "--max-target-seqs": 1,  # affects whether we can verify the output
             "--outfmt": VARIABLE_ARGS,
             "-f": VARIABLE_ARGS,
             "--salltitles": 0,
