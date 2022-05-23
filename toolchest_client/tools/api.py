@@ -376,13 +376,13 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
                tool_args="", **kwargs):
-    """Runs Rapsearch 2 via Toolchest.
+    """Runs RAPSearch2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
     :param output_path: (optional) Base path to where the output file(s) will be downloaded.
     (Functions the same way as the "-o" tag for Rapsearch.)
-    :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
-    :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to SeqScreen DB.
-    :param database_version: (optional) Version of database to use for Rapsearch 2 alignment. Defaults to 1.
+    :param tool_args: (optional) Additional arguments to be passed to RAPSearch2.
+    :param database_name: (optional) Name of database to use for RAPSearch2 alignment. Defaults to SeqScreen DB.
+    :param database_version: (optional) Version of database to use for RAPSearch2 alignment. Defaults to 1.
     :type database_version: str
     Usage::
         >>> import toolchest_client as toolchest
