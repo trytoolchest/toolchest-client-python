@@ -158,6 +158,35 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
+def demucs(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs demucs via Toolchest.
+
+    :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
+    :param output_path: (optional) Path where the output will be downloaded.
+    :param tool_args: Additional arguments to be passed to demucs.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.demucs(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.wav",
+        ...     output_path="./path/to/output/",
+        ... )
+
+    """
+
+    instance = Demucs(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     """Runs diamond blastp via Toolchest.
 
@@ -194,7 +223,7 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
         gzip compressed)
       :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
         downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to demucs.
+      :param tool_args: Additional arguments to be passed to diamond blastx.
       Usage::
           >>> import toolchest_client as toolchest
           >>> toolchest.diamond_blastp(
@@ -208,35 +237,6 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
         output_name='output.tar.gz',
         output_path=output_path,
         tool_args=tool_args,
-        **kwargs,
-    )
-    output = instance.run()
-    return output
-
-
-def demucs(inputs, output_path=None, tool_args="", **kwargs):
-    """Runs demucs via Toolchest.
-
-    :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
-    :param output_path: (optional) Path where the output will be downloaded.
-    :param tool_args: Additional arguments to be passed to demucs.
-
-    Usage::
-
-        >>> import toolchest_client as toolchest
-        >>> toolchest.demucs(
-        ...     tool_args="",
-        ...     inputs="./path/to/input.wav",
-        ...     output_path="./path/to/output/",
-        ... )
-
-    """
-
-    instance = Demucs(
-        tool_args=tool_args,
-        output_name='output.tar.gz',
-        inputs=inputs,
-        output_path=output_path,
         **kwargs,
     )
     output = instance.run()
