@@ -18,7 +18,7 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     :param max_template_date: (optional) Allows for predicting structure of protiens already in the database by setting
         a date before it was added in YYYY-MM-DD format. Will use today's date if not provided.
     :param use_reduced_dbs: (optional) Uses a smaller version of the BFD database that will reduce run time at the cost
-        result quality.
+        of result quality.
     :type is_prokaryote_list: (optional) takes a list of booleans that determine whether all input sequences in the
         given fasta file are prokaryotic. Expects the string that would normally input into AlphaFold (e.g. "true,true"
         if there are two prokaryote inputs)
@@ -165,7 +165,7 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
         gzip compressed)
       :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
         downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to demucs.
+      :param tool_args: Additional arguments to be passed to diamond blastp.
 
       Usage::
 
