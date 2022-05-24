@@ -5,7 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 from datetime import date
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, DiamondBlastp, DiamondBlastx, Demucs,\
+from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
     Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
@@ -18,7 +18,7 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     :param max_template_date: (optional) Allows for predicting structure of protiens already in the database by setting
         a date before it was added in YYYY-MM-DD format. Will use today's date if not provided.
     :param use_reduced_dbs: (optional) Uses a smaller version of the BFD database that will reduce run time at the cost
-        result quality.
+        of result quality.
     :type is_prokaryote_list: (optional) takes a list of booleans that determine whether all input sequences in the
         given fasta file are prokaryotic. Expects the string that would normally input into AlphaFold (e.g. "true,true"
         if there are two prokaryote inputs)
@@ -158,6 +158,35 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
+def demucs(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs demucs via Toolchest.
+
+    :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
+    :param output_path: (optional) Path where the output will be downloaded.
+    :param tool_args: Additional arguments to be passed to demucs.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.demucs(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.wav",
+        ...     output_path="./path/to/output/",
+        ... )
+
+    """
+
+    instance = Demucs(
+        tool_args=tool_args,
+        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     """Runs diamond blastp via Toolchest.
 
@@ -165,7 +194,7 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
         gzip compressed)
       :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
         downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to demucs.
+      :param tool_args: Additional arguments to be passed to diamond blastp.
 
       Usage::
 
@@ -194,7 +223,7 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
         gzip compressed)
       :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
         downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to demucs.
+      :param tool_args: Additional arguments to be passed to diamond blastx.
       Usage::
           >>> import toolchest_client as toolchest
           >>> toolchest.diamond_blastp(
@@ -208,35 +237,6 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
         output_name='output.tar.gz',
         output_path=output_path,
         tool_args=tool_args,
-        **kwargs,
-    )
-    output = instance.run()
-    return output
-
-
-def demucs(inputs, output_path=None, tool_args="", **kwargs):
-    """Runs demucs via Toolchest.
-
-    :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
-    :param output_path: (optional) Path where the output will be downloaded.
-    :param tool_args: Additional arguments to be passed to demucs.
-
-    Usage::
-
-        >>> import toolchest_client as toolchest
-        >>> toolchest.demucs(
-        ...     tool_args="",
-        ...     inputs="./path/to/input.wav",
-        ...     output_path="./path/to/output/",
-        ... )
-
-    """
-
-    instance = Demucs(
-        tool_args=tool_args,
-        output_name='output.tar.gz',
-        inputs=inputs,
-        output_path=output_path,
         **kwargs,
     )
     output = instance.run()
@@ -376,13 +376,13 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
                tool_args="", **kwargs):
-    """Runs Rapsearch 2 via Toolchest.
+    """Runs RAPSearch2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
     :param output_path: (optional) Base path to where the output file(s) will be downloaded.
     (Functions the same way as the "-o" tag for Rapsearch.)
-    :param tool_args: (optional) Additional arguments to be passed to Rapsearch 2.
-    :param database_name: (optional) Name of database to use for Rapsearch 2 alignment. Defaults to standard DB.
-    :param database_version: (optional) Version of database to use for Rapsearch 2 alignment. Defaults to 1.
+    :param tool_args: (optional) Additional arguments to be passed to RAPSearch2.
+    :param database_name: (optional) Name of database to use for RAPSearch2 alignment. Defaults to SeqScreen DB.
+    :param database_version: (optional) Version of database to use for RAPSearch2 alignment. Defaults to 1.
     :type database_version: str
     Usage::
         >>> import toolchest_client as toolchest
