@@ -379,7 +379,7 @@ def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", d
     """Runs RAPSearch2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
     :param output_path: (optional) Base path to where the output file(s) will be downloaded.
-    (Functions the same way as the "-o" tag for Rapsearch.)
+    (Functions the same way as the "-o" tag for RAPSearch2.)
     :param tool_args: (optional) Additional arguments to be passed to RAPSearch2.
     :param database_name: (optional) Name of database to use for RAPSearch2 alignment. Defaults to SeqScreen DB.
     :param database_version: (optional) Version of database to use for RAPSearch2 alignment. Defaults to 1.
