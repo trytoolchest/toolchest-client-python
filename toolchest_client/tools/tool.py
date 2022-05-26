@@ -14,6 +14,8 @@ import sys
 from threading import Thread
 import time
 
+import sentry_sdk
+
 from toolchest_client.api.auth import validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.output import Output
@@ -295,6 +297,7 @@ class Tool:
         if self.terminating:
             raise InterruptedError("Toolchest client force killed")
         self.terminating = True
+        sentry_sdk.set_tag('send_page', False)
         self._kill_query_threads()
         raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
 
