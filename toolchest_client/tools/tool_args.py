@@ -305,9 +305,6 @@ TOOL_ARG_LISTS = {
             "--query-cover",  # this option reduces performance
             "--subject-cover",  # this option reduces performance
         ],
-        "dangerlist": [
-            "--max-target-seqs",  # changes the output, flagged by diamond / others as often unintentionally used
-        ],
         "whitelist": {
             "--strand": 1,
             "--min-orf": 1,
