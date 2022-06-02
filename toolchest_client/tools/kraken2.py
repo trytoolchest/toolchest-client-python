@@ -4,15 +4,19 @@ toolchest_client.tools.kraken2
 
 This is the Kraken2 implementation of the Tool class.
 """
+import os.path
+
 from . import Tool
 from toolchest_client.files import OutputType
 from toolchest_client.files.s3 import path_is_s3_uri
+from .tool_args import TOOL_ARG_LISTS
 
 
 class Kraken2(Tool):
     """
     The Kraken2 implementation of the Tool class.
     """
+
     def __init__(self, tool_args, output_name, inputs, output_path,
                  database_name, database_version, custom_database_path, **kwargs):
         super().__init__(
