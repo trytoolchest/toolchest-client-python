@@ -52,7 +52,7 @@ def parse_tool(args):
                 print(f"Argument {arg} is being dropped as it is either not allowed or not recognized")
             i += 1
         k = Kraken2(tool_args, 'output.tar.gz', inputs, output_path, database_name, database_version,
-                      custom_database_path)
+                    custom_database_path)
         out = k.run()
         return out
 

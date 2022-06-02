@@ -4,12 +4,9 @@ toolchest_client.tools.kraken2
 
 This is the Kraken2 implementation of the Tool class.
 """
-import os.path
-
 from . import Tool
 from toolchest_client.files import OutputType
 from toolchest_client.files.s3 import path_is_s3_uri
-from .tool_args import TOOL_ARG_LISTS
 
 
 class Kraken2(Tool):
