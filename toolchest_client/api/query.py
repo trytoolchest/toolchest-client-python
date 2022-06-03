@@ -23,6 +23,7 @@ from toolchest_client.api.output import Output
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url
 from .status import Status, ThreadStatus
+from ..files.s3 import UploadTracker
 
 
 class Query:
@@ -268,6 +269,7 @@ class Query:
                         file_path,
                         input_file_keys["bucket"],
                         input_file_keys["object_name"],
+                        Callback=UploadTracker(file_path)
                     )
                     self._update_file_size(input_file_keys["file_id"])
                 except Exception as e:
