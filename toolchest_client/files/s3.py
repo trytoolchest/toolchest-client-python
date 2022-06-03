@@ -125,6 +125,7 @@ class UploadTracker:
             if percentage == 100.00:  # Adds newline at end of upload
                 print()
 
+
 class DownloadTracker:
     def __init__(self, client, bucket, object_name):
         self._filename = os.path.basename(object_name)
