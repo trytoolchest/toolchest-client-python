@@ -124,3 +124,24 @@ class UploadTracker:
             sys.stdout.flush()
             if percentage == 100.00:  # Adds newline at end of upload
                 print()
+
+class DownloadTracker:
+    def __init__(self, client, bucket, object_name):
+        self._filename = os.path.basename(object_name)
+        self._size = client.head_object(Bucket=bucket, Key=object_name)['ContentLength']
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        # To simplify we'll assume this is hooked up
+        # to a single filename.
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = round((self._seen_so_far / self._size) * 100, 2)
+            sys.stdout.write(
+                "\r%s  %s / %s bytes (%.2f%%)" % (
+                    self._filename, self._seen_so_far, self._size,
+                    percentage))
+            sys.stdout.flush()
+            if percentage == 100.00:  # Adds newline at end of upload
+                print()
