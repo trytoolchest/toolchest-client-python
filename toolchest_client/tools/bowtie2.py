@@ -13,13 +13,12 @@ class Bowtie2(Tool):
     """
     The bowtie2 implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, database_name,
+                 database_version, **kwargs):
         super().__init__(
             tool_name="bowtie2",
             tool_version="2.4.4",  # todo: allow bowtie2 version to be set by the user
             tool_args=tool_args,
-            output_name=output_name,
             output_path=output_path,
             inputs=inputs,
             min_inputs=1,
@@ -29,6 +28,6 @@ class Bowtie2(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=True,
-            output_names=["bowtie2.log", "bowtie2_output.sam"],
+            expected_output_file_names=["bowtie2.log", "bowtie2_output.sam"],
             **kwargs,
         )

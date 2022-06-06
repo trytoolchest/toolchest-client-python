@@ -28,7 +28,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 
 class Tool:
-    def __init__(self, tool_name, tool_version, tool_args, output_name,
+    def __init__(self, tool_name, tool_version, tool_args,
                  inputs, min_inputs, max_inputs=None, output_path=None,
                  output_primary_name=None, database_name=None,
                  database_version=None, custom_database_path=None,
@@ -37,13 +37,12 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, output_is_directory=True,
-                 output_names=None, is_async=False, skip_decompression=False):
+                 expected_output_file_names=None, is_async=False, skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
-        self.output_name = output_name
-        self.output_primary_name = output_primary_name
         self.output_path = output_path
+        self.output_primary_name = output_primary_name
         if self._output_path_is_local():
             # absolutize path, expand user tilde if present
             self.output_path = os.path.abspath(os.path.expanduser(output_path))
@@ -75,7 +74,7 @@ class Tool:
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
         self.thread_outputs = {}
-        self.output_names = output_names or []
+        self.expected_output_file_names = expected_output_file_names or []
         self.is_async = is_async
         self.skip_decompression = skip_decompression
         signal.signal(signal.SIGTERM, self._handle_termination)
@@ -200,8 +199,6 @@ class Tool:
 
         if self.inputs is None:
             raise ValueError("No input provided.")
-        if not self.output_name:
-            raise ValueError("Output name must be non-empty.")
 
     def _merge_outputs(self, output_file_paths):
         """Merges output files for parallel runs."""
@@ -210,7 +207,7 @@ class Tool:
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
         output_dir = self.output_path if self.output_is_directory else os.path.dirname(self.output_path)
-        for file_path in self.output_names + ["output", "output.tar.gz"]:
+        for file_path in self.expected_output_file_names + ["output", "output.tar.gz"]:
             joined_file_path = os.path.join(output_dir, file_path)
             if os.path.exists(joined_file_path):
                 print(f"WARNING: {joined_file_path} already exists and will be overwritten")
@@ -243,12 +240,12 @@ class Tool:
             if self.output_validation_enabled:
                 print("Checking output...")
                 if self.output_is_directory:
-                    for output_name in self.output_names:
-                        output_file_path = f"{self.output_path}/{output_name}"
+                    for output_file_name in self.expected_output_file_names:
+                        output_file_path = f"{self.output_path}/{output_file_name}"
                         sanity_check(output_file_path)
                 else:
-                    for output_name in self.output_names:
-                        output_file_path = f"{os.path.dirname(self.output_path)}/{output_name}"
+                    for output_file_name in self.expected_output_file_names:
+                        output_file_path = f"{os.path.dirname(self.output_path)}/{output_file_name}"
                         sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
@@ -407,8 +404,7 @@ class Tool:
         # Note that this is relying on a result from the generator, so these are slightly staggered
         temp_input_file_paths = []
         temp_output_file_paths = []
-        non_parallel_output_path = f"{self.output_path}/{self.output_name}" if self.output_is_directory \
-            and self._output_path_is_local() else self.output_path
+        non_parallel_output_path = self.output_path
         for thread_index, input_files in enumerate(jobs):
             # Add split files for merging and later deletion, if running in parallel
             # TODO: handle parallel output for s3 uri
@@ -425,6 +421,7 @@ class Tool:
             )
 
             # Deep copy to make thread safe
+            # Note: multithreaded download may be broken with output_path refactor
             query_args = copy.deepcopy({
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
@@ -432,7 +429,6 @@ class Tool:
                 "database_name": self.database_name,
                 "database_version": self.database_version,
                 "custom_database_path": self.custom_database_path,
-                "output_name": f"{thread_index}_{self.output_name}" if should_run_in_parallel else self.output_name,
                 "output_primary_name": self.output_primary_name,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,

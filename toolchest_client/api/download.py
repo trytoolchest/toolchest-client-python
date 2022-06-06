@@ -77,7 +77,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
 
     # If output_path is a directory, extract the filename from the target download.
     if os.path.isdir(output_path):
-        file_name = output_file_keys["file_name"]
+        file_name = os.path.basename(output_file_keys["object_name"])
         output_path = "/".join([output_path, file_name])
 
     try:
@@ -99,7 +99,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
 
     if skip_decompression:
         return output_path
-    unpacked_output_paths = _unpack_output(output_path, output_type=output_type)
+    unpacked_output_paths = _unpack_output(output_path, output_file_keys["is_compressed"])
     return unpacked_output_paths
 
 
@@ -125,24 +125,21 @@ def get_download_details(pipeline_segment_instance_id):
         "session_token": response_json.get('session_token'),
         "bucket": response_json.get('bucket'),
         "object_name": response_json.get('object_name'),
-        "file_name": response_json.get('file_name'),
+        "is_compressed": response_json.get('is_compressed'),
         "primary_name": response_json.get('primary_name'),
     }
     return output_s3_uri, output_file_keys
 
 
-def _unpack_output(compressed_output_path, output_type=None):
+def _unpack_output(compressed_output_path, is_compressed):
     """After downloading, unpack files if needed"""
-    if output_type is None:
-        output_type = get_file_type(compressed_output_path)
-
     try:
         unpacked_output_paths = unpack_files(
             file_path_to_unpack=compressed_output_path,
-            output_type=output_type,
+            is_compressed=is_compressed,
         )
     except Exception as err:
-        error_message = f"Failed to unpack file with type: {output_type}."
+        error_message = f"Failed to unpack file at {compressed_output_path}."
         if sys.platform == "win32":
             PATH_TOO_LONG_CODE = 206
             if isinstance(err, FileNotFoundError) and err.winerror == PATH_TOO_LONG_CODE:

@@ -14,14 +14,13 @@ class Rapsearch2(Tool):
     """
     The Rapsearch implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, database_name,
+                 database_version, **kwargs):
         output_primary_name = os.path.basename(output_path)
         super().__init__(
             tool_name="rapsearch2",
             tool_version="2.24",
             tool_args=tool_args,
-            output_name=output_name,
             output_primary_name=output_primary_name,
             output_path=output_path,
             inputs=inputs,
@@ -32,6 +31,6 @@ class Rapsearch2(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_is_directory=False,
-            output_names=[f"{output_primary_name}.m8"],  # .aln output may be omitted with certain args
+            expected_output_file_names=[f"{output_primary_name}.m8"],  # .aln output may be omitted with certain args
             **kwargs,
         )

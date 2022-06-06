@@ -12,13 +12,12 @@ class CellRangerCount(Tool):
     """
     The cellranger_count implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path,
-                 database_name, database_version, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, database_name,
+                 database_version, **kwargs):
         super().__init__(
             tool_name="cellranger_count",
             tool_version="6.1.2",  # todo: allow cellranger version to be set by the user
             tool_args=tool_args,
-            output_name=output_name,
             output_path=output_path,
             inputs=inputs,
             min_inputs=1,

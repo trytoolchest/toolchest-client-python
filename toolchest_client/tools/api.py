@@ -80,7 +80,6 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 
     instance = Bowtie2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -118,7 +117,6 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
 
     instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -149,7 +147,6 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = ClustalO(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -178,7 +175,6 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Demucs(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -208,7 +204,6 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
       """
     instance = DiamondBlastp(
         inputs=inputs,
-        output_name='output.tar.gz',
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
@@ -234,7 +229,6 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
       """
     instance = DiamondBlastx(
         inputs=inputs,
-        output_name='output.tar.gz',
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
@@ -299,7 +293,6 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
 
     instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -364,7 +357,6 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
     instance = Megahit(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
@@ -395,7 +387,6 @@ def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", d
 
     instance = Rapsearch2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         database_name=database_name,
         database_version=database_version,
         inputs=inputs,
@@ -430,7 +421,6 @@ def shi7(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -465,7 +455,6 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
 
     instance = ShogunAlign(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -502,7 +491,6 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
 
     instance = ShogunFilter(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -546,7 +534,7 @@ def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
-        output_name="Aligned.out.sam" if parallelize else "output.tar.gz",
+        output_primary_name="Aligned.out.sam" if parallelize else None,
         input_prefix_mapping={
             read_one: None,
             read_two: None,
@@ -581,7 +569,6 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -614,7 +601,6 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
 
     instance = Unicycler(
         tool_args=tool_args,
-        output_name="output.tar.gz",
         input_prefix_mapping={
             read_one: {"prefix": "-1"},
             read_two: {"prefix": "-2"},
