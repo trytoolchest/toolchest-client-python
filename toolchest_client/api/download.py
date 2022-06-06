@@ -20,7 +20,7 @@ from requests.exceptions import HTTPError
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestDownloadError
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
-from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
+from toolchest_client.files import get_params_from_s3_uri, unpack_files
 
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
