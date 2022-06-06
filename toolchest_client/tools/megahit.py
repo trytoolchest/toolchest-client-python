@@ -38,8 +38,8 @@ class Megahit(Tool):
 
     def _postflight(self, output):
         if self.output_validation_enabled:
-            for output_name in self.expected_output_file_names:
+            for output_file_name in self.expected_output_file_names:
                 # Skip validation for the "done" file, which should be empty.
-                if output_name != "done":
-                    output_file_path = f"{self.output_path}/{output_name}"
+                if output_file_name != "done":
+                    output_file_path = f"{self.output_path}/{output_file_name}"
                     sanity_check(output_file_path)
