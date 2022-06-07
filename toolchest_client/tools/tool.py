@@ -206,9 +206,8 @@ class Tool:
 
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
-        output_dir = self.output_path if self.output_is_directory else os.path.dirname(self.output_path)
         for file_path in self.expected_output_file_names + ["output", "output.tar.gz"]:
-            joined_file_path = os.path.join(output_dir, file_path)
+            joined_file_path = os.path.join(self.output_path, file_path)
             if os.path.exists(joined_file_path):
                 print(f"WARNING: {joined_file_path} already exists and will be overwritten")
 
@@ -220,18 +219,13 @@ class Tool:
         # Check if the given output_path is a directory, if required by the tool
         # and if the user provides output_path.
         if self._output_path_is_local():
-            if self.output_is_directory:
-                if os.path.exists(self.output_path):
-                    if os.path.isfile(self.output_path):
-                        raise ValueError(
-                            f"{self.output_path} is a file. Please pass a directory instead of an output file."
-                        )
-                else:
-                    os.makedirs(self.output_path, exist_ok=True)
-                self._warn_if_outputs_exist()
+            if os.path.exists(self.output_path):
+                if os.path.isfile(self.output_path):
+                    raise ValueError(
+                        f"{self.output_path} is a file. Please pass a directory instead of an output file."
+                    )
             else:
-                os.makedirs(os.path.dirname(self.output_path), exist_ok=True)
-
+                os.makedirs(self.output_path, exist_ok=True)
             self._warn_if_outputs_exist()
 
     def _postflight(self, output):
@@ -239,14 +233,9 @@ class Tool:
         if self._output_path_is_local() and not self.is_async:
             if self.output_validation_enabled:
                 print("Checking output...")
-                if self.output_is_directory:
-                    for output_file_name in self.expected_output_file_names:
-                        output_file_path = f"{self.output_path}/{output_file_name}"
-                        sanity_check(output_file_path)
-                else:
-                    for output_file_name in self.expected_output_file_names:
-                        output_file_path = f"{os.path.dirname(self.output_path)}/{output_file_name}"
-                        sanity_check(output_file_path)
+                for output_file_name in self.expected_output_file_names:
+                    output_file_path = f"{self.output_path}/{output_file_name}"
+                    sanity_check(output_file_path)
 
     def _system_supports_parallel_execution(self):
         """Checks if parallel execution is supported on the platform.
