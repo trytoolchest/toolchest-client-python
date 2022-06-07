@@ -4,8 +4,6 @@ toolchest_client.tools.rapsearch
 
 This is the Rapsearch implementation of the Tool class.
 """
-import os
-
 from . import Tool
 from toolchest_client.files import OutputType
 

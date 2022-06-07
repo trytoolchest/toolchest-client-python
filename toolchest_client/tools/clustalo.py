@@ -4,8 +4,6 @@ toolchest_client.tools.clustalo
 
 This is the Clustal Omega implementation of the Tool class.
 """
-import os
-
 from . import Tool
 from toolchest_client.files import OutputType
 

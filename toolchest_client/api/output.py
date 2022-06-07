@@ -45,7 +45,7 @@ class Output:
     def download(self, output_dir=None, output_path=None, skip_decompression=False):
         if not output_path:
             output_path = output_dir  # backwards compatibility for old calls
-            
+
         self.output_path = download(
             output_path=output_path,
             s3_uri=self.s3_uri,

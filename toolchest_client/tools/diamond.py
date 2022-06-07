@@ -4,8 +4,6 @@ toolchest_client.tools.Diamond
 
 This is the Diamond implementation of the Tool class.
 """
-import os
-
 from toolchest_client.files import OutputType
 from . import Tool
 
