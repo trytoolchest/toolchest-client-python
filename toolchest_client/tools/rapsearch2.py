@@ -14,9 +14,8 @@ class Rapsearch2(Tool):
     """
     The Rapsearch implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, output_path, database_name,
-                 database_version, **kwargs):
-        output_primary_name = os.path.basename(output_path)
+    def __init__(self, tool_args, inputs, output_path, output_primary_name,
+                 database_name, database_version, **kwargs):
         super().__init__(
             tool_name="rapsearch2",
             tool_version="2.24",

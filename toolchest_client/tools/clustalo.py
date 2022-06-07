@@ -14,8 +14,7 @@ class ClustalO(Tool):
     """
     The Clustal Omega implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, output_path, **kwargs):
-        output_primary_name = os.path.basename(output_path)
+    def __init__(self, tool_args, inputs, output_path, output_primary_name, **kwargs):
         super().__init__(
             tool_name="clustalo",
             tool_version='1.2.4',

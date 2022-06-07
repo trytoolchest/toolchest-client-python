@@ -14,8 +14,7 @@ class DiamondBlastp(Tool):
     """
     The Diamond Blastp implementation of the Tool class.
     """
-    def __init__(self, inputs, output_path, tool_args, **kwargs):
-        output_primary_name = os.path.basename(output_path)
+    def __init__(self, inputs, output_path, output_primary_name, tool_args, **kwargs):
         super().__init__(
             tool_name="diamond_blastp",
             tool_version="2.0.14",
@@ -39,8 +38,7 @@ class DiamondBlastx(Tool):
     """
     The Diamond Blastx implementation of the Tool class.
     """
-    def __init__(self, inputs, output_path, tool_args, **kwargs):
-        output_primary_name = os.path.basename(output_path)
+    def __init__(self, inputs, output_path, output_primary_name, tool_args, **kwargs):
         super().__init__(
             tool_name="diamond_blastx",
             tool_version="2.0.13",
