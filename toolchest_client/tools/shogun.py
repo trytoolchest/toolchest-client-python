@@ -26,7 +26,6 @@ class ShogunAlign(Tool):
             database_version=database_version,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=["alignment.bowtie2.sam"],
             **kwargs,
         )
@@ -50,7 +49,6 @@ class ShogunFilter(Tool):
             database_version=database_version,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=["combined_seqs.filtered.fna", "alignment.burst.best.b6"],
             **kwargs,
         )

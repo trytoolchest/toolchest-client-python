@@ -23,7 +23,6 @@ class Demucs(Tool):
             max_inputs=1,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=["error.log", "output.log"],
             **kwargs,
         )

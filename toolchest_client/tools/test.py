@@ -25,7 +25,6 @@ class Test(Tool):
             max_input_bytes_per_file=256 * 1024 * 1024 * 1024,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=["test_output.txt"],
             **kwargs,
         )

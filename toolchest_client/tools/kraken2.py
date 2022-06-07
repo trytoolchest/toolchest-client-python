@@ -29,7 +29,6 @@ class Kraken2(Tool):
             max_input_bytes_per_file=64 * 1024 * 1024 * 1024,
             parallel_enabled=False,
             output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=["kraken2_output.txt", "kraken2_report.txt"],
             **kwargs,
         )

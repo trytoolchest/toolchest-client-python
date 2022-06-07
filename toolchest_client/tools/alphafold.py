@@ -25,6 +25,5 @@ class AlphaFold(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
-            output_is_directory=True,
             **kwargs,
         )

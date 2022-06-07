@@ -24,7 +24,6 @@ class ClustalO(Tool):
             max_inputs=1,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=[output_primary_name, f"{output_primary_name}.log"],
             **kwargs,
         )

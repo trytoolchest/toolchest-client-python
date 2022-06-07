@@ -27,6 +27,5 @@ class CellRangerCount(Tool):
             compress_inputs=True,
             max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             **kwargs,
         )

@@ -36,8 +36,8 @@ class Tool:
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
-                 output_type=OutputType.FLAT_TEXT, output_is_directory=True,
-                 expected_output_file_names=None, is_async=False, skip_decompression=False):
+                 output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
+                 is_async=False, skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -46,7 +46,6 @@ class Tool:
         if self._output_path_is_local():
             # absolutize path, expand user tilde if present
             self.output_path = os.path.abspath(os.path.expanduser(output_path))
-        self.output_is_directory = output_is_directory
         self.inputs = inputs
         # input_prefix_mapping is a dict in the shape of:
         # {
@@ -181,7 +180,6 @@ class Tool:
             # Disable parallelization, validation, and revert to plain compressed output
             self.output_validation_enabled = False
             self.parallel_enabled = False
-            self.output_is_directory = True
             self.output_type = OutputType.GZ_TAR
 
         sanitized_args = " ".join(sanitized_args)

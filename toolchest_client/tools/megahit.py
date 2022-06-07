@@ -25,7 +25,6 @@ class Megahit(Tool):
             max_inputs=None,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=[
                 "checkpoints.txt",
                 "done",

@@ -27,7 +27,6 @@ class Rapsearch2(Tool):
             database_version=database_version,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
-            output_is_directory=True,
             expected_output_file_names=[f"{output_primary_name}.m8"],  # .aln output may be omitted with certain args
             **kwargs,
         )
