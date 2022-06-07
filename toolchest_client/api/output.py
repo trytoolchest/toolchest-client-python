@@ -42,8 +42,10 @@ class Output:
     def set_output_path(self, output_path):
         self.output_path = output_path
 
-    def download(self, output_dir=None, output_path=None, skip_decompression=False):
+    def download(self, output_path=None, output_dir=None, skip_decompression=False):
         if not output_path:
+            if not output_dir:
+                raise ValueError("Output destination directory (output_path) must be specified.")
             output_path = output_dir  # backwards compatibility for old calls
 
         self.output_path = download(
