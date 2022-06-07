@@ -93,6 +93,7 @@ workflows:
               only:
                 - main
                 - staging
+                - fix/standardize-output-path
   deploy:
     jobs:
       - deploy-to-pypi:
