@@ -1,9 +1,6 @@
-import os
-
 import sentry_sdk
 import typer
 
-import toolchest_client as toolchest
 import toolchest_client.cli.kraken2 as kraken2
 import toolchest_client.cli.test as test
 

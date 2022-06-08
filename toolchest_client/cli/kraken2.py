@@ -73,7 +73,7 @@ def kraken2(
         print('Dropping --threads as Toolchest manages performance for you')
     database_name, database_version = verify_kraken2_db(db)
     custom_database_path = db if db.startswith('s3://') else None
-    output_path = os.path.abspath(os.path.dirname(report))
+    output_path = None if report is None else os.path.abspath(os.path.dirname(report))
     kraken2_instance = Kraken2(
         tool_args=tool_args,
         output_name='output.tar.gz',
