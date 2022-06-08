@@ -3,13 +3,12 @@ import os
 import sentry_sdk
 import typer
 
-import kraken2
-import test
 import toolchest_client as toolchest
+import toolchest_client.cli.kraken2 as kraken2
+import toolchest_client.cli.test as test
 
-os.environ["BASE_URL"] = "https://api.toolche.st"
+
 sentry_sdk.set_tag('send_page', False)
-toolchest.set_key("ZjVhMmE.NDA1MTRhMzMtMTMyZC00YmU4LWE2NzEtZDFhYThiNzRiZGJj")
 
 app = typer.Typer()
 
