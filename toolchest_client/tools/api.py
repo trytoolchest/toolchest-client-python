@@ -141,7 +141,9 @@ def clustalo(inputs, output_path=None, output_primary_name=None, tool_args="", *
         >>> toolchest.clustalo(
         ...     tool_args="",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output.fasta",
+        ...     output_path="./path/to/output",
+        ...     output_primary_name="output.fasta",
+        ...     # primary output file will be downloaded to ./path/to/output/output.fasta
         ... )
 
     """
