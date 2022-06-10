@@ -33,9 +33,6 @@ from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, diamond_blastx, kraken2,\
     megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
 
-os.environ["BASE_URL"] = "https://staging.api.toolche.st"
-os.environ["DEPLOY_ENVIRONMENT"] = "local"
-
 sentry_sdk.init(
     "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
 
