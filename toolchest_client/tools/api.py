@@ -64,7 +64,7 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded
 
     Usage::
 
@@ -80,7 +80,6 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 
     instance = Bowtie2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -118,7 +117,6 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
 
     instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -129,11 +127,12 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
     return output
 
 
-def clustalo(inputs, output_path=None, tool_args="", **kwargs):
+def clustalo(inputs, output_path=None, output_primary_name=None, tool_args="", **kwargs):
     """Runs Clustal Omega via Toolchest.
 
     :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_primary_name: (optional) Base name of output file.
     :param tool_args: Additional arguments to be passed to Clustal Omega.
 
     Usage::
@@ -142,16 +141,18 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
         >>> toolchest.clustalo(
         ...     tool_args="",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output.fasta",
+        ...     output_path="./path/to/output",
+        ...     output_primary_name="output.fasta",
+        ...     # primary output file will be downloaded to ./path/to/output/output.fasta
         ... )
 
     """
 
     instance = ClustalO(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
@@ -162,7 +163,7 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
     """Runs demucs via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
-    :param output_path: (optional) Path where the output will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: Additional arguments to be passed to demucs.
 
     Usage::
@@ -178,7 +179,6 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Demucs(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -187,13 +187,14 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
-def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
+def diamond_blastp(inputs, output_path=None, output_primary_name="out_file.tsv", tool_args="", **kwargs):
     """Runs diamond blastp via Toolchest.
 
       :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
         gzip compressed)
-      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
-        downloaded in the same directory as the out file
+      :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+        Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+      :param output_primary_name: (optional) Base name of output file.
       :param tool_args: Additional arguments to be passed to diamond blastp.
 
       Usage::
@@ -202,14 +203,15 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
           >>> toolchest.diamond_blastp(
           ...     tool_args="",
           ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/out_file.tsv",
+          ...     output_path="./path/to/output/",
+          ...     output_primary_name="out_file.tsv",
           ... )
 
       """
     instance = DiamondBlastp(
         inputs=inputs,
-        output_name='output.tar.gz',
         output_path=output_path,
+        output_primary_name=output_primary_name,
         tool_args=tool_args,
         **kwargs,
     )
@@ -217,25 +219,29 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
-def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
+def diamond_blastx(inputs, output_path=None, output_primary_name="out_file.tsv", tool_args="", **kwargs):
     """Runs diamond blastx via Toolchest.
       :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
         gzip compressed)
-      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
-        downloaded in the same directory as the out file
+      :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+        Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+      :param output_primary_name: (optional) Base name of output file.
       :param tool_args: Additional arguments to be passed to diamond blastx.
       Usage::
+
           >>> import toolchest_client as toolchest
-          >>> toolchest.diamond_blastp(
+          >>> toolchest.diamond_blastx(
           ...     tool_args="",
           ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/out_file.tsv",
+          ...     output_path="./path/to/output/",
+          ...     output_primary_name="out_file.tsv",
           ... )
+
       """
     instance = DiamondBlastx(
         inputs=inputs,
-        output_name='output.tar.gz',
         output_path=output_path,
+        output_primary_name=output_primary_name,
         tool_args=tool_args,
         **kwargs,
     )
@@ -299,7 +305,6 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
 
     instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -315,7 +320,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
             single_end=None, **kwargs):
     """Runs Megahit via Toolchest.
 
-    :param output_path: (optional) Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Megahit.
     :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
     :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
@@ -364,7 +369,6 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
     instance = Megahit(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
@@ -374,12 +378,13 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
-               tool_args="", **kwargs):
+def rapsearch2(inputs, output_path=None, output_primary_name="output", database_name="rapsearch2_seqscreen",
+               database_version="1", tool_args="", **kwargs):
     """Runs RAPSearch2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
-    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
-    (Functions the same way as the "-o" tag for Rapsearch.)
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Base name of output file(s).
+    (Functions the same way as the "-o" tag for RAPSearch2, in combination with `output_path`.)
     :param tool_args: (optional) Additional arguments to be passed to RAPSearch2.
     :param database_name: (optional) Name of database to use for RAPSearch2 alignment. Defaults to SeqScreen DB.
     :param database_version: (optional) Version of database to use for RAPSearch2 alignment. Defaults to 1.
@@ -389,17 +394,19 @@ def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", d
         >>> toolchest.rapsearch(
         ...     tool_args="",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output/base",  # outputs
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="base"
+        ...     # full base output path (-o flag) is ./path/to/output/base
         ... )
     """
 
     instance = Rapsearch2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         database_name=database_name,
         database_version=database_version,
         inputs=inputs,
         output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
@@ -415,7 +422,7 @@ def shi7(inputs, output_path=None, tool_args="", **kwargs):
 
     :param tool_args: (optional) Additional arguments to be passed to shi7.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -430,7 +437,6 @@ def shi7(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -448,7 +454,7 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -465,7 +471,6 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
 
     instance = ShogunAlign(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -485,7 +490,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -502,7 +507,6 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
 
     instance = ShogunFilter(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -523,7 +527,7 @@ def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1
     :param tool_args: (optional) Additional arguments to be passed to STAR.
     :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
     :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param parallelize: (optional) Allow parallelization of STAR if needed.
 
     .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
@@ -546,7 +550,7 @@ def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
-        output_name="Aligned.out.sam" if parallelize else "output.tar.gz",
+        output_primary_name="Aligned.out.sam" if parallelize else None,
         input_prefix_mapping={
             read_one: None,
             read_two: None,
@@ -567,7 +571,7 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
 
     Usage::
 
@@ -581,7 +585,6 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -597,7 +600,7 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param long_reads: (optional) Path to the file containing long reads.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
 
     Usage::
 
@@ -614,7 +617,6 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
 
     instance = Unicycler(
         tool_args=tool_args,
-        output_name="output.tar.gz",
         input_prefix_mapping={
             read_one: {"prefix": "-1"},
             read_two: {"prefix": "-2"},

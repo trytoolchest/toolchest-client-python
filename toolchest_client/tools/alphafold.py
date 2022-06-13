@@ -17,7 +17,6 @@ class AlphaFold(Tool):
             tool_name="alphafold",
             tool_version="2.1.2",
             tool_args=tool_args,
-            output_name='output.tar.gz',
             inputs=inputs,
             min_inputs=1,
             max_inputs=1,
@@ -26,6 +25,5 @@ class AlphaFold(Tool):
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
-            output_is_directory=True,
             **kwargs,
         )
