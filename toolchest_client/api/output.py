@@ -42,9 +42,14 @@ class Output:
     def set_output_path(self, output_path):
         self.output_path = output_path
 
-    def download(self, output_dir, skip_decompression=False):
+    def download(self, output_path=None, output_dir=None, skip_decompression=False):
+        if not output_path:
+            if not output_dir:
+                raise ValueError("Output destination directory (output_path) must be specified.")
+            output_path = output_dir  # backwards compatibility for old calls
+
         self.output_path = download(
-            output_path=output_dir,
+            output_path=output_path,
             s3_uri=self.s3_uri,
             run_id=self.run_id,
             skip_decompression=skip_decompression,
