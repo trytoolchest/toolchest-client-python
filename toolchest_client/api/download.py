@@ -21,6 +21,7 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestDownloadError
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import get_params_from_s3_uri, unpack_files
+from toolchest_client.files.s3 import DownloadTracker
 
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
@@ -82,6 +83,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
             output_file_keys["bucket"],
             output_file_keys["object_name"],
             output_file_path,
+            Callback=DownloadTracker(s3_client, output_file_keys["bucket"], output_file_keys["object_name"])
         )
     except ClientError as err:
         # TODO: output more detailed error message if write error encountered

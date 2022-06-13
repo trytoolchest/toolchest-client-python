@@ -311,6 +311,17 @@ class Tool:
     def _wait_for_threads_to_finish(self, check_health=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
         elapsed_seconds = 0
+        uploading = True
+        while uploading:
+            statuses = []
+            for thread in self.query_threads:
+                thread_name = thread.getName()
+                statuses.append(self.query_thread_statuses.get(thread_name))
+            uploading = all(
+                map(lambda status: status not in [ThreadStatus.UPLOADING, ThreadStatus.INITIALIZED], statuses)
+            )
+            time.sleep(5)
+        print("Finished spawning jobs.")
         for thread in self.query_threads:
             increment_seconds = 5
             while thread.is_alive():
@@ -435,9 +446,6 @@ class Tool:
 
             print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
-            time.sleep(5)
-
-        print("Finished spawning jobs.")
 
         self._wait_for_threads_to_finish()
 
