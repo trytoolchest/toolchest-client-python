@@ -37,6 +37,8 @@ class Query:
     WAIT_FOR_JOB_DELAY = 1
     # Multiple of seconds used when pretty printing job status to output.
     PRINTED_TIME_INTERVAL = 5
+    # Max number of retries on status check timeouts.
+    RETRY_STATUS_CHECK_LIMIT = 5
 
     def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None):
         self.HEADERS = dict()
@@ -55,6 +57,8 @@ class Query:
         self.thread_name = ''
         self.thread_statuses = None
         self.is_async = is_async
+
+        self.status_check_retries = 0
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
@@ -348,10 +352,15 @@ class Query:
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-            status_response = self.get_job_status(return_error=True)
-            status = status_response['status']
-            if status == Status.FAILED:
-                raise ToolchestJobError(status_response['error_message'])
+            try:
+                status_response = self.get_job_status(return_error=True)
+                status = status_response['status']
+                if status == Status.FAILED:
+                    raise ToolchestJobError(status_response['error_message'])
+            except TimeoutError as err:
+                self.status_check_retries += 1
+                if self.status_check_retries > self.RETRY_STATUS_CHECK_LIMIT:
+                    raise ToolchestJobError("Status check timed out during execution, retry limit exceeded.") from err
 
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
