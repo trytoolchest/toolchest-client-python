@@ -121,7 +121,7 @@ class UploadTracker:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
             print(
-                "\r{}  {} / {} bytes ({:.2f}%%)".format(
+                "\r{}  {} / {} bytes ({:.2f}%)".format(
                     self._filename,
                     self._seen_so_far,
                     self._size,
@@ -147,7 +147,7 @@ class DownloadTracker:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
             print(
-                "\r{}  {} / {} bytes ({:.2f}%%)".format(
+                "\r{}  {} / {} bytes ({:.2f}%)".format(
                     self._filename,
                     self._seen_so_far,
                     self._size,
