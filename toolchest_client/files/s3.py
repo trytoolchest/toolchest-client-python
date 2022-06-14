@@ -107,7 +107,10 @@ def inputs_are_in_s3(input_paths):
 class UploadTracker:
     def __init__(self, file_path):
         self._filename = os.path.basename(file_path)
-        self._size = float(os.path.getsize(file_path))
+        if path_is_s3_uri(file_path):
+            self._size = get_s3_file_size(file_path)
+        else:
+            self._size = float(os.path.getsize(file_path))
         self._seen_so_far = 0
         self._lock = threading.Lock()
 
@@ -117,11 +120,15 @@ class UploadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            sys.stdout.write(
-                "\r%s  %s / %s bytes (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
-            sys.stdout.flush()
+            print(
+                "\r{}  {} / {} bytes ({:.2f}%%)".format(
+                    self._filename,
+                    self._seen_so_far,
+                    self._size,
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                flush=True
+            )
             if percentage == 100.00:  # Adds newline at end of upload
                 print()
 
@@ -139,10 +146,14 @@ class DownloadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            sys.stdout.write(
-                "\r%s  %s / %s bytes (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
-            sys.stdout.flush()
-            if percentage == 100.00:  # Adds newline at end of upload
+            print(
+                "\r{}  {} / {} bytes ({:.2f}%%)".format(
+                    self._filename,
+                    self._seen_so_far,
+                    self._size,
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                flush=True
+            )
+            if percentage == 100.00:  # Adds newline at end of download
                 print()
