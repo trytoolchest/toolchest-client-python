@@ -123,7 +123,8 @@ class UploadTracker:
                     self._size,
                     percentage
                 ).ljust(100),  # pads right end with spaces to flush carriage return
-                flush=True
+                end="",
+                flush=True,
             )
             if percentage == 100.00:  # Adds newline at end of upload
                 print()
@@ -149,7 +150,8 @@ class DownloadTracker:
                     self._size,
                     percentage
                 ).ljust(100),  # pads right end with spaces to flush carriage return
-                flush=True
+                end="",
+                flush=True,
             )
             if percentage == 100.00:  # Adds newline at end of download
                 print()
