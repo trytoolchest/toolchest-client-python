@@ -138,7 +138,7 @@ class UploadTracker:
                 flush=True,
             )
             if percentage == 100.00:  # Adds newline at end of upload
-                print()
+                print(flush=True)
 
 
 class DownloadTracker:
@@ -165,4 +165,4 @@ class DownloadTracker:
                 flush=True,
             )
             if percentage == 100.00:  # Adds newline at end of download
-                print()
+                print(flush=True)

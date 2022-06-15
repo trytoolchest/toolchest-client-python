@@ -17,9 +17,9 @@ def test_shogun_filter_and_align():
 
     test_dir = "./test_shogun_filter_and_align"
     os.makedirs(f"{test_dir}", exist_ok=True)
-    input_file_path = f"./{test_dir}/combined_seqs_unfiltered.fna"
-    output_file_path_filter = f"./{test_dir}/combined_seqs.filtered.fna"
-    output_file_path_align = f"./{test_dir}/alignment.bowtie2.sam"
+    input_file_path = f"{test_dir}/combined_seqs_unfiltered.fna"
+    output_file_path_filter = f"{test_dir}/combined_seqs.filtered.fna"
+    output_file_path_align = f"{test_dir}/alignment.bowtie2.sam"
 
     s3.download_integration_test_input(
         s3_file_key="combined_seqs_unfiltered.fna",

@@ -270,7 +270,7 @@ class Tool:
         # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
         max_length = 120
         status_message = f"\r{job_count} | {jobs_duration} {status_count}"
-        print(f"{status_message}{(max_length - len(status_message)) * ' '}", end="\r")
+        print(f"{status_message}".ljust(max_length), end="\r")
 
     def _handle_termination(self, signal_number, *_):
         """
@@ -318,7 +318,8 @@ class Tool:
                 thread_name = thread.getName()
                 statuses.append(self.query_thread_statuses.get(thread_name))
             uploading = any(
-                map(lambda status: status in [ThreadStatus.INITIALIZED, ThreadStatus.UPLOADING], statuses)
+                map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
+                                              ThreadStatus.UPLOADING], statuses)
             )
             time.sleep(5)
         print("Finished spawning jobs.")
@@ -443,6 +444,7 @@ class Tool:
 
             new_thread = Thread(target=q.run_query, kwargs=query_args)
             self.query_threads.append(new_thread)
+            self.query_thread_statuses[new_thread.getName()] = ThreadStatus.INITIALIZING
 
             print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
