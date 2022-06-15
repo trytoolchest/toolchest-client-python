@@ -103,14 +103,10 @@ def inputs_are_in_s3(input_paths):
     return [path_is_s3_uri(file_path) for file_path in input_paths]
 
 
-# Slightly modified from https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html
 class UploadTracker:
     def __init__(self, file_path):
         self._filename = os.path.basename(file_path)
-        if path_is_s3_uri(file_path):
-            self._size = get_s3_file_size(file_path)
-        else:
-            self._size = float(os.path.getsize(file_path))
+        self._size = float(os.path.getsize(file_path))  # tracker only used for local files
         self._seen_so_far = 0
         self._lock = threading.Lock()
 
