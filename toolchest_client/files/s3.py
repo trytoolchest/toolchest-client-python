@@ -4,6 +4,7 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
+import math
 import os.path
 import sys
 import threading
@@ -103,6 +104,16 @@ def inputs_are_in_s3(input_paths):
     return [path_is_s3_uri(file_path) for file_path in input_paths]
 
 
+def pretty_print_file_size(num_bytes):
+    """Returns a pretty formatted number of bytes (e.g. 1.80MB)
+
+    :param num_bytes size of file in bytes
+    """
+    pretty_abbreviation = ["B", "KB", "MB", "GB", "TB"]
+    abbreviation_index = math.floor(math.log(num_bytes, 1024))
+    return f"{(num_bytes / (1024 ** abbreviation_index)):.1f}{pretty_abbreviation[abbreviation_index]}"
+
+
 class UploadTracker:
     def __init__(self, file_path):
         self._filename = os.path.basename(file_path)
@@ -117,10 +128,10 @@ class UploadTracker:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
             print(
-                "\r{}  {} / {} bytes ({:.2f}%)".format(
+                "\r{}  {} of {} ({:.2f}%)".format(
                     self._filename,
-                    self._seen_so_far,
-                    self._size,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
                     percentage
                 ).ljust(100),  # pads right end with spaces to flush carriage return
                 flush=True
@@ -143,10 +154,10 @@ class DownloadTracker:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
             print(
-                "\r{}  {} / {} bytes ({:.2f}%)".format(
+                "\r{}  {} of {} ({:.2f}%)".format(
                     self._filename,
-                    self._seen_so_far,
-                    self._size,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
                     percentage
                 ).ljust(100),  # pads right end with spaces to flush carriage return
                 flush=True
