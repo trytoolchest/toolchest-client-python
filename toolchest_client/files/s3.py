@@ -4,6 +4,7 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
+import math
 import os.path
 import sys
 import threading
@@ -103,11 +104,20 @@ def inputs_are_in_s3(input_paths):
     return [path_is_s3_uri(file_path) for file_path in input_paths]
 
 
-# Slightly modified from https://boto3.amazonaws.com/v1/documentation/api/latest/_modules/boto3/s3/transfer.html
+def pretty_print_file_size(num_bytes):
+    """Returns a pretty formatted number of bytes (e.g. 1.80MB)
+
+    :param num_bytes size of file in bytes
+    """
+    pretty_abbreviation = ["B", "KB", "MB", "GB", "TB"]
+    abbreviation_index = math.floor(math.log(num_bytes, 1024))
+    return f"{(num_bytes / (1024 ** abbreviation_index)):.1f}{pretty_abbreviation[abbreviation_index]}"
+
+
 class UploadTracker:
     def __init__(self, file_path):
         self._filename = os.path.basename(file_path)
-        self._size = float(os.path.getsize(file_path))
+        self._size = float(os.path.getsize(file_path))  # tracker only used for local files
         self._seen_so_far = 0
         self._lock = threading.Lock()
 
@@ -117,11 +127,16 @@ class UploadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            sys.stdout.write(
-                "\r%s  %s / %s bytes (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
-            sys.stdout.flush()
+            print(
+                "\r{}  {} of {} ({:.2f}%)".format(
+                    self._filename,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                end="",
+                flush=True,
+            )
             if percentage == 100.00:  # Adds newline at end of upload
                 print()
 
@@ -139,10 +154,15 @@ class DownloadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            sys.stdout.write(
-                "\r%s  %s / %s bytes (%.2f%%)" % (
-                    self._filename, self._seen_so_far, self._size,
-                    percentage))
-            sys.stdout.flush()
-            if percentage == 100.00:  # Adds newline at end of upload
+            print(
+                "\r{}  {} of {} ({:.2f}%)".format(
+                    self._filename,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                end="",
+                flush=True,
+            )
+            if percentage == 100.00:  # Adds newline at end of download
                 print()

@@ -142,3 +142,6 @@ toolchest_client/demo.py
 
 # Default temporary directory for splitting input files
 temp_toolchest*
+
+# Default directories for local runs of integration tests
+test_*

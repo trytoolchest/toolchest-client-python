@@ -317,8 +317,8 @@ class Tool:
             for thread in self.query_threads:
                 thread_name = thread.getName()
                 statuses.append(self.query_thread_statuses.get(thread_name))
-            uploading = all(
-                map(lambda status: status not in [ThreadStatus.UPLOADING, ThreadStatus.INITIALIZED], statuses)
+            uploading = any(
+                map(lambda status: status in [ThreadStatus.INITIALIZED, ThreadStatus.UPLOADING], statuses)
             )
             time.sleep(5)
         print("Finished spawning jobs.")
