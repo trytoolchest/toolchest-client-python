@@ -628,3 +628,37 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     )
     output = instance.run()
     return output
+
+
+def update_database(updated_database, tool, database_name, **kwargs):
+    """Updates a database
+
+    :param updated_database: Path or list of paths (local or S3) to be passed in as inputs.
+    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.kraken2).
+    :param database_name: Name of database to update.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.update_database(
+        ...     updated_database="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
+        ...     tool=toolchest.tools.kraken2,
+        ...     database_name="standard",
+        ... )
+
+    """
+
+    instance = tool(
+        inputs=updated_database,
+        database_name=database_name,
+        is_async=True,
+        is_database_update=True,
+        output_path=None,
+        output_primary_name=None,
+        database_version=None,
+        tool_args="",
+        custom_database_path=None,
+        **kwargs,
+    )
+    output = instance.run()
+    return output

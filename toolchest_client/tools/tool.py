@@ -39,7 +39,7 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
-                 is_async=False, skip_decompression=False):
+                 is_async=False, is_database_update=False, skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -77,6 +77,7 @@ class Tool:
         self.thread_outputs = {}
         self.expected_output_file_names = expected_output_file_names or []
         self.is_async = is_async
+        self.is_database_update = is_database_update
         self.skip_decompression = skip_decompression
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)

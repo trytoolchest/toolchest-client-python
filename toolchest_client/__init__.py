@@ -31,11 +31,11 @@ from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, diamond_blastx, kraken2,\
-    megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
+    megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler, update_database
 
 sentry_sdk.init(
     "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
 
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.0,
     environment=os.getenv("DEPLOY_ENVIRONMENT", 'production')
 )
