@@ -4,6 +4,7 @@ import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
 import sentry_sdk
+from sentry_sdk import utils as sentry_utils
 import os
 
 # set __version__ module
@@ -33,6 +34,7 @@ from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, diamond_blastx, kraken2,\
     megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
 
+sentry_utils.MAX_STRING_LENGTH = 8192  # monkey patch for Sentry max message length
 sentry_sdk.init(
     "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
 
