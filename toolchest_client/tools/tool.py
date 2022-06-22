@@ -331,7 +331,10 @@ class Tool:
                 self._pretty_print_pipeline_segment_status(elapsed_seconds)
                 elapsed_seconds += increment_seconds
                 time.sleep(increment_seconds)
-            self._pretty_print_pipeline_segment_status(elapsed_seconds)
+            thread_name = thread.getName()
+            thread_final_status = self.query_thread_statuses.get(thread_name)
+            if thread_final_status == ThreadStatus.COMPLETE:
+                self._pretty_print_pipeline_segment_status(elapsed_seconds)
         print("")
 
         # Double check all threads are complete for safety
