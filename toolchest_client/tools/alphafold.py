@@ -18,8 +18,6 @@ class AlphaFold(Tool):
             tool_version="2.1.2",
             tool_args=tool_args,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=1,
             database_name="alphafold_standard",
             database_version="2.1.2",
             parallel_enabled=False,

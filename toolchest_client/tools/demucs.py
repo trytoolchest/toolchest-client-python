@@ -19,8 +19,6 @@ class Demucs(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=1,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             expected_output_file_names=["error.log", "output.log"],

@@ -26,8 +26,6 @@ class STARInstance(Tool):
             output_primary_name=output_primary_name,
             inputs=inputs,
             input_prefix_mapping=input_prefix_mapping,
-            min_inputs=1,
-            max_inputs=2,
             database_name=database_name,
             database_version=database_version,
             parallel_enabled=False,  # True if parallelize else False

@@ -19,7 +19,6 @@ class Shi7(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
             max_inputs=None,  # note: no limit is set on the # of inputs
             parallel_enabled=False,
             group_paired_ends=True,

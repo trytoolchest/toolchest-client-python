@@ -20,8 +20,6 @@ class ClustalO(Tool):
             output_primary_name=output_primary_name,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=1,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             expected_output_file_names=[output_primary_name, f"{output_primary_name}.log"],

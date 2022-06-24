@@ -80,13 +80,13 @@ class Query:
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param custom_database_path: Path (S3 URI) to a custom database.
-        :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1")
-        :param is_database_update: Whether the call is to udpate an existing Toolchest DB
+        :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
+        :param is_database_update: Whether the call is to update an existing database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
-        :param output_type: Type (e.g. GZ_TAR) of the output file
-        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive
+        :param output_type: Type (e.g. GZ_TAR) of the output file.
+        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
         self.thread_name = threading.current_thread().getName()

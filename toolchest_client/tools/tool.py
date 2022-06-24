@@ -31,7 +31,7 @@ FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
 
 class Tool:
     def __init__(self, tool_name, tool_version, tool_args,
-                 inputs, min_inputs, max_inputs=None, output_path=None,
+                 inputs, min_inputs=1, max_inputs=100, output_path=None,
                  output_primary_name=None, database_name=None,
                  database_version=None, custom_database_path=None,
                  input_prefix_mapping=None, parallel_enabled=False,
@@ -426,18 +426,19 @@ class Tool:
             # Deep copy to make thread safe
             # Note: multithreaded download may be broken with output_path refactor
             query_args = copy.deepcopy({
+                "custom_database_path": self.custom_database_path,
+                "database_name": self.database_name,
+                "database_version": self.database_version,
+                "input_files": input_files,
+                "input_prefix_mapping": self.input_prefix_mapping,
+                "is_database_update": self.is_database_update,
+                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
+                "output_primary_name": self.output_primary_name,
+                "output_type": self.output_type,
+                "skip_decompression": self.skip_decompression,
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
                 "tool_args": self.tool_args,
-                "database_name": self.database_name,
-                "database_version": self.database_version,
-                "custom_database_path": self.custom_database_path,
-                "output_primary_name": self.output_primary_name,
-                "input_files": input_files,
-                "input_prefix_mapping": self.input_prefix_mapping,
-                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
-                "output_type": self.output_type,
-                "skip_decompression": self.skip_decompression,
             })
 
             # Add non-distinct dictionary for status updates
@@ -488,13 +489,13 @@ class Tool:
             if self.is_async:
                 print(
                     f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
-                    f"To check the status of this run, call get_status(run_id=\"{run_id}\").\n"
-                    f"Once it's ready to download, call download(run_id=\"{run_id}\", ...) within 7 days\n"
+                    f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
+                    f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) within 7 days\n"
                     )
             else:
                 print(
                     f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
-                    f"If you need to re-download the results, run download(run_id=\"{run_id}\") within 7 days\n"
+                    f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n"
                     )
 
         # Note: output information is only returned if parallelization is disabled

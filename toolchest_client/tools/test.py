@@ -20,8 +20,6 @@ class Test(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=100,  # this limit is completely arbitrary
             max_input_bytes_per_file=256 * 1024 * 1024 * 1024,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,

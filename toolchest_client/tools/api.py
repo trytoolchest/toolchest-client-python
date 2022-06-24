@@ -187,30 +187,35 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
-def diamond_blastp(inputs, output_path=None, output_primary_name="out_file.tsv", tool_args="", **kwargs):
+def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_standard", database_version="1",
+                   output_primary_name="out_file.tsv", tool_args="", **kwargs):
     """Runs diamond blastp via Toolchest.
 
-      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
-        gzip compressed)
-      :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
-        Log file (diamond.log) will be downloaded in the same directory as the out file(s).
-      :param output_primary_name: (optional) Base name of output file.
-      :param tool_args: Additional arguments to be passed to diamond blastp.
+    :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+    gzip compressed)
+    :param database_name: (optional) Name of database to use for DIAMOND BLASTP.
+    :param database_version: (optional) Version of database to use for DIAMOND BLASTP.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+    :param output_primary_name: (optional) Base name of output file.
+    :param tool_args: Additional arguments to be passed to diamond blastp.
 
-      Usage::
+    Usage::
 
-          >>> import toolchest_client as toolchest
-          >>> toolchest.diamond_blastp(
-          ...     tool_args="",
-          ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/",
-          ...     output_primary_name="out_file.tsv",
-          ... )
+      >>> import toolchest_client as toolchest
+      >>> toolchest.diamond_blastp(
+      ...     tool_args="",
+      ...     inputs="./path/to/input.fa",
+      ...     output_path="./path/to/output/",
+      ...     output_primary_name="out_file.tsv",
+      ... )
 
       """
     instance = DiamondBlastp(
         inputs=inputs,
         output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,
         output_primary_name=output_primary_name,
         tool_args=tool_args,
         **kwargs,
@@ -219,27 +224,32 @@ def diamond_blastp(inputs, output_path=None, output_primary_name="out_file.tsv",
     return output
 
 
-def diamond_blastx(inputs, output_path=None, output_primary_name="out_file.tsv", tool_args="", **kwargs):
+def diamond_blastx(inputs, output_path=None, database_name="diamond_blastx_standard", database_version="1",
+                   output_primary_name="out_file.tsv", tool_args="", **kwargs):
     """Runs diamond blastx via Toolchest.
-      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
-        gzip compressed)
-      :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
-        Log file (diamond.log) will be downloaded in the same directory as the out file(s).
-      :param output_primary_name: (optional) Base name of output file.
-      :param tool_args: Additional arguments to be passed to diamond blastx.
-      Usage::
+    :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+gzip compressed)
+    :param database_name: (optional) Name of database to use for DIAMOND BLASTX.
+    :param database_version: (optional) Version of database to use for DIAMOND BLASTX.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+    :param output_primary_name: (optional) Base name of output file.
+    :param tool_args: (optional) Additional arguments to be passed to diamond blastx.
+    Usage::
 
-          >>> import toolchest_client as toolchest
-          >>> toolchest.diamond_blastx(
-          ...     tool_args="",
-          ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/",
-          ...     output_primary_name="out_file.tsv",
-          ... )
+        >>> import toolchest_client as toolchest
+        >>> toolchest.diamond_blastx(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
 
       """
     instance = DiamondBlastx(
         inputs=inputs,
+        database_name=database_name,
+        database_version=database_version,
         output_path=output_path,
         output_primary_name=output_primary_name,
         tool_args=tool_args,
@@ -630,18 +640,26 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(updated_database, tool, database_name, **kwargs):
-    """Updates a database
+def update_database(database_path, tool, database_name, **kwargs):
+    """Updates a custom database. The new database version is returned immediately after initialization.
 
-    :param updated_database: Path or list of paths (local or S3) to be passed in as inputs.
-    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.kraken2).
+    This executes just like any other tool, except:
+    - the success status is
+    toolchest_client.api.status.COMPLETE ('complete') instead of
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
+    - is_async is True by default
+
+    Note that it may take 24-48 hours for the custom database to be ready for use.
+
+    :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
+    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of database to update.
 
     Usage::
 
         >>> import toolchest_client as toolchest
         >>> toolchest.update_database(
-        ...     updated_database="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
+        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
         ...     tool=toolchest.tools.kraken2,
         ...     database_name="standard",
         ... )
@@ -649,7 +667,7 @@ def update_database(updated_database, tool, database_name, **kwargs):
     """
 
     instance = tool(
-        inputs=updated_database,
+        inputs=database_path,
         database_name=database_name,
         is_async=True,
         is_database_update=True,
@@ -658,6 +676,51 @@ def update_database(updated_database, tool, database_name, **kwargs):
         database_version=None,
         tool_args="",
         custom_database_path=None,
+        max_inputs=1000,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def add_database(database_path, tool, database_name, **kwargs):
+    """Adds a custom database and attaches it to a tool.
+    The new database version is returned immediately after initialization.
+
+    This executes just like any other tool, except:
+    - the success status is
+    toolchest_client.api.status.COMPLETE ('complete') instead of
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
+    - is_async is True by default
+
+    Note that it may take 24-48 hours for the custom database to be ready for use.
+
+    :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
+    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
+    :param database_name: Name of the new database.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.add_database(
+        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
+        ...     tool=toolchest.tools.Kraken2,
+        ...     database_name="my_new_database",
+        ... )
+
+    """
+
+    instance = tool(
+        inputs=database_path,
+        database_name=database_name,
+        is_async=True,
+        is_database_update=True,
+        output_path=None,
+        output_primary_name=None,
+        database_version=None,
+        tool_args="",
+        custom_database_path=None,
+        max_inputs=1000,
         **kwargs,
     )
     output = instance.run()
