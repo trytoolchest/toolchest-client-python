@@ -202,13 +202,13 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
 
     Usage::
 
-      >>> import toolchest_client as toolchest
-      >>> toolchest.diamond_blastp(
-      ...     tool_args="",
-      ...     inputs="./path/to/input.fa",
-      ...     output_path="./path/to/output/",
-      ...     output_primary_name="out_file.tsv",
-      ... )
+        >>> import toolchest_client as toolchest
+        >>> toolchest.diamond_blastp(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
 
       """
     instance = DiamondBlastp(
