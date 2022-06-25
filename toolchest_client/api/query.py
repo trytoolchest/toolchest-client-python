@@ -69,8 +69,9 @@ class Query:
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  custom_database_path=None, output_primary_name=None,
-                  input_files=None, output_path=None, skip_decompression=False, thread_statuses=None):
+                  custom_database_path=None, input_files=None, is_database_update=False,
+                  output_path=None, output_primary_name=None, skip_decompression=False,
+                  thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -79,12 +80,13 @@ class Query:
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param custom_database_path: Path (S3 URI) to a custom database.
-        :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1")
+        :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
+        :param is_database_update: Whether the call is to update an existing database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path (client-side) where the output file will be downloaded.
-        :param output_type: Type (e.g. GZ_TAR) of the output file
-        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive
+        :param output_type: Type (e.g. GZ_TAR) of the output file.
+        :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
         self.thread_name = threading.current_thread().getName()
@@ -98,11 +100,12 @@ class Query:
             database_name=database_name,
             database_version=database_version,
             custom_database_path=custom_database_path,
-            output_primary_name=output_primary_name,
+            is_database_update=is_database_update,
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
             output_file_path=output_path,
+            output_primary_name=output_primary_name,
         )
         create_content = create_response.json()
 
@@ -119,6 +122,10 @@ class Query:
         ])
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
+        self.output.set_database(
+            database_name=create_content["database_name"],
+            database_version=create_content["database_version"],
+        )
         self.mark_as_failed = True
 
         self._check_if_should_terminate()
@@ -145,7 +152,8 @@ class Query:
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, custom_database_path,
-                              output_primary_name, output_file_path, compress_output):
+                              output_primary_name, output_file_path, compress_output,
+                              is_database_update):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -157,10 +165,12 @@ class Query:
             "custom_database_s3_location": custom_database_path,
             "database_name": database_name,
             "database_version": database_version,
-            "output_file_primary_name": output_primary_name,
+            "is_database_update": is_database_update,
             "tool_name": tool_name,
             "tool_version": tool_version,
             "output_file_path": output_file_path,
+            "output_file_primary_name": output_primary_name,
+
         }
 
         create_response = requests.post(

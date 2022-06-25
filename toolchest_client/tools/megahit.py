@@ -21,7 +21,6 @@ class Megahit(Tool):
             output_path=output_path,
             inputs=inputs,
             input_prefix_mapping=input_prefix_mapping,
-            min_inputs=1,
             max_inputs=None,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,

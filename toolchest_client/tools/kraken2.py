@@ -21,8 +21,6 @@ class Kraken2(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=2,
             database_name=database_name,
             database_version=database_version,
             custom_database_path=custom_database_path,
