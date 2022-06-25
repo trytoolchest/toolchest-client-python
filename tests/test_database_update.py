@@ -8,8 +8,6 @@ toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
-os.environ["BASE_URL"] = "http://localhost:3001"
-
 
 @pytest.mark.integration
 def test_database_update_s3():
