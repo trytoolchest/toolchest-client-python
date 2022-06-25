@@ -50,7 +50,7 @@ class Tool:
             # absolutize path, expand user tilde if present
             self.output_path = os.path.abspath(os.path.expanduser(output_path))
         self.output_is_directory = output_is_directory
-        self.inputs = inputs
+        self.inputs = inputs if isinstance(inputs, str) else list(filter(lambda file: file is not None, inputs))
         # input_prefix_mapping is a dict in the shape of:
         # {
         #   "./path_to_file.txt": {

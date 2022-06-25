@@ -34,8 +34,8 @@ from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, d
     megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
 
 sentry_sdk.init(
-    "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
+    None,
 
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.0,
     environment=os.getenv("DEPLOY_ENVIRONMENT", 'production')
 )
