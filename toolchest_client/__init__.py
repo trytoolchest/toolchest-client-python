@@ -37,8 +37,8 @@ from .tools.api import add_database, alphafold, bowtie2, cellranger_count, clust
 
 sentry_utils.MAX_STRING_LENGTH = 8192  # monkey patch for Sentry max message length
 sentry_sdk.init(
-    "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
+    None,
 
-    traces_sample_rate=1.0,
+    traces_sample_rate=0.0,
     environment=os.getenv("DEPLOY_ENVIRONMENT", 'production')
 )
