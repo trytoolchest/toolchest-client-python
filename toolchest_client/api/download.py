@@ -20,7 +20,8 @@ from requests.exceptions import HTTPError
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestDownloadError
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
-from toolchest_client.files import get_file_type, get_params_from_s3_uri, unpack_files
+from toolchest_client.files import get_params_from_s3_uri, unpack_files
+from toolchest_client.files.s3 import DownloadTracker
 
 
 def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id=None,
@@ -32,8 +33,7 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
     extract access keys from `s3_uri` or `run_id` via
     `get_download_details()`.
 
-    :param output_path: Output path to which the file(s) will be downloaded.
-        This should be a local directory, but direct filenames are also supported.
+    :param output_path: Path to a directory to which the file(s) will be downloaded.
     :param s3_uri: URI of file contained in S3. This can be passed from
         the parameter `output.s3_uri` from the `output` returned by a previous
         job.
@@ -61,24 +61,16 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
             error_message = "Details of files to download were not provided."
             raise ToolchestDownloadError(error_message) from None
 
-    # If the output path is /path/sample.fastq but the run also has tarred log files, we want to unpack at the directory
-    if output_file_keys["primary_name"]:
-        output_path = os.path.dirname(output_path)
-
-    # Create output directories if output_path does not exist.
-    # Note: Assumes that output_path is a directory if it does not exist.
-    # This may lead to undesired leaf dir creation if output_path is not intended to be a dir,
-    # but support for non-dir output_path will likely be deprecated.
+    # Create output directories if directory at output_path does not exist.
     output_path = os.path.abspath(os.path.expanduser(output_path))
     if not os.path.exists(output_path) and output_type is None:
         if "." in os.path.basename(output_path):
             logging.warning(f"Creating {os.path.basename(output_path)} as a directory along path {output_path}")
         os.makedirs(output_path, exist_ok=True)
 
-    # If output_path is a directory, extract the filename from the target download.
-    if os.path.isdir(output_path):
-        file_name = output_file_keys["file_name"]
-        output_path = "/".join([output_path, file_name])
+    # Extract the output filename from the target download.
+    output_file_name = os.path.basename(output_file_keys["object_name"])
+    output_file_path = "/".join([output_path, output_file_name])
 
     try:
         s3_client = boto3.client(
@@ -90,7 +82,8 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
         s3_client.download_file(
             output_file_keys["bucket"],
             output_file_keys["object_name"],
-            output_path,
+            output_file_path,
+            Callback=DownloadTracker(s3_client, output_file_keys["bucket"], output_file_keys["object_name"])
         )
     except ClientError as err:
         # TODO: output more detailed error message if write error encountered
@@ -98,9 +91,9 @@ def download(output_path, s3_uri=None, pipeline_segment_instance_id=None, run_id
         raise ToolchestDownloadError(error_message) from None
 
     if skip_decompression:
-        return output_path
-    unpacked_output_paths = _unpack_output(output_path, output_type=output_type)
-    return unpacked_output_paths
+        return output_file_path
+    unpacked_output_file_paths = _unpack_output(output_file_path, output_file_keys["is_compressed"])
+    return unpacked_output_file_paths
 
 
 def get_download_details(pipeline_segment_instance_id):
@@ -125,24 +118,21 @@ def get_download_details(pipeline_segment_instance_id):
         "session_token": response_json.get('session_token'),
         "bucket": response_json.get('bucket'),
         "object_name": response_json.get('object_name'),
-        "file_name": response_json.get('file_name'),
+        "is_compressed": response_json.get('is_compressed'),
         "primary_name": response_json.get('primary_name'),
     }
     return output_s3_uri, output_file_keys
 
 
-def _unpack_output(compressed_output_path, output_type=None):
+def _unpack_output(compressed_output_archive_path, is_compressed):
     """After downloading, unpack files if needed"""
-    if output_type is None:
-        output_type = get_file_type(compressed_output_path)
-
     try:
         unpacked_output_paths = unpack_files(
-            file_path_to_unpack=compressed_output_path,
-            output_type=output_type,
+            file_path_to_unpack=compressed_output_archive_path,
+            is_compressed=is_compressed,
         )
     except Exception as err:
-        error_message = f"Failed to unpack file with type: {output_type}."
+        error_message = f"Failed to unpack file at {compressed_output_archive_path}."
         if sys.platform == "win32":
             PATH_TOO_LONG_CODE = 206
             if isinstance(err, FileNotFoundError) and err.winerror == PATH_TOO_LONG_CODE:

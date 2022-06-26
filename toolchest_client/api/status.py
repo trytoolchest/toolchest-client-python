@@ -46,6 +46,7 @@ class Status(str, Enum):
 class ThreadStatus(str, Enum):
     """Status values for local threads"""
 
+    INITIALIZING = "initializing"
     INITIALIZED = "initialized"
     UPLOADING = "uploading"
     EXECUTING = "executing"

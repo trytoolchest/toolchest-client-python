@@ -23,7 +23,8 @@ def test_rapsearch2():
     toolchest.rapsearch2(
         tool_args="-e 1e-9",
         inputs="s3://toolchest-integration-tests/example.fastq",
-        output_path=f"{test_dir}/rapsearch2",
+        output_path=f"{test_dir}/",
+        output_primary_name="rapsearch2",
     )
 
     # m8 output is nondeterministic, so we check file size

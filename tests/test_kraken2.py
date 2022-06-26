@@ -71,7 +71,7 @@ def test_kraken2_s3():
     """
     Tests Kraken 2 with an example input in S3 against the std (v1) DB
     """
-    test_dir = "test_kraken2_standard"
+    test_dir = "test_kraken2_s3"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/kraken2_output.txt"

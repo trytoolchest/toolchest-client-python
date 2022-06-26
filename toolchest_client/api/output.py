@@ -23,6 +23,8 @@ class Output:
     """
 
     def __init__(self, s3_uri=None, output_path=None, run_id=None):
+        self.database_name = None
+        self.database_version = None
         self.s3_uri = s3_uri
         self.output_path = output_path
         self.run_id = run_id
@@ -42,9 +44,22 @@ class Output:
     def set_output_path(self, output_path):
         self.output_path = output_path
 
-    def download(self, output_dir, skip_decompression=False):
+    def set_database(self, database_name=None, database_version=None):
+        """Sets the database name and database version for ensuring versioning and reproducibility.
+
+        `database_version` increments when updating a database through the API.
+        """
+        self.database_name = database_name
+        self.database_version = database_version
+
+    def download(self, output_path=None, output_dir=None, skip_decompression=False):
+        if not output_path:
+            if not output_dir:
+                raise ValueError("Output destination directory (output_path) must be specified.")
+            output_path = output_dir  # backwards compatibility for old calls
+
         self.output_path = download(
-            output_path=output_dir,
+            output_path=output_path,
             s3_uri=self.s3_uri,
             run_id=self.run_id,
             skip_decompression=skip_decompression,
