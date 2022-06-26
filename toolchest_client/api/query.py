@@ -127,8 +127,8 @@ class Query:
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
         self.output.set_database(
-            database_name=create_content["database_name"],
-            database_version=create_content["database_version"],
+            database_name=create_content.get("database_name"),
+            database_version=create_content.get("database_version"),
         )
 
         self._check_if_should_terminate()
