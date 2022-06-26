@@ -336,7 +336,11 @@ class Tool:
 
     def _wait_for_threads_to_upload(self):
         """Waits for all jobs to finish uploading. To be used only at the start of a run."""
-        while True:
+        uploading = True
+        while uploading:
+            # Verify that all threads are healthy while uploading
+            self._check_thread_health()
+
             statuses = []
             for thread in self.query_threads:
                 thread_name = thread.getName()
@@ -345,11 +349,9 @@ class Tool:
                 map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
                                               ThreadStatus.UPLOADING], statuses)
             )
-            if not uploading:
-                break
-            # Verify that all threads are healthy while uploading
-            self._check_thread_health()
-            time.sleep(5)
+            if uploading:
+                time.sleep(5)
+
         print("Finished spawning jobs.")
 
     def _generate_jobs(self, should_run_in_parallel):
