@@ -298,7 +298,7 @@ class Tool:
             if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
                 self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
 
-        self._wait_for_threads_to_finish(check_health=False)
+        self._wait_for_threads_to_finish(check_health=False, wait_for_upload=False)
 
     def _check_thread_health(self):
         """Checks for any thread that has ended without reaching a "complete" state, and propagates errors"""
@@ -309,21 +309,13 @@ class Tool:
                 self._kill_query_threads()
                 raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
-    def _wait_for_threads_to_finish(self, check_health=True):
+    def _wait_for_threads_to_finish(self, check_health=True, wait_for_upload=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
         elapsed_seconds = 0
-        uploading = True
-        while uploading:
-            statuses = []
-            for thread in self.query_threads:
-                thread_name = thread.getName()
-                statuses.append(self.query_thread_statuses.get(thread_name))
-            uploading = any(
-                map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
-                                              ThreadStatus.UPLOADING], statuses)
-            )
-            time.sleep(5)
-        print("Finished spawning jobs.")
+        # Wait for all threads to finish uploading
+        if wait_for_upload:
+            self._wait_for_threads_to_upload()
+
         for thread in self.query_threads:
             increment_seconds = 5
             while thread.is_alive():
@@ -341,6 +333,24 @@ class Tool:
         # Double check all threads are complete for safety
         for thread in self.query_threads:
             thread.join()
+
+    def _wait_for_threads_to_upload(self):
+        """Waits for all jobs to finish uploading. To be used only at the start of a run."""
+        while True:
+            statuses = []
+            for thread in self.query_threads:
+                thread_name = thread.getName()
+                statuses.append(self.query_thread_statuses.get(thread_name))
+            uploading = any(
+                map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
+                                              ThreadStatus.UPLOADING], statuses)
+            )
+            if not uploading:
+                break
+            # Verify that all threads are healthy while uploading
+            self._check_thread_health()
+            time.sleep(5)
+        print("Finished spawning jobs.")
 
     def _generate_jobs(self, should_run_in_parallel):
         """Generates staggered jobs for both parallel and non-parallel runs.
