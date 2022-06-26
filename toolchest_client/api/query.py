@@ -42,7 +42,9 @@ class Query:
     RETRY_STATUS_CHECK_LIMIT = 5
 
     def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None):
-        self.HEADERS = dict()
+        # Configure Toolchest API authorization.
+        self.HEADERS = get_headers()
+
         if pipeline_segment_instance_id:
             self.PIPELINE_SEGMENT_INSTANCE_ID = pipeline_segment_instance_id
             self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
@@ -53,6 +55,10 @@ class Query:
                 self.PIPELINE_SEGMENT_INSTANCE_URL,
                 "status",
             ])
+        else:
+            self.PIPELINE_SEGMENT_INSTANCE_ID = None
+            self.PIPELINE_SEGMENT_INSTANCE_URL = None
+            self.STATUS_URL = None
 
         self.mark_as_failed = False
         self.thread_name = ''
@@ -63,9 +69,6 @@ class Query:
 
         self.unpacked_output_paths = None
         self.output = stored_output if stored_output else Output()
-
-        # Configure Toolchest API authorization.
-        self.HEADERS = get_headers()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -110,6 +113,7 @@ class Query:
         create_content = create_response.json()
 
         self._update_thread_status(ThreadStatus.INITIALIZED)
+        self.mark_as_failed = True
 
         self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
         self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
@@ -123,10 +127,9 @@ class Query:
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
         self.output.set_database(
-            database_name=create_content["database_name"],
-            database_version=create_content["database_version"],
+            database_name=create_content.get("database_name"),
+            database_version=create_content.get("database_version"),
         )
-        self.mark_as_failed = True
 
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
@@ -328,11 +331,13 @@ class Query:
         self._update_thread_status(ThreadStatus.FAILED)
 
         # Mark pipeline segment instance as failed
-        requests.put(
-            self.STATUS_URL,
-            headers=self.HEADERS,
-            json={"status": Status.FAILED, "error_message": error_message},
-        )
+        if self.STATUS_URL:
+            requests.put(
+                self.STATUS_URL,
+                headers=self.HEADERS,
+                json={"status": Status.FAILED, "error_message": error_message},
+            )
+
         self.mark_as_failed = False
         if force_raise:
             raise ToolchestException(error_message) from None
