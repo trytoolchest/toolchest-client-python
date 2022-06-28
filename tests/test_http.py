@@ -13,7 +13,7 @@ def test_http_input():
     """
     Tests test function with an http input
     """
-    test_dir = "test_http"
+    test_dir = "temp_test_http"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "https://toolchest-public-examples-no-encryption.s3.amazonaws.com/example.fastq"
     output_dir_path = f"./{test_dir}"

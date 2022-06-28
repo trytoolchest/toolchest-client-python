@@ -22,7 +22,7 @@ def test_shi7_single_end():
     If the Output class is modified, this test should be modified as well.
     """
 
-    test_dir = "./test_shi7_single_end"
+    test_dir = "./temp_test_shi7_single_end"
     os.makedirs(test_dir, exist_ok=True)
     input_one_file_path = f"{test_dir}/shi7_input_R1.fastq.gz"
     output_file_path = f"{test_dir}/combined_seqs.fna"
@@ -55,7 +55,7 @@ def test_shi7_paired_end():
     Because of this, we should not recommend shi7 for use.
     """
 
-    test_dir = "./test_shi7_paired_end"
+    test_dir = "./temp_test_shi7_paired_end"
     os.makedirs(test_dir, exist_ok=True)
     input_one_file_path = f"{test_dir}/shi7_input_R1.fastq.gz"
     input_two_file_path = f"{test_dir}/shi7_input_R2.fastq.gz"

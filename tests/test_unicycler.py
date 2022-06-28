@@ -15,7 +15,7 @@ def test_unicycler():
     Tests Unicycler
     """
 
-    test_dir = "test_unicycler"
+    test_dir = "temp_test_unicycler"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
 

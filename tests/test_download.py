@@ -17,7 +17,7 @@ def test_kraken2_output_manual_download():
     Tests Kraken 2 against the standard (v1) database, with
     output manually downloaded after job completion
     """
-    test_dir = "test_kraken2_output_manual_download"
+    test_dir = "temp_test_kraken2_output_manual_download"
     input_file_s3_uri = "s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta"
     manual_output_dir_path = f"./{test_dir}/manual"
     manual_output_file_path = f"{manual_output_dir_path}/kraken2_output.txt"
