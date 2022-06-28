@@ -29,7 +29,7 @@ def test_database_update_local():
     """
     Tests custom database update for diamond blastp using a local file
     """
-    test_dir = "test_database_update_local"
+    test_dir = "temp_test_database_update_local"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     test_file_one = f"{test_dir}/test.fasta"
     test_file_two = f"{test_dir}/test.fastq"

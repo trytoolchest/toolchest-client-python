@@ -15,7 +15,7 @@ def test_tilde_filepath():
     Tests Kraken 2 against the standard (v1) database
     """
     input_file_path = "~/kraken_input.fasta"
-    output_dir_path = "~/test_tilde_filepath"
+    output_dir_path = "~/temp_test_tilde_filepath"
     output_file_path = os.path.expanduser(f"{output_dir_path}/kraken2_output.txt")
     os.makedirs(os.path.expanduser(output_dir_path), exist_ok=True)
 

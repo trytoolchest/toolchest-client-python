@@ -14,7 +14,7 @@ def test_star_grch38():
     """
     Tests STAR against the grch38 database
     """
-    test_dir = "test_star_grch38"
+    test_dir = "temp_test_star_grch38"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}"
@@ -49,7 +49,7 @@ def test_star_grch38_parallel():
     """
     Tests STAR against the grch38 database, using parallel mode
     """
-    test_dir = "test_star_grch38_parallel"
+    test_dir = "temp_test_star_grch38_parallel"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./large_star.fastq"
     output_dir_path = f"./{test_dir}"
@@ -79,7 +79,7 @@ def test_star_grch38_dangerous_arg():
     """
     Tests STAR against the grch38 database, with a dangerous arg (changing functionality)
     """
-    test_dir = "test_star_grch38"
+    test_dir = "temp_test_star_grch38"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}"

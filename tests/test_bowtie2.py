@@ -14,7 +14,7 @@ def test_bowtie2():
     Tests bowtie2
     """
 
-    test_dir = "test_bowtie2_standard"
+    test_dir = "temp_test_bowtie2_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}/"
 

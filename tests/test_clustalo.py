@@ -14,7 +14,7 @@ def test_clustalo_standard():
     """
     Tests Clustal Omega
     """
-    test_dir = "test_clustalo_standard"
+    test_dir = "temp_test_clustalo_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_name = "sample_output.fasta"
