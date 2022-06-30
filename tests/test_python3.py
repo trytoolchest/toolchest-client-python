@@ -17,7 +17,7 @@ def test_python3():
     test_dir = "./temp_test_python3"
     os.makedirs(f"{test_dir}", exist_ok=True)
     toolchest.python3(
-        tool_args=f"./input/example.fastq",
+        tool_args="./input/example.fastq",
         script="s3://toolchest-integration-tests/write_test.py",
         inputs="s3://toolchest-integration-tests/example.fastq",
         output_path=f"{test_dir}/",

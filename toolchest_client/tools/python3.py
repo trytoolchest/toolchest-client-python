@@ -1,10 +1,9 @@
 """
-toolchest_client.tools.test
+toolchest_client.tools.python3
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the test implementation of the Tool class.
+This is the Python3 implementation of the Tool class.
 """
-import os
 from toolchest_client.files import OutputType
 
 from . import Tool
