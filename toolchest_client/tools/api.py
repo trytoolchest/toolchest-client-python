@@ -6,6 +6,8 @@ This module contains the API for using Toolchest tools.
 """
 import os.path
 from datetime import date
+
+from toolchest_client import ToolchestException
 from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
     Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
@@ -388,12 +390,21 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     output = instance.run()
     return output
 
-def python3(script, output_name, inputs=[], output_path=None, tool_args="", **kwargs):
+
+def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
     """Runs Python3 via Toolchest.
+    NOTE: This tool is currently only available for customers with contracts
+    The script has a few requirements if inputs or outputs are expected. Inputs will be uploaded to `./input/` so the
+    script must use that prefix with hardcoded paths or when adding to tool_args to be parsed via sys.argv. Any output
+    that is expected to be returned needs to be stored at `./output/`. The directory will be compressed via pigz and
+    decompressed on the client.
+
     :param script: Path to the python script to run
-    :param inputs: (optional) Path(s) to the input files  to run with the python script.
-    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
-    :param tool_args: (optional) Additional arguments to be passed to Python3.
+    :param inputs: (optional) Path(s) to the input files to run with the python script. Will be uploaded to a directory
+    `./input/` for use in the on the instance.
+    :param output_path: (optional) Local path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Python3. Should NOT specify the script here but
+    any other args after the script should be included.
     Usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -402,11 +413,14 @@ def python3(script, output_name, inputs=[], output_path=None, tool_args="", **kw
         ...     tool_args="",
         ... )
     """
+    if type(inputs) is str:
+        inputs = [inputs]
+    elif type(inputs) is not list:
+        raise ToolchestException('Unknown input type')
     inputs.append(script)
-    tool_args = 'input/' + os.path.basename(script) + tool_args
+    tool_args = f'./input/{os.path.basename(script)} {tool_args}'
     instance = Python3(
         tool_args=tool_args,
-        output_name=output_name,
         inputs=inputs,
         output_path=output_path,
         **kwargs,

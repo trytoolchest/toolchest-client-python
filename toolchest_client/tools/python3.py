@@ -14,18 +14,16 @@ class Python3(Tool):
     """
     The Python3 implementation of the Tool class.
     """
-    def __init__(self, tool_args, output_name, inputs, output_path, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, **kwargs):
         super().__init__(
             tool_name="python3",
             tool_version="3.9.1",
             tool_args=tool_args,
-            output_name=output_name,
             output_path=output_path,
             inputs=inputs,
             min_inputs=1,
             max_inputs=100,
             parallel_enabled=False,
-            output_type=OutputType.S3,
-            output_is_directory=False,
+            output_type=OutputType.GZ_TAR,
             **kwargs,
         )
