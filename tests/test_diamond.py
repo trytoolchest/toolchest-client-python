@@ -17,7 +17,7 @@ def test_diamond_blastp_standard():
     """
     Tests Diamond blastp mode
     """
-    test_dir = "test_diamond_blastp_standard"
+    test_dir = "temp_test_diamond_blastp_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_name = "sample_output.tsv"
@@ -37,7 +37,7 @@ def test_diamond_blastx_standard():
     """
     Tests Diamond blastx mode
     """
-    test_dir = "test_diamond_blastx_standard"
+    test_dir = "temp_test_diamond_blastx_standard"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_name = "sample_output.tsv"

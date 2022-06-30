@@ -301,11 +301,12 @@ class Tool:
         self._wait_for_threads_to_finish(check_health=False, wait_for_upload=False)
 
     def _check_thread_health(self):
-        """Checks for any thread that has ended without reaching a "complete" state, and propagates errors"""
+        """Checks for any thread that has ended without reaching a "success" state, and propagates errors"""
         for thread in self.query_threads:
             thread_name = thread.getName()
             thread_status = self.query_thread_statuses.get(thread_name)
-            if not thread.is_alive() and thread_status != ThreadStatus.COMPLETE:
+            success_status = ThreadStatus.EXECUTING if self.is_async else ThreadStatus.COMPLETE
+            if not thread.is_alive() and thread_status != success_status:
                 self._kill_query_threads()
                 raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
@@ -336,7 +337,11 @@ class Tool:
 
     def _wait_for_threads_to_upload(self):
         """Waits for all jobs to finish uploading. To be used only at the start of a run."""
-        while True:
+        uploading = True
+        while uploading:
+            # Verify that all threads are healthy while uploading
+            self._check_thread_health()
+
             statuses = []
             for thread in self.query_threads:
                 thread_name = thread.getName()
@@ -345,11 +350,9 @@ class Tool:
                 map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
                                               ThreadStatus.UPLOADING], statuses)
             )
-            if not uploading:
-                break
-            # Verify that all threads are healthy while uploading
-            self._check_thread_health()
-            time.sleep(5)
+            if uploading:
+                time.sleep(5)
+
         print("Finished spawning jobs.")
 
     def _generate_jobs(self, should_run_in_parallel):

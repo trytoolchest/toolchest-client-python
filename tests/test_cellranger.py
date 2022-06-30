@@ -12,7 +12,7 @@ if toolchest_api_key:
 
 @pytest.mark.integration
 def test_cellranger_count_s3_inputs():
-    test_dir = "test_cellranger_count_s3_inputs"
+    test_dir = "temp_test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
 
     # Test using a compressed archive in S3
@@ -27,7 +27,7 @@ def test_cellranger_count_s3_inputs():
 
 @pytest.mark.integration
 def test_cellranger_count_local_inputs():
-    test_dir = "test_cellranger_count_local_inputs"
+    test_dir = "temp_test_cellranger_count_local_inputs"
     input_dir_path = f"./{test_dir}/inputs/"
     output_dir_path = f"./{test_dir}/output/"
     os.makedirs(input_dir_path, exist_ok=True)

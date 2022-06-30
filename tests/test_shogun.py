@@ -15,7 +15,7 @@ def test_shogun_filter_and_align():
     Tests shogun (filter and align for simplicity) with a single R1 input
     """
 
-    test_dir = "./test_shogun_filter_and_align"
+    test_dir = "./temp_test_shogun_filter_and_align"
     os.makedirs(f"{test_dir}", exist_ok=True)
     input_file_path = f"{test_dir}/combined_seqs_unfiltered.fna"
     output_file_path_filter = f"{test_dir}/combined_seqs.filtered.fna"

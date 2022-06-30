@@ -26,7 +26,7 @@ def test_shi7_shogun_chaining():
     If the Output class is modified, this test should be modified as well.
     """
 
-    test_dir = "test_shi7_shogun_chaining"
+    test_dir = "temp_test_shi7_shogun_chaining"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path_shogun = f"{output_dir_path}/alignment.bowtie2.sam"

@@ -15,7 +15,7 @@ def test_rapsearch2():
     Tests rapsearch2 on SeqScreen DB
     """
 
-    test_dir = "./test_rapsearch"
+    test_dir = "./temp_test_rapsearch2"
     os.makedirs(f"{test_dir}", exist_ok=True)
     output_file_path_aln = f"./{test_dir}/rapsearch2.aln"
     output_file_path_m8 = f"./{test_dir}/rapsearch2.m8"
