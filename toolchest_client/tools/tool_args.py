@@ -385,6 +385,17 @@ TOOL_ARG_LISTS = {
             "--min-contig-len": 1,
         },
     },
+    "python3": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            '-i',
+            '-c',
+            '-m'
+        ]
+    },
     "rapsearch2": {
         "blacklist": [
             "-q",

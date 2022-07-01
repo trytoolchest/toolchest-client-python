@@ -165,7 +165,7 @@ class Tool:
                 else:
                     unknown_args.append(arg)
 
-        if unknown_args or blacklisted_args:
+        if blacklisted_args or (unknown_args and not (len(whitelist.keys()) == 1 and "*" in whitelist.keys())):
             print("Non-allowed arguments found in tool_args:")
             print(
                 f"Blacklisted arguments (these are known to cause Toolchest to fail): \
@@ -176,6 +176,10 @@ class Tool:
 {unknown_args if unknown_args else '(none)'}"
             )
             raise ValueError("Unknown or blacklisted arguments present in tool_args. See above for details.")
+
+        # Don't change tool args with * whitelist in order to preserve ordering
+        if len(whitelist.keys()) == 1 and "*" in whitelist.keys():
+            return
 
         if dangerous_args:
             print("WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!")
