@@ -4,9 +4,11 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+import os.path
 from datetime import date
+
 from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
-    Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+    Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -381,6 +383,42 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         tool_args=tool_args,
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
+    """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
+
+    Within your Python3 script, input files are available at `./input/`.
+
+    Only output written to `./output/` is captured by Toolchest. Writing to other directories such as
+    `./temp/file.txt` is allowed. However, that file will not be captured and returned by Toolchest unless it's
+    written to `./output/file.txt` instead.
+
+    :param script: path to the Python script to run.
+    :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.python3(
+        ...     script="./path/to/script.py",
+        ...     inputs=["./path/to/input1.txt", "./path/to/input2.fastq"],
+        ...     output_path="./path/to/local/output/",
+        ...     tool_args="",
+        ... )
+    """
+    if type(inputs) is str:
+        inputs = [inputs]
+    inputs.append(script)
+    tool_args = f'./input/{os.path.basename(script)} {tool_args}'
+    instance = Python3(
+        tool_args=tool_args,
+        inputs=inputs,
         output_path=output_path,
         **kwargs,
     )
