@@ -391,27 +391,24 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 
 def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
-    """runs python3 via toolchest.
-    This a restricted tool. Reach out to us to request access.
-    inputs will be uploaded to `./input/` and can access by a call such as
-    `input_file = open("./input/your_file_name.type", "r")`
-    Any files that are expected to be returned need to be written or moved to the `./output/` directory such as
-    ```
-    f = open("./output/file.type", "a")
-    f.write("Output here")
-    f.close()
-    ```
+    """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
-    :param script: path to the python script to run
-    :param inputs: (optional) path(s) to the input files to run with the python script. will be uploaded to a directory
-    `./input/` for use in the on the instance.
+    Within your Python3 script, input files are available at `./input/`.
+
+    Only output written to `./output/` is captured by Toolchest. Writing to other directories such as
+    `./temp/file.txt` is allowed. However, that file will not be captured and returned by Toolchest unless it's
+    written to `./output/file.txt` instead.
+
+    :param script: path to the Python script to run.
+    :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
-    :param tool_args: (optional) additional arguments to be passed to python3.
+    :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
         ...     script="./path/to/script.py",
-        ...     output_path="./path/to/output/base",  # outputs
+        ...     inputs=["./path/to/input1.txt", "./path/to/input2.fastq"],
+        ...     output_path="./path/to/local/output/",
         ...     tool_args="",
         ... )
     """
