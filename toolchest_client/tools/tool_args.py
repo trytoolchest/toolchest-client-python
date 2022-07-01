@@ -387,8 +387,14 @@ TOOL_ARG_LISTS = {
     },
     "python3": {
         "whitelist": {
-            "*": VARIABLE_ARGS
-        }
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            '-i',
+            '-c',
+            '-m'
+        ]
     },
     "rapsearch2": {
         "blacklist": [

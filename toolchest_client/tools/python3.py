@@ -20,9 +20,6 @@ class Python3(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
-            min_inputs=1,
-            max_inputs=100,
-            parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             **kwargs,
         )
