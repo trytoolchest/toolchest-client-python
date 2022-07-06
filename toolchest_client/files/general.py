@@ -52,7 +52,7 @@ def check_file_size(file_path, max_size_bytes=None):
 
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
-            raise ValueError(f"File at {file_path} is larger than your plan's per-file limit")
+            raise ValueError(f"File at {file_path} is larger than your per-file limit for this tool")
 
     return file_size_bytes
 

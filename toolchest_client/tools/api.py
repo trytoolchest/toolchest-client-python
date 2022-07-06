@@ -7,8 +7,8 @@ This module contains the API for using Toolchest tools.
 import os.path
 from datetime import date
 
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
-    Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
+    DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -50,6 +50,41 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     instance = AlphaFold(
         inputs=inputs,
         output_path=output_path,
+        tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def blastn(inputs, output_path=None, database_name="blastn_nt", database_version="1", tool_args="",
+           output_primary_name="blastn_results.out", **kwargs):
+    """Runs BLASTN via Toolchest.
+
+    :param inputs: Path to a file that will be passed in as input. Only FASTA formats are supported.
+    :param database_name: (optional) Name of database to use for BLASTN.
+    :param database_version: (optional) Version of database to use for BLASTN.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_primary_name: (optional) Base name of output file.
+    :param tool_args: Additional arguments to be passed to BLASTN.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.blastn(
+        ...     inputs="./path/to/input.fna",
+        ...     output_path="./path/to/output/",
+        ...     database_name="nt",
+        ...     tool_args="",
+        ... )
+
+      """
+    instance = BLASTN(
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
         tool_args=tool_args,
         **kwargs,
     )
