@@ -1,5 +1,6 @@
 from .tool import Tool
 from .alphafold import AlphaFold
+from .blastn import BLASTN
 from .bowtie2 import Bowtie2
 from .cellranger import CellRangerCount
 from .clustalo import ClustalO
