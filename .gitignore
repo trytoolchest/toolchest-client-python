@@ -145,3 +145,6 @@ temp_toolchest*
 
 # Integration test directories
 temp_test_*
+
+# macOS
+.DS_Store

@@ -57,13 +57,15 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     return output
 
 
-def blastn(inputs, output_path=None, database_name="nt", database_version="1", tool_args="", **kwargs):
+def blastn(inputs, output_path=None, database_name="blastn_nt", database_version="1", tool_args="",
+           output_primary_name="blastn_results.out", **kwargs):
     """Runs BLASTN via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. Only FASTA formats are supported.
     :param database_name: (optional) Name of database to use for BLASTN.
     :param database_version: (optional) Version of database to use for BLASTN.
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_primary_name: (optional) Base name of output file.
     :param tool_args: Additional arguments to be passed to BLASTN.
 
     Usage::
@@ -80,6 +82,7 @@ def blastn(inputs, output_path=None, database_name="nt", database_version="1", t
     instance = BLASTN(
         inputs=inputs,
         output_path=output_path,
+        output_primary_name=output_primary_name,
         database_name=database_name,
         database_version=database_version,
         tool_args=tool_args,
