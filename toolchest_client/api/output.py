@@ -23,10 +23,13 @@ class Output:
     """
 
     def __init__(self, s3_uri=None, output_path=None, run_id=None):
+        self.tool_name = None
+        self.tool_version = None
         self.database_name = None
         self.database_version = None
         self.s3_uri = s3_uri
         self.output_path = output_path
+        self.output_file_paths = None
         self.run_id = run_id
 
     def __repr__(self):
@@ -41,8 +44,14 @@ class Output:
     def set_s3_uri(self, s3_uri):
         self.s3_uri = s3_uri
 
-    def set_output_path(self, output_path):
+    def set_output_path(self, output_path, output_file_paths=None):
         self.output_path = output_path
+        self.output_file_paths = output_file_paths
+
+    def set_tool(self, tool_name=None, tool_version=None):
+        """Sets the tool name and tool version for ensuring versioning and reproducibility."""
+        self.tool_name = tool_name
+        self.tool_version = tool_version
 
     def set_database(self, database_name=None, database_version=None):
         """Sets the database name and database version for ensuring versioning and reproducibility.
@@ -58,13 +67,13 @@ class Output:
                 raise ValueError("Output destination directory (output_path) must be specified.")
             output_path = output_dir  # backwards compatibility for old calls
 
-        self.output_path = download(
+        self.output_file_paths = download(
             output_path=output_path,
             s3_uri=self.s3_uri,
             run_id=self.run_id,
             skip_decompression=skip_decompression,
         )
-        return self.output_path
+        return self.output_file_paths
 
     def get_status(self):
         """
