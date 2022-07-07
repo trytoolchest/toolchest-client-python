@@ -22,7 +22,7 @@ def test_cellranger_count_s3_inputs():
         output_path=output_dir_path,
         skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output.output_path, output_dir_path)
+    verify_cellranger_count_outputs(output.output_file_paths, output_dir_path)
 
 
 @pytest.mark.integration
@@ -45,7 +45,7 @@ def test_cellranger_count_local_inputs():
         output_path=output_dir_path,
         skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output.output_path, output_dir_path)
+    verify_cellranger_count_outputs(output.output_file_paths, output_dir_path)
 
 
 def verify_cellranger_count_outputs(archive_path, output_dir_path):

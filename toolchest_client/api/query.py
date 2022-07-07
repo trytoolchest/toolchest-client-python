@@ -67,7 +67,7 @@ class Query:
 
         self.status_check_retries = 0
 
-        self.unpacked_output_paths = None
+        self.unpacked_output_file_paths = None
         self.output = stored_output if stored_output else Output()
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
@@ -87,7 +87,7 @@ class Query:
         :param is_database_update: Whether the call is to update an existing database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
-        :param output_path: Path (client-side) where the output file will be downloaded.
+        :param output_path: Path to directory (client-side) where the output file(s) will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file.
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
@@ -126,6 +126,10 @@ class Query:
         ])
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
+        self.output.set_tool(
+            tool_name=tool_name,
+            tool_version=tool_version,
+        )
         self.output.set_database(
             database_name=create_content.get("database_name"),
             database_version=create_content.get("database_version"),
@@ -150,7 +154,7 @@ class Query:
         self._update_thread_status(ThreadStatus.COMPLETE)
 
         self.output.set_s3_uri(self.output_s3_uri)
-        self.output.set_output_path(self.unpacked_output_paths)
+        self.output.set_output_path(output_path, self.unpacked_output_file_paths)
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args,
@@ -393,7 +397,7 @@ class Query:
             if output_path and not path_is_s3_uri(output_path):
                 self._update_thread_status(ThreadStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
-                self.unpacked_output_paths = download(
+                self.unpacked_output_file_paths = download(
                     output_path=output_path,
                     output_file_keys=output_file_keys,
                     output_type=output_type,
