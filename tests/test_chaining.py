@@ -37,9 +37,9 @@ def test_shi7_shogun_chaining():
     )
 
     # Note: since output_path was omitted from the shi7 function call,
-    # local download is skipped, and the local output_path of output_shi7
+    # local download is skipped, and the local output_file_paths of output_shi7
     # should be None.
-    assert output_shi7.output_path is None
+    assert output_shi7.output_file_paths is None
 
     output_shogun = toolchest.shogun_align(
         inputs=output_shi7.s3_uri,
@@ -47,4 +47,4 @@ def test_shi7_shogun_chaining():
     )
 
     assert hash.unordered(output_file_path_shogun) == SHOGUN_CHAINED_HASH
-    assert hash.unordered(output_shogun.output_path) == SHOGUN_CHAINED_HASH
+    assert hash.unordered(output_shogun.output_file_paths) == SHOGUN_CHAINED_HASH
