@@ -41,7 +41,7 @@ def test_shi7_single_end():
     # Note: since shi7 produces multiple files, output_shi7.output_path
     # should be a list of paths to each unpacked output file.
     assert hash.unordered(output_file_path) == SHI7_SINGLE_END_HASH
-    assert isinstance(output_shi7.output_path, list)
+    assert isinstance(output_shi7.output_file_paths, list)
 
 
 @pytest.mark.integration
