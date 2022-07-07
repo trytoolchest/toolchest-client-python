@@ -127,7 +127,7 @@ def get_download_details(pipeline_segment_instance_id):
 def _unpack_output(compressed_output_archive_path, is_compressed):
     """After downloading, unpack files if needed"""
     try:
-        unpacked_output_paths = unpack_files(
+        unpacked_output_file_paths = unpack_files(
             file_path_to_unpack=compressed_output_archive_path,
             is_compressed=is_compressed,
         )
@@ -138,4 +138,4 @@ def _unpack_output(compressed_output_archive_path, is_compressed):
             if isinstance(err, FileNotFoundError) and err.winerror == PATH_TOO_LONG_CODE:
                 error_message += "\nLong file name support in Windows 10 must be enabled."
         raise ToolchestDownloadError(error_message) from err
-    return unpacked_output_paths
+    return unpacked_output_file_paths
