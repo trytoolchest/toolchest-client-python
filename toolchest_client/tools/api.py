@@ -7,6 +7,7 @@ This module contains the API for using Toolchest tools.
 import os.path
 from datetime import date
 
+from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, \
     Test, Unicycler
@@ -697,7 +698,7 @@ def transfer(inputs, output_path=None, **kwargs):
     """
 
     if isinstance(inputs, list):
-        if not output_path.startswith("s3://"):
+        if not path_is_s3_uri(output_path):
             raise NotImplementedError("Transferring multiple files at once is supported only for an S3 output_path")
 
     instance = Transfer(
