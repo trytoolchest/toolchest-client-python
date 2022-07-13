@@ -603,6 +603,9 @@ TOOL_ARG_LISTS = {
         "whitelist": {},
         "blacklist": ["--bad"],
     },
+    "transfer": {
+        "whitelist": {},
+    },
     "unicycler": {
         "whitelist": {
             "--verbosity": 1,

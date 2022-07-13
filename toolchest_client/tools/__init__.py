@@ -14,4 +14,5 @@ from .shi7 import Shi7
 from .shogun import ShogunAlign, ShogunFilter
 from .star import STARInstance
 from .test import Test
+from .transfer import Transfer
 from .unicycler import Unicycler
