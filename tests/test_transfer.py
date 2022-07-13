@@ -1,8 +1,6 @@
 import os
 import pytest
 
-os.environ["TOOLCHEST_API_URL"] = "https://staging.api.toolche.st"
-
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
