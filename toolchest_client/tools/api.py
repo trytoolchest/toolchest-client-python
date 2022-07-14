@@ -7,8 +7,10 @@ This module contains the API for using Toolchest tools.
 import os.path
 from datetime import date
 
+from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+    DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, \
+    Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -668,6 +670,38 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Test(
         tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def transfer(inputs, output_path=None, **kwargs):
+    """Transfers files via Toolchest from an input (local, S3, or HTTP) to an output directory (local or S3)."
+
+    :param inputs: Path or list of files (local, S3, or HTTP) to be transferred.
+    :param output_path: Path (local or S3) to a directory where the output files will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.transfer(
+        ...     inputs=[
+        ...       "https://rest.uniprot.org/uniprotkb/P48754.fasta",
+        ...       "https://rest.uniprot.org/uniprotkb/P48755.fasta",
+        ...     ],
+        ...     output_path="s3://example/uniprot/",
+        ... )
+
+    """
+
+    if isinstance(inputs, list):
+        if not path_is_s3_uri(output_path):
+            raise NotImplementedError("Transferring multiple files at once is supported only for an S3 output_path")
+
+    instance = Transfer(
         inputs=inputs,
         output_path=output_path,
         **kwargs,
