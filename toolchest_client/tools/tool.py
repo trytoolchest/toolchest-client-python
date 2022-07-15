@@ -8,6 +8,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 import copy
 import datetime
 import os
+from queue import Queue
 import re
 import signal
 import sys
@@ -79,6 +80,8 @@ class Tool:
         self.is_async = is_async
         self.is_database_update = is_database_update
         self.skip_decompression = skip_decompression
+        self.output_stream = Queue()
+        self.done_streaming_output = False
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -252,11 +255,24 @@ class Tool:
             raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
         return True
 
+    def _pretty_print_output_stream(self):
+        printed_first_line = False
+        while not self.output_stream.empty():
+            next_line = self.output_stream.get()
+            if not printed_first_line:
+                # Flush job status line if this is the first line to print.
+                next_line = next_line.ljust(120)
+                printed_first_line = True
+            print(next_line, end="\n")
+
     def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
         """Prints output of each job, supporting multiple simultaneous jobs.
 
         Looks like: Running 2 jobs | Duration: 0:03:15 | 1 jobs complete | 1 jobs downloading
         """
+        # Print output stream lines.
+        self._pretty_print_output_stream()
+
         status_counts = {}
         for thread_name, thread_status in self.query_thread_statuses.items():
             if status_counts.get(thread_status):
@@ -461,8 +477,9 @@ class Tool:
                 "tool_args": self.tool_args,
             })
 
-            # Add non-distinct dictionary for status updates
+            # Add non-distinct variables for status updates and output stream
             query_args["thread_statuses"] = self.query_thread_statuses
+            query_args["output_stream"] = self.output_stream
 
             new_thread = Thread(target=q.run_query, kwargs=query_args)
             self.query_threads.append(new_thread)

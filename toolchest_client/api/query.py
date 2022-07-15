@@ -36,7 +36,7 @@ class Query:
 
     # Period (in seconds) between requests when waiting for job(s) to finish executing.
     WAIT_FOR_JOB_DELAY = 1
-    # Multiple of seconds used when pretty printing job status to output.
+    # Multiple of seconds used when pretty printing job status + tool output stream to output.
     PRINTED_TIME_INTERVAL = 5
     # Max number of retries on status check timeouts.
     RETRY_STATUS_CHECK_LIMIT = 5
@@ -55,12 +55,18 @@ class Query:
                 self.PIPELINE_SEGMENT_INSTANCE_URL,
                 "status",
             ])
+            self.OUTPUT_STREAM_URL = "/".join([
+                self.PIPELINE_SEGMENT_INSTANCE_URL,
+                "output-stream",
+            ])
         else:
             self.PIPELINE_SEGMENT_INSTANCE_ID = None
             self.PIPELINE_SEGMENT_INSTANCE_URL = None
             self.STATUS_URL = None
+            self.OUTPUT_STREAM_URL = None
 
         self.mark_as_failed = False
+        self.output_stream = None
         self.thread_name = ''
         self.thread_statuses = None
         self.is_async = is_async
@@ -69,12 +75,13 @@ class Query:
 
         self.unpacked_output_file_paths = None
         self.output = stored_output if stored_output else Output()
+        self.latest_stream_line = 0
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, input_files=None, is_database_update=False,
-                  output_path=None, output_primary_name=None, skip_decompression=False,
-                  thread_statuses=None):
+                  output_path=None, output_primary_name=None, output_stream=False,
+                  skip_decompression=False, thread_statuses=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -86,12 +93,14 @@ class Query:
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
+        :param output_stream: Queue that holds output stream lines, to be printed by the client.
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path to directory (client-side) where the output file(s) will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file.
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
         """
+        self.output_stream = output_stream
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
@@ -123,6 +132,10 @@ class Query:
         self.STATUS_URL = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
+        ])
+        self.OUTPUT_STREAM_URL = "/".join([
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
+            "output-stream",
         ])
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
@@ -373,6 +386,7 @@ class Query:
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
+            self.get_output_stream_latest_lines()
             try:
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
@@ -386,6 +400,7 @@ class Query:
             elapsed_time = time.time() - start_time
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
+        self.get_output_stream_latest_lines()  # get remaining lines after execution
 
     def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
@@ -434,7 +449,7 @@ class Query:
 
         response = requests.get(
             self.STATUS_URL,
-            headers=self.HEADERS
+            headers=self.HEADERS,
         )
         try:
             response.raise_for_status()
@@ -446,3 +461,20 @@ class Query:
         if return_error:
             return response.json()
         return response.json()["status"]
+
+    def get_output_stream_latest_lines(self):
+        """Gets lines of output stream that have not been printed yet."""
+
+        response = requests.get(
+            "/".join([self.OUTPUT_STREAM_URL, str(self.latest_stream_line + 1)]),
+            headers=self.HEADERS,
+        )
+        # Note: Response errors are ignored. Any lines still in the API
+        # will be picked up by the next request.
+        if response.ok:
+            stream_lines = response.json()
+            for stream_line in stream_lines:
+                line_content = stream_line["line"]
+                self.output_stream.put(line_content)
+            if len(stream_lines) > 0:
+                self.latest_stream_line = stream_lines[-1]["line_number"]
