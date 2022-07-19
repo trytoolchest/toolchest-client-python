@@ -419,6 +419,7 @@ TOOL_ARG_LISTS = {
             "--bzip2-compressed": 0,
             "--minimum-hit-groups": 1,
             "--paired": 0,
+            "--report-minimizer-data": 0,
         },
     },
     "megahit": {
