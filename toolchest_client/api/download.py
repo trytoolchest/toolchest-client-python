@@ -134,8 +134,8 @@ def _unpack_output(compressed_output_archive_path, is_compressed):
     except Exception as err:
         error_message = f"Failed to unpack file at {compressed_output_archive_path}."
         if sys.platform == "win32":
-            PATH_TOO_LONG_CODE = 206
-            if isinstance(err, FileNotFoundError) and err.winerror == PATH_TOO_LONG_CODE:
+            path_too_long_code = 206
+            if isinstance(err, FileNotFoundError) and err.winerror == path_too_long_code:
                 error_message += "\nLong file name support in Windows 10 must be enabled."
         raise ToolchestDownloadError(error_message) from err
     return unpacked_output_file_paths
