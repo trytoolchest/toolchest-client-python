@@ -76,4 +76,4 @@ def test_diamond_blastx_distributed():
         distributed=True,
     )
 
-    assert hash.unordered(output_file_path) == 547279018
+    assert 1390254000 < os.path.getsize(output_file_path) <= 1390256000
