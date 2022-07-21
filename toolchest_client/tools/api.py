@@ -264,7 +264,7 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
 
 
 def diamond_blastx(inputs, output_path=None, database_name="diamond_blastx_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", distributed=False, **kwargs):
     """Runs diamond blastx via Toolchest.
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
 gzip compressed)
@@ -274,6 +274,8 @@ gzip compressed)
     Log file (diamond.log) will be downloaded in the same directory as the out file(s).
     :param output_primary_name: (optional) Base name of output file.
     :param tool_args: (optional) Additional arguments to be passed to diamond blastx.
+    :param distributed: (optional) Distribute DIAMOND BLASTX. Note that this is non-deterministic, and might change
+    results.
     Usage::
 
         >>> import toolchest_client as toolchest
@@ -292,6 +294,7 @@ gzip compressed)
         output_path=output_path,
         output_primary_name=output_primary_name,
         tool_args=tool_args,
+        distributed=distributed,
         **kwargs,
     )
     output = instance.run()

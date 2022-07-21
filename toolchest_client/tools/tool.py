@@ -121,9 +121,10 @@ class Tool:
         is shown.
         """
 
-        whitelist = TOOL_ARG_LISTS[self.tool_name]["whitelist"]  # all tools have a whitelist
-        dangerlist = TOOL_ARG_LISTS[self.tool_name].get("dangerlist", [])  # some tools have a dangerlist
-        blacklist = TOOL_ARG_LISTS[self.tool_name].get("blacklist", [])  # some tools have a blacklist
+        tool_category = self.tool_name.replace("_parallel", "")
+        whitelist = TOOL_ARG_LISTS[tool_category]["whitelist"]  # all tools have a whitelist
+        dangerlist = TOOL_ARG_LISTS[tool_category].get("dangerlist", [])  # some tools have a dangerlist
+        blacklist = TOOL_ARG_LISTS[tool_category].get("blacklist", [])  # some tools have a blacklist
 
         sanitized_args = []  # arguments that are explicitly allowed
         unknown_args = []  # all arguments that were not included
