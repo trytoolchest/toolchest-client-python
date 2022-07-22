@@ -13,6 +13,8 @@ class OutputType(Enum):
 
 def unpack_files(file_path_to_unpack, is_compressed):
     """Unpack output file, if needed. Returns the path(s) to the (optionally) unpacked output.
+    If only 1 file is unpacked, returns a string containing that file's path.
+    If there are multiple unpacked files, returns a list of paths.
     Returns a list of file paths to unpacked files.
     """
     if is_compressed:
@@ -33,6 +35,10 @@ def unpack_files(file_path_to_unpack, is_compressed):
         unpacked_paths = ["/".join([unpacked_outputs_dir, file_name]) for file_name in unpacked_file_names]
         unpacked_file_paths = [os.path.normpath(path) for path in unpacked_paths if os.path.isfile(path)]
 
+        # If only 1 file is unpacked, just return path instead of [path].
+        # This is to be consistent with the return value from the other output types.
+        if len(unpacked_file_paths) == 1:
+            return unpacked_file_paths[0]
         return unpacked_file_paths
     else:
         return file_path_to_unpack
