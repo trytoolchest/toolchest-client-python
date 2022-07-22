@@ -25,4 +25,4 @@ def test_python3():
 
     output_file = open(f"{test_dir}/output.txt", "r")
     assert output_file.readline() == "Success"
-    output_file.close()
+    outpyput_file.close()
