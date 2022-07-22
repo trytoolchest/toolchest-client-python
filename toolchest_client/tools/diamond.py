@@ -33,18 +33,18 @@ class DiamondBlastx(Tool):
     """
     The DIAMOND BLASTX implementation of the Tool class.
     """
-    def __init__(self, inputs,  database_name, database_version, output_path, output_primary_name, tool_args, **kwargs):
+    def __init__(self, inputs,  database_name, database_version, output_path, output_primary_name, tool_args,
+                 distributed, **kwargs):
         super().__init__(
-            tool_name="diamond_blastx",
+            tool_name="diamond_blastx" if not distributed else "diamond_blastx_parallel",
             tool_version="2.0.13",
             tool_args=tool_args,
             output_primary_name=output_primary_name,
             inputs=inputs,
             database_name=database_name,
             database_version=database_version,
-            parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             output_path=output_path,
-            expected_output_file_names=[output_primary_name, "diamond.log"],
+            expected_output_file_names=[output_primary_name],
             **kwargs,
         )

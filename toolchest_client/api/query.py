@@ -21,7 +21,7 @@ from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
-from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url
+from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url, path_is_accessible_ftp_url
 from .status import Status, ThreadStatus
 from ..files.s3 import UploadTracker
 
@@ -219,6 +219,7 @@ class Query:
         file_name = os.path.basename(input_file_path)
         input_is_in_s3 = path_is_s3_uri(input_file_path)
         input_is_http_url = path_is_http_url(input_file_path)
+        input_is_ftp_url = path_is_accessible_ftp_url(input_file_path)
 
         response = requests.post(
             register_input_file_url,
@@ -229,6 +230,7 @@ class Query:
                 "tool_prefix_order": input_order,
                 "s3_uri": input_file_path if input_is_in_s3 else None,
                 "http_url": input_file_path if input_is_http_url else None,
+                "ftp_url": input_file_path if input_is_ftp_url else None,
             },
         )
         try:
@@ -256,11 +258,12 @@ class Query:
         for file_path in input_file_paths:
             input_is_in_s3 = path_is_s3_uri(file_path)
             input_is_http_url = path_is_http_url(file_path)
+            input_is_ftp_url = path_is_accessible_ftp_url(file_path)
             input_prefix_details = input_prefix_mapping.get(file_path)
             input_prefix = input_prefix_details.get("prefix") if input_prefix_details else None
             input_order = input_prefix_details.get("order") if input_prefix_details else None
             # If the file is already in S3, there is no need to upload.
-            if input_is_in_s3 or input_is_http_url:
+            if input_is_in_s3 or input_is_http_url or input_is_ftp_url:
                 # Registers the file in the internal DB.
                 self._register_input_file(
                     input_file_path=file_path,

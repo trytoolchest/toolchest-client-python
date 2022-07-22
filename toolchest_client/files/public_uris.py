@@ -1,9 +1,10 @@
 """
-toolchest_client.files.http
+toolchest_client.files.public_uris
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Functions for handling files given by HTTP / HTTPS URLs.
+Functions for handling files given by HTTP / HTTPS / FTP URIs.
 """
+from ftplib import FTP
 from urllib.parse import urlparse
 from urllib3.exceptions import LocationParseError
 
@@ -35,11 +36,33 @@ def path_is_http_url(path):
     return True
 
 
+def path_is_accessible_ftp_url(path):
+    """Returns whether the given path is an accessible URL by sending a HEAD request.
+
+    :param path: An input path.
+    """
+    if path.startswith("ftp://"):
+        file_size = get_ftp_url_file_size(path)
+        return file_size > 0
+    return False
+
+
 def get_http_url_file_size(url):
-    """Returns file size of an accessible URL, via HEAD metadata.
+    """Returns file size of an accessible HTTP URL, via HEAD metadata.
 
     :param url: An input URL.
     """
     response = requests.head(url)
     response.raise_for_status()
     return int(response.headers.get('content-length', 0))
+
+
+def get_ftp_url_file_size(url):
+    """Returns file size of an accessible FTP URL, via SIZE command.
+
+    :param url: An input URL.
+    """
+    parsed_url = urlparse(url)
+    ftp = FTP(parsed_url.netloc)
+    ftp.login()
+    return ftp.size(parsed_url.path)

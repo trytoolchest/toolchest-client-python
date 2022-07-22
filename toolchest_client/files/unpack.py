@@ -15,6 +15,7 @@ def unpack_files(file_path_to_unpack, is_compressed):
     """Unpack output file, if needed. Returns the path(s) to the (optionally) unpacked output.
     If only 1 file is unpacked, returns a string containing that file's path.
     If there are multiple unpacked files, returns a list of paths.
+    Returns a list of file paths to unpacked files.
     """
     if is_compressed:
         # Get names of files in archive

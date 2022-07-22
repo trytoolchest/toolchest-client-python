@@ -1,15 +1,12 @@
 import os
 import pytest
 
-from tests.util import hash
+from tests.util import hash, s3
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
-
-DEFAULT_BLASTP_OUTPUT_HASH = 952562472
-DEFAULT_BLASTX_OUTPUT_HASH = 883070112
 
 
 @pytest.mark.integration
@@ -29,7 +26,7 @@ def test_diamond_blastp_standard():
         output_primary_name=output_file_name,
     )
 
-    assert hash.unordered(output_file_path) == DEFAULT_BLASTP_OUTPUT_HASH
+    assert hash.unordered(output_file_path) == 952562472
 
 
 @pytest.mark.integration
@@ -49,4 +46,34 @@ def test_diamond_blastx_standard():
         output_primary_name=output_file_name,
     )
 
-    assert hash.unordered(output_file_path) == DEFAULT_BLASTX_OUTPUT_HASH
+    assert hash.unordered(output_file_path) == 883070112
+
+
+@pytest.mark.integration
+def test_diamond_blastx_distributed():
+    """
+    Tests DIAMOND BLASTX distributed mode
+    """
+    test_dir = "./temp_test_diamond_blastx_distributed"
+    os.makedirs(f"{test_dir}", exist_ok=True)
+    input_file_path = f"{test_dir}/combined_seqs_unfiltered.fna"
+    output_dir_path = f"./{test_dir}"
+    output_file_name = "sample_output.tsv"
+    output_file_path = f"{output_dir_path}/{output_file_name}"
+
+    s3.download_integration_test_input(
+        s3_file_key="combined_seqs_unfiltered.fna",
+        output_file_path=input_file_path,
+        is_private=True,
+    )
+
+    print(input_file_path)
+
+    toolchest.diamond_blastx(
+        inputs=input_file_path,
+        output_path=output_dir_path,
+        output_primary_name=output_file_name,
+        distributed=True,
+    )
+
+    assert 1390254000 < os.path.getsize(output_file_path) <= 1390256000

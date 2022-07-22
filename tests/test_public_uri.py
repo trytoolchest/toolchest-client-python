@@ -26,3 +26,21 @@ def test_http_input():
 
     with open(output_file_path, "r") as f:
         assert f.read().strip() == "success"
+
+
+@pytest.mark.integration
+def test_ftp_input():
+    """
+    Tests transfer function with an ftp input
+    """
+    test_dir = "temp_test_ftp"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/SRR9990000.fastq.gz"
+
+    toolchest.transfer(
+        inputs="ftp://ftp.sra.ebi.ac.uk/vol1/fastq//SRR999/000/SRR9990000/SRR9990000.fastq.gz",
+        output_path=output_dir_path
+    )
+
+    assert os.path.getsize(output_file_path) == 11632985
