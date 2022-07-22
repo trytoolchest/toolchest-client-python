@@ -8,7 +8,8 @@ General file handling functions.
 import os
 import shutil
 
-from .http import get_url_with_protocol, path_is_http_url, get_http_url_file_size
+from .public_uris import get_url_with_protocol, path_is_http_url, get_http_url_file_size, path_is_accessible_ftp_url, \
+    get_ftp_url_file_size
 from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
 
 
@@ -46,6 +47,9 @@ def check_file_size(file_path, max_size_bytes=None):
     elif path_is_http_url(file_path):
         # Get file size via a HEAD request.
         file_size_bytes = get_http_url_file_size(file_path)
+    elif path_is_accessible_ftp_url(file_path):
+        # Get file size via a SIZE request
+        file_size_bytes = get_ftp_url_file_size(file_path)
     else:
         assert_exists(file_path, must_be_file=True)
         file_size_bytes = os.stat(file_path).st_size
@@ -79,6 +83,10 @@ def files_in_path(files):
     # If it's an HTTP or HTTPS URL, treat it as a file
     if path_is_http_url(files):
         return [get_url_with_protocol(files)]
+
+    # If it's an FTP URL, treat it as a file
+    if path_is_accessible_ftp_url(files):
+        return [files]
 
     # Path is local, expand ~ in path if present
     files = os.path.expanduser(files)
