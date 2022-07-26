@@ -27,7 +27,7 @@ def test_database_update_s3():
 @pytest.mark.integration
 def test_database_update_local():
     """
-    Tests custom database update for diamond blastp using a local file
+    Tests custom database update for diamond blastx using a local file
     """
     test_dir = "temp_test_database_update_local"
     os.makedirs(f"./{test_dir}", exist_ok=True)
@@ -39,7 +39,7 @@ def test_database_update_local():
 
     output = toolchest.update_database(
         database_path=test_dir,
-        tool=toolchest.tools.Kraken2,
+        tool=toolchest.tools.DiamondBlastx,
         database_name="standard",
     )
 
