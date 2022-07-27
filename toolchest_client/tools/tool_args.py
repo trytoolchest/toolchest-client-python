@@ -94,6 +94,7 @@ TOOL_ARG_LISTS = {
             "-ungapped": 0,
             "-window_size": 1,
             "-mt_mode": 1,
+            "task": 1,
         },
     },
     "bowtie2": {
