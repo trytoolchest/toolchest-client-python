@@ -27,3 +27,22 @@ def test_blastn_nt():
     )
 
     assert hash.unordered(output_file_path) == 1290536116
+
+
+@pytest.mark.integration
+def test_blastn_nt_task_blastn():
+    """
+    Tests BLASTN against the default nt (v1) DB
+    """
+    test_dir = "temp_test_blastn_nt"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/blastn_results.out"
+
+    toolchest.blastn(
+        inputs="s3://toolchest-integration-tests/small_synthetic_bacteroides_reads.fasta",
+        output_path=output_dir_path,
+        tool_args="-mt_mode 1 -task blastn"
+    )
+
+    assert hash.unordered(output_file_path) == 1657058660
