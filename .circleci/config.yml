@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  python: circleci/python@2.0.3
+  python: circleci/python@1.4.0
 jobs:
   deploy-to-pypi:
     executor: python/default
@@ -21,6 +21,8 @@ jobs:
     executor: python/default
     working_directory: ~/repo
     steps:
+      - setup_remote_docker:
+          version: 20.10.14
       - checkout
       - python/install-packages:
           pkg-manager: poetry
@@ -35,6 +37,8 @@ jobs:
     working_directory: ~/repo
     parallelism: 4
     steps:
+      - setup_remote_docker:
+          version: 20.10.14
       - checkout
       - run:
           name: Create AWS credentials manually
