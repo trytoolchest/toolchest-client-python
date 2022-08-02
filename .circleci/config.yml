@@ -21,11 +21,11 @@ jobs:
     executor: python/default
     working_directory: ~/repo
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
       - checkout
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run unit tests
           command: |
@@ -37,8 +37,6 @@ jobs:
     working_directory: ~/repo
     parallelism: 4
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
       - checkout
       - run:
           name: Create AWS credentials manually
@@ -51,6 +49,8 @@ jobs:
             echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ~/.aws/config
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run integration tests
           parallel: true
