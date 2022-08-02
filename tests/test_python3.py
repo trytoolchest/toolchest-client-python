@@ -30,6 +30,7 @@ def test_python3():
     output_file.close()
 
 
+@pytest.mark.integration
 def test_python3_with_docker():
     """
     Tests adding dependencies to python3 via a custom docker image
@@ -38,7 +39,7 @@ def test_python3_with_docker():
     """
     client = docker.from_env()
     client.images.build(
-        path=os.path.abspath("./util/"),
+        path="./util/",
         dockerfile="numpy_test.Dockerfile",
         tag="python3-numpy:3.9",
         platform="linux/amd64"
