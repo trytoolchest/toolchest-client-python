@@ -430,7 +430,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
+def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_image_id=None, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
@@ -443,6 +443,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    :param custom_docker_image: (optional) a tagged docker image to be used as an execution environment that can provide
+    dependencied for the script.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -460,6 +462,7 @@ def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
         tool_args=tool_args,
         inputs=inputs,
         output_path=output_path,
+        custom_docker_image_id=custom_docker_image_id,
         **kwargs,
     )
     output = instance.run()

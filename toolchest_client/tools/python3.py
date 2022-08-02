@@ -13,7 +13,7 @@ class Python3(Tool):
     """
     The Python3 implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, output_path, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, custom_docker_image_id=None, **kwargs):
         super().__init__(
             tool_name="python3",
             tool_version="3.9.1",
@@ -21,5 +21,6 @@ class Python3(Tool):
             output_path=output_path,
             inputs=inputs,
             output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
+            custom_docker_image_id=custom_docker_image_id,
             **kwargs,
         )
