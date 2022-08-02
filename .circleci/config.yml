@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-  python: circleci/python@1.4.0
+  python: circleci/python@2.0.3
 jobs:
   deploy-to-pypi:
     executor: python/default
