@@ -38,7 +38,7 @@ def test_python3_with_docker():
     """
     client = docker.from_env()
     client.images.build(
-        path="./util/",
+        path=os.path.abspath("./util/"),
         dockerfile="numpy_test.Dockerfile",
         tag="python3-numpy:3.9",
         platform="linux/amd64"
