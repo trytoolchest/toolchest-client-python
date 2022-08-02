@@ -332,7 +332,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to create repository", file=sys.stderr)
+            print("Failed to create repository", file=sys.stderr)
             raise
 
         response_json = response.json()
