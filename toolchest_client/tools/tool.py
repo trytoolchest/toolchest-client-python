@@ -106,6 +106,18 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
+        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
+        # Note: if compress_inputs is True, this won't check against all input names, and behavior will be undefined
+        if self.is_database_update:
+            if self.database_primary_name:
+                self.database_primary_name = os.path.basename(self.database_primary_name)
+                # If only one input file exists, use that file explicitly as the DB
+                if self.num_input_files == 1 and not self.compress_inputs:
+                    self.database_primary_name = os.path.basename(self.input_files[0])
+                # If DB name isn't one of the input files, (implicitly) use directory of inputs instead as DB
+                if self.database_primary_name not in [os.path.basename(input_path) for input_path in self.input_files]:
+                    self.database_primary_name = None
+
     def _output_path_is_local(self):
         return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
 
@@ -235,15 +247,6 @@ class Tool:
             else:
                 os.makedirs(self.output_path, exist_ok=True)
             self._warn_if_outputs_exist()
-
-        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
-        if self.is_database_update:
-            if self.database_primary_name:
-                self.database_primary_name = os.path.basename(self.database_primary_name)
-                input_paths = self.inputs if isinstance(self.inputs, list) else [self.inputs]
-                # If DB name isn't one of the input files, (implicitly) use directory of inputs instead as DB
-                if self.database_primary_name not in [os.path.basename(input_path) for input_path in input_paths]:
-                    self.database_primary_name = None
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
