@@ -39,7 +39,8 @@ class Tool:
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
-                 is_async=False, is_database_update=False, skip_decompression=False):
+                 is_async=False, is_database_update=False, database_primary_name=None,
+                 skip_decompression=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -78,6 +79,7 @@ class Tool:
         self.expected_output_file_names = expected_output_file_names or []
         self.is_async = is_async
         self.is_database_update = is_database_update
+        self.database_primary_name = database_primary_name
         self.skip_decompression = skip_decompression
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -233,6 +235,15 @@ class Tool:
             else:
                 os.makedirs(self.output_path, exist_ok=True)
             self._warn_if_outputs_exist()
+
+        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
+        if self.is_database_update:
+            if self.database_primary_name:
+                self.database_primary_name = os.path.basename(self.database_primary_name)
+                input_paths = self.inputs if isinstance(self.inputs, list) else [self.inputs]
+                # If DB name isn't one of the input files, (implicitly) use directory of inputs instead as DB
+                if self.database_primary_name not in [os.path.basename(input_path) for input_path in input_paths]:
+                    self.database_primary_name = None
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
@@ -453,6 +464,7 @@ class Tool:
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "is_database_update": self.is_database_update,
+                "database_primary_name": self.database_primary_name,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_primary_name": self.output_primary_name,
                 "output_type": self.output_type,

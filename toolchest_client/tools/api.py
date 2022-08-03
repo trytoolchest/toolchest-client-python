@@ -750,7 +750,7 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(database_path, tool, database_name, **kwargs):
+def update_database(database_path, tool, database_name, database_primary_name=None, **kwargs):
     """Updates a custom database. The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
@@ -761,9 +761,18 @@ def update_database(database_path, tool, database_name, **kwargs):
 
     Note that it may take 24-48 hours for the custom database to be ready for use.
 
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
+
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of database to update.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
 
     Usage::
 
@@ -781,6 +790,7 @@ def update_database(database_path, tool, database_name, **kwargs):
         database_name=database_name,
         is_async=True,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
@@ -793,7 +803,7 @@ def update_database(database_path, tool, database_name, **kwargs):
     return output
 
 
-def add_database(database_path, tool, database_name, **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name=None, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
@@ -805,9 +815,18 @@ def add_database(database_path, tool, database_name, **kwargs):
 
     Note that it may take 24-48 hours for the custom database to be ready for use.
 
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
+
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
 
     Usage::
 
@@ -825,6 +844,7 @@ def add_database(database_path, tool, database_name, **kwargs):
         database_name=database_name,
         is_async=True,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
