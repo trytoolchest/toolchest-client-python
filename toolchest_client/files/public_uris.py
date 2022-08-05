@@ -4,7 +4,6 @@ toolchest_client.files.public_uris
 
 Functions for handling files given by HTTP / HTTPS / FTP URIs.
 """
-import os
 from ftplib import FTP
 from urllib.parse import urlparse
 from urllib3.exceptions import LocationParseError
@@ -53,7 +52,7 @@ def get_http_url_file_size(url):
 
     :param url: An input URL.
     """
-    if all([x in url for x in["https://", "s3", "amazonaws.com"]]):
+    if all([x in url for x in ["https://", "s3", "amazonaws.com"]]):
         return 0
     response = requests.head(url)
     response.raise_for_status()
