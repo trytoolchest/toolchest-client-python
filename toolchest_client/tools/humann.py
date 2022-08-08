@@ -1,8 +1,8 @@
 """
-toolchest_client.tools.bowtie2
+toolchest_client.tools.humann
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the bowtie2 implementation of the Tool class.
+This is the HUMAnN implementation of the Tool class.
 """
 from toolchest_client.files import OutputType
 
@@ -11,7 +11,7 @@ from . import Tool
 
 class HUMAnN(Tool):
     """
-    The bowtie2 implementation of the Tool class.
+    The HUMAnN implementation of the Tool class.
     """
     def __init__(self, tool_args, inputs, output_path, **kwargs):
         super().__init__(

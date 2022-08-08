@@ -307,8 +307,8 @@ def humann(inputs, output_path=None, tool_args="", **kwargs):
 
     Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
 
-    :param inputs: Path to a file that will be passed in as input. FASTA and FASTQ formats are supported (it may be
-gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
+    :param inputs: Path to a *single* file that will be passed in as input. FASTA and FASTQ formats are supported (it
+may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
 
