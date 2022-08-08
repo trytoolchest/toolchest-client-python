@@ -217,12 +217,11 @@ class Query:
             'input-files'
         ])
         file_name = os.path.basename(input_file_path)
-        if "?" in file_name and "http" in input_file_path:
-            file_name = file_name.split("?")[0]
         input_is_in_s3 = path_is_s3_uri(input_file_path)
         input_is_http_url = path_is_http_url(input_file_path)
         input_is_ftp_url = path_is_accessible_ftp_url(input_file_path)
-
+        if input_is_http_url and "?" in file_name:
+            file_name = file_name.split("?")[0]
         response = requests.post(
             register_input_file_url,
             headers=self.HEADERS,
