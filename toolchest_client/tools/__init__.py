@@ -6,6 +6,7 @@ from .cellranger import CellRangerCount
 from .clustalo import ClustalO
 from .demucs import Demucs
 from .diamond import DiamondBlastp, DiamondBlastx
+from .humann import HUMAnN
 from .kraken2 import Kraken2
 from .megahit import Megahit
 from .python3 import Python3
