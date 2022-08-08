@@ -29,24 +29,6 @@ def test_s3_http_input():
 
 
 @pytest.mark.integration
-def test_http_input():
-    """
-    Tests transfer function with an http input
-    """
-    test_dir = "temp_test_ftp"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}"
-    output_file_path = f"{output_dir_path}/P48754.fasta"
-
-    toolchest.transfer(
-        inputs="https://rest.uniprot.org/uniprotkb/P48754.fasta",
-        output_path=output_dir_path
-    )
-
-    assert os.path.getsize(output_file_path) == 1962
-
-
-@pytest.mark.integration
 def test_ftp_input():
     """
     Tests transfer function with an ftp input
