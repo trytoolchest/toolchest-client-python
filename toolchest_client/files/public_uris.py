@@ -24,16 +24,16 @@ def get_url_with_protocol(url):
 
 
 def path_is_http_url(path):
-    """Returns whether the given path is an accessible URL by sending a HEAD request.
+    """Returns whether the given path is an accessible URL by sending a GET request for the first byte.
 
     :param path: An input path.
     """
     try:
-        get_http_url_file_size(get_url_with_protocol(path))
+        response = requests.get(path, headers={"Range": "bytes=0-0"})
+        response.raise_for_status()
+        return len(response.content) == 1
     except (InvalidURL, HTTPError, InvalidSchema, LocationParseError, UnicodeError, Exception):
         return False
-
-    return True
 
 
 def path_is_accessible_ftp_url(path):
@@ -47,16 +47,6 @@ def path_is_accessible_ftp_url(path):
     return False
 
 
-def get_http_url_file_size(url):
-    """Returns file size of an accessible HTTP URL, via HEAD metadata.
-
-    :param url: An input URL.
-    """
-    if all([x in url for x in ["https://", "s3", "amazonaws.com"]]):
-        return 0
-    response = requests.head(url)
-    response.raise_for_status()
-    return int(response.headers.get('content-length', 0))
 
 
 def get_ftp_url_file_size(url):

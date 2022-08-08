@@ -8,7 +8,7 @@ General file handling functions.
 import os
 import shutil
 
-from .public_uris import get_url_with_protocol, path_is_http_url, get_http_url_file_size, path_is_accessible_ftp_url, \
+from .public_uris import get_url_with_protocol, path_is_http_url, path_is_accessible_ftp_url, \
     get_ftp_url_file_size
 from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
 
@@ -25,7 +25,7 @@ def assert_exists(path, must_be_file=False, must_be_directory=False):
     :type must_be_directory: bool
     """
     if not os.path.exists(path):
-        raise FileNotFoundError(f"No file or directory found at {path}")
+        raise FileNotFoundError(f"No accessible file or directory found at {path}")
     if must_be_file and not os.path.isfile(path):
         raise ValueError(f"Directory entry at {path} is not a file")
     if must_be_directory and not os.path.isdir(path):
@@ -45,8 +45,8 @@ def check_file_size(file_path, max_size_bytes=None):
         # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
         file_size_bytes = get_s3_file_size(file_path)
     elif path_is_http_url(file_path):
-        # Get file size via a HEAD request.
-        file_size_bytes = get_http_url_file_size(file_path)
+        # http inputs don't use s3 uploads so multipart check is not needed
+        file_size_bytes = 0
     elif path_is_accessible_ftp_url(file_path):
         # Get file size via a SIZE request
         file_size_bytes = get_ftp_url_file_size(file_path)
