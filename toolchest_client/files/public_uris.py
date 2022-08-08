@@ -47,8 +47,6 @@ def path_is_accessible_ftp_url(path):
     return False
 
 
-
-
 def get_ftp_url_file_size(url):
     """Returns file size of an accessible FTP URL, via SIZE command.
 
