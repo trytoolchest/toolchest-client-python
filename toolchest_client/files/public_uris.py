@@ -52,6 +52,8 @@ def get_http_url_file_size(url):
 
     :param url: An input URL.
     """
+    if all([x in url for x in ["https://", "s3", "amazonaws.com"]]):
+        return 0
     response = requests.head(url)
     response.raise_for_status()
     return int(response.headers.get('content-length', 0))

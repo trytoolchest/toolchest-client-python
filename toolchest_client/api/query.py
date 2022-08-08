@@ -217,6 +217,8 @@ class Query:
             'input-files'
         ])
         file_name = os.path.basename(input_file_path)
+        if "?" in file_name:
+            file_name = file_name.split("?")[0]
         input_is_in_s3 = path_is_s3_uri(input_file_path)
         input_is_http_url = path_is_http_url(input_file_path)
         input_is_ftp_url = path_is_accessible_ftp_url(input_file_path)
