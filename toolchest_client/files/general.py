@@ -45,7 +45,7 @@ def check_file_size(file_path, max_size_bytes=None):
         # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
         file_size_bytes = get_s3_file_size(file_path)
     elif path_is_http_url(file_path):
-        # http inputs don't use s3 uploads so multipart check is not needed
+        # Client does not track size for http inputs
         file_size_bytes = 0
     elif path_is_accessible_ftp_url(file_path):
         # Get file size via a SIZE request
