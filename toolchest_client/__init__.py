@@ -32,7 +32,7 @@ from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import add_database, alphafold, blastn, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, \
-    diamond_blastx, humann, kraken2, megahit, python3, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, \
+    diamond_blastx, humann3, kraken2, megahit, python3, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, \
     test, transfer, unicycler, update_database
 
 sentry_utils.MAX_STRING_LENGTH = 8192  # monkey patch for Sentry max message length

@@ -10,7 +10,7 @@ from datetime import date
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, HUMAnN, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
+    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
     Transfer, Test, Unicycler
 
 
@@ -302,7 +302,7 @@ gzip compressed)
     return output
 
 
-def humann(inputs, output_path=None, tool_args="", **kwargs):
+def humann3(inputs, output_path=None, tool_args="", **kwargs):
     """Runs HUMAnN 3 via Toolchest.
 
     Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
@@ -329,7 +329,7 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
     if isinstance(inputs, list) and len(inputs) > 1:
         raise ToolchestException("Paired-end inputs should be concatenated into a single file "
                                  "before being used as input.")
-    instance = HUMAnN(
+    instance = HUMAnN3(
         inputs=inputs,
         output_path=output_path,
         tool_args=tool_args,
