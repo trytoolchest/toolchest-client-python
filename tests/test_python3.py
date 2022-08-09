@@ -6,9 +6,9 @@ import pytest
 
 import toolchest_client as toolchest
 
-# toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
-# if toolchest_api_key:
-#     toolchest.set_key(toolchest_api_key)
+toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
+if toolchest_api_key:
+    toolchest.set_key(toolchest_api_key)
 
 THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
 
