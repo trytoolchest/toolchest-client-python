@@ -318,7 +318,7 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.humann(
+        >>> toolchest.humann3(
         ...     tool_args="",
         ...     inputs="./path/to/input.fa",
         ...     output_path="./path/to/output/",
@@ -327,8 +327,9 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
 
       """
     if isinstance(inputs, list) and len(inputs) > 1:
-        raise ToolchestException("Paired-end inputs should be concatenated into a single file "
-                                 "before being used as input.")
+        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end reads will be concatenated "
+              "into a single input for this run.")
+        print("To run the files individually, use a separate humann3 function call for each input.")
     instance = HUMAnN3(
         inputs=inputs,
         output_path=output_path,
