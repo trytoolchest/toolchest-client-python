@@ -24,6 +24,8 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run unit tests
           command: |
@@ -47,6 +49,8 @@ jobs:
             echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ~/.aws/config
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run integration tests
           parallel: true

@@ -15,7 +15,9 @@ from urllib.parse import urlparse
 import boto3
 import requests
 import sentry_sdk
+import docker
 from requests.exceptions import HTTPError
+from docker.errors import ImageNotFound, DockerException, APIError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
@@ -75,7 +77,7 @@ class Query:
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, input_files=None, is_database_update=False,
                   output_path=None, output_primary_name=None, skip_decompression=False,
-                  thread_statuses=None):
+                  thread_statuses=None, custom_docker_image_id=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -84,6 +86,7 @@ class Query:
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
         :param custom_database_path: Path (S3 URI) to a custom database.
+        :param custom_database_path: Image id of a custom docker image on the local machine.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
@@ -104,6 +107,7 @@ class Query:
             database_name=database_name,
             database_version=database_version,
             custom_database_path=custom_database_path,
+            custom_docker_image_id=custom_docker_image_id,
             is_database_update=is_database_update,
             tool_name=tool_name,
             tool_version=tool_version,
@@ -139,6 +143,7 @@ class Query:
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping)
+        self._upload_docker_image(custom_docker_image_id)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -161,7 +166,7 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, custom_database_path,
                               output_primary_name, output_file_path, compress_output,
-                              is_database_update):
+                              is_database_update, custom_docker_image_id):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -178,7 +183,7 @@ class Query:
             "tool_version": tool_version,
             "output_file_path": output_file_path,
             "output_file_primary_name": output_primary_name,
-
+            "custom_docker_image_id": custom_docker_image_id,
         }
 
         create_response = requests.post(
@@ -302,6 +307,60 @@ class Query:
                     )
 
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
+
+    def _upload_docker_image(self, custom_docker_image_id):
+        if custom_docker_image_id is None:
+            return
+        try:  # Try to get the image before creating a repository.
+            client = docker.from_env()
+            image = client.images.get(custom_docker_image_id)
+        except ImageNotFound:
+            raise ToolchestException(f"Unable to find image {custom_docker_image_id}.")
+        except (APIError, DockerException):
+            raise EnvironmentError('Unable to connect to Docker. Make sure yoe have docker installed and that it is '
+                                   'currently running.')
+        register_input_file_url = "/".join([
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
+            'docker-image'
+        ])
+
+        response = requests.post(
+            register_input_file_url,
+            headers=self.HEADERS,
+            json={
+                "custom_docker_image_id": custom_docker_image_id,
+            },
+        )
+
+        try:
+            response.raise_for_status()
+        except HTTPError:
+            print("Failed to create repository", file=sys.stderr)
+            raise
+
+        response_json = response.json()
+        aws_info = {
+            "aws_account_id": response_json.get('aws_account_id'),
+            "ecr_session_password": response_json.get('ecr_password'),
+            "region": response_json.get('region'),
+            "repository_name": response_json.get('repository_name')
+        }
+        try:
+            registry = f"{aws_info['aws_account_id']}.dkr.ecr.{aws_info['region']}.amazonaws.com"
+            client.login(
+                username="AWS",
+                password=aws_info['ecr_session_password'],
+                registry=registry,
+            )
+            docker_image_name_and_tag = custom_docker_image_id.split(':')
+            docker_tag = docker_image_name_and_tag[1] if len(docker_image_name_and_tag) > 1 else 'latest'
+            image.tag(f"{registry}/{aws_info['repository_name']}:{docker_tag}", docker_tag)
+            push_output = client.api.push(f"{registry}/{aws_info['repository_name']}:{docker_tag}", docker_tag)
+            if 'errorDetail' in push_output:
+                raise ToolchestJobError("Failed to push image.")
+        except APIError:
+            raise EnvironmentError('Unable to access ECR at this time. '
+                                   'Contact Toolchest support if this error persists')
 
     def _update_thread_status(self, new_status):
         """
