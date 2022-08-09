@@ -444,7 +444,7 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
     :param custom_docker_image: (optional) a tagged docker image to be used as an execution environment that can provide
-    dependencied for the script.
+    dependencies for the script.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(

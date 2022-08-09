@@ -1,13 +1,16 @@
 import os
+import pathlib
 
 import docker
 import pytest
 
 import toolchest_client as toolchest
 
-toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
-if toolchest_api_key:
-    toolchest.set_key(toolchest_api_key)
+# toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
+# if toolchest_api_key:
+#     toolchest.set_key(toolchest_api_key)
+
+THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
 
 
 @pytest.mark.integration
@@ -39,7 +42,7 @@ def test_python3_with_docker():
     """
     client = docker.from_env()
     client.images.build(
-        path="./util/",
+        path=f"{THIS_FILE_PATH}/util/",
         dockerfile="numpy_test.Dockerfile",
         tag="python3-numpy:3.9",
         platform="linux/amd64"

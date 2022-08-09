@@ -315,13 +315,14 @@ class Query:
         except ImageNotFound:
             raise ToolchestException(f"Unable to find image {custom_docker_image_id}.")
         except APIError:
-            raise EnvironmentError('Unable to access Docker Daemon.')
+            raise EnvironmentError('Unable to connect to Docker. Make sure yoe have docker installed and that it is '
+                                   'currently running.')
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'docker-image'
         ])
 
-        response = requests.post(  # Need to build endpoint
+        response = requests.post(
             register_input_file_url,
             headers=self.HEADERS,
             json={
@@ -338,7 +339,7 @@ class Query:
         response_json = response.json()
         aws_info = {
             "aws_account_id": response_json.get('aws_account_id'),
-            "ecr_password": response_json.get('ecr_password'),
+            "ecr_session_password": response_json.get('ecr_password'),
             "region": response_json.get('region'),
             "repository_name": response_json.get('repository_name')
         }
@@ -346,7 +347,7 @@ class Query:
             registry = f"{aws_info['aws_account_id']}.dkr.ecr.{aws_info['region']}.amazonaws.com"
             client.login(
                 username="AWS",
-                password=aws_info['ecr_password'],
+                password=aws_info['ecr_session_password'],
                 registry=registry,
             )
             docker_image_name_and_tag = custom_docker_image_id.split(':')
@@ -356,7 +357,8 @@ class Query:
             if 'errorDetail' in push_output:
                 raise ToolchestJobError("Failed to push image.")
         except APIError:
-            raise EnvironmentError('Unable to access ECR at this time. Reach out to Toolchest to debug.')
+            raise EnvironmentError('Unable to access ECR at this time. '
+                                   'Contact Toolchest support if this error persists')
 
     def _update_thread_status(self, new_status):
         """
