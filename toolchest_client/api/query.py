@@ -16,8 +16,7 @@ import requests
 import sentry_sdk
 import docker
 from requests.exceptions import HTTPError
-from docker.errors import ImageNotFound
-from docker.errors import APIError
+from docker.errors import ImageNotFound, DockerException, APIError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
@@ -309,12 +308,12 @@ class Query:
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
             return
-        client = docker.from_env()
         try:  # Try to get the image before creating a repository.
+            client = docker.from_env()
             image = client.images.get(custom_docker_image_id)
         except ImageNotFound:
             raise ToolchestException(f"Unable to find image {custom_docker_image_id}.")
-        except APIError:
+        except (APIError, DockerException):
             raise EnvironmentError('Unable to connect to Docker. Make sure yoe have docker installed and that it is '
                                    'currently running.')
         register_input_file_url = "/".join([
