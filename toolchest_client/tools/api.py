@@ -327,9 +327,10 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
 
       """
     if isinstance(inputs, list) and len(inputs) > 1:
-        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end reads will be concatenated "
-              "into a single input for this run.")
+        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be concatenated "
+              "before being passed in as input.")
         print("To run the files individually, use a separate humann3 function call for each input.")
+        raise ToolchestException("humann3 only supports single input files.")
     instance = HUMAnN3(
         inputs=inputs,
         output_path=output_path,
