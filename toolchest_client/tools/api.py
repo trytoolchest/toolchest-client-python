@@ -12,6 +12,7 @@ from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
     Transfer, Test, Unicycler
+from toolchest_client.tools.humann import HUMAnN3Mode
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -302,7 +303,8 @@ gzip compressed)
     return output
 
 
-def humann3(inputs, output_path=None, tool_args="", **kwargs):
+def humann3(inputs, output_path=None, tool_args="", mode=HUMAnN3Mode.HUMANN,
+            taxonomic_profile=None, input_pathways=None, output_primary_name=None, **kwargs):
     """Runs HUMAnN 3 via Toolchest.
 
     Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
@@ -311,6 +313,7 @@ def humann3(inputs, output_path=None, tool_args="", **kwargs):
 may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
     :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+    :param mode: (optional) Enum to allow for the exemution of humann3 utility scripts. Defaults to executing humann.
 
     Note: Paired-end inputs should be concatenated and passed in as a single input file before
     running HUMAnN 3.
@@ -331,6 +334,36 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
               "before being passed in as input.")
         print("To run the files individually, use a separate humann3 function call for each input.")
         raise ToolchestException("humann3 only supports single input files.")
+    if mode.value[1] and output_primary_name is None:
+        raise ToolchestException(f"{mode.value[0]} requires an output_primary_name be set.")
+    elif not mode.value[1] and output_primary_name is not None:
+        raise ToolchestException(f"{mode.value[0]} requires an output_primary_name be set.")
+
+    tool_args = mode.value[0] + tool_args
+    input_prefix_mapping = {
+        inputs: {
+            "prefix": "--input",
+            "order": 0,
+        }
+    }
+
+    if mode == HUMAnN3Mode.HUMANN and taxonomic_profile is not None:
+        input_prefix_mapping[taxonomic_profile] = {
+            "prefix": "--taxonomic-profile",
+            "order": 1
+        }
+    elif taxonomic_profile is not None:
+        raise ToolchestException(f"Taxonomic profile is only supported for {HUMAnN3Mode.HUMANN.value} mode.")
+
+    if mode == HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS and input_pathways is not None:
+        input_prefix_mapping[inputs]["prefix"] = "--input-genes"
+        input_prefix_mapping[input_pathways] = {
+            "prefix": "--input-pathways",
+            "order": 1
+        }
+    elif input_pathways is not None:
+        raise ToolchestException(f"Input pathways is only supported for {HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS.value} "
+                                 "mode.")
     instance = HUMAnN3(
         inputs=inputs,
         output_path=output_path,

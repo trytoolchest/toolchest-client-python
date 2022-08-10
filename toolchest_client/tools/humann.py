@@ -4,6 +4,8 @@ toolchest_client.tools.humann
 
 This is the HUMAnN implementation of the Tool class.
 """
+from enum import Enum
+
 from toolchest_client.files import OutputType
 
 from . import Tool
@@ -26,3 +28,15 @@ class HUMAnN3(Tool):
             output_type=OutputType.GZ_TAR,
             **kwargs,
         )
+
+
+class HUMAnN3Mode(Enum):
+    HUMANN = ("humann", False)
+    HUMANN_BARPLOT = ("humann_barplot", True)
+    HUMANN_GENE_FAMILIES_GENUS_LEVEL = ("humann_gene_families_genus_level", True)
+    HUMANN_JOIN_TABLES = ("humann_join_tables", True)
+    HUMANN_REDUCE_TABLE = ("humann_reduce_table", True)
+    HUMANN_REGROUP_TABLE = ("humann_regroup_table", True)
+    HUMANN_RENORM_TABLE = ("humann_renorm_table", True)
+    HUMANN_SPLIT_STRATIFIED_TABLE = ("humann_split_stratified_table", False)
+    HUMANN_UNPACK_PATHWAYS = ("humann_unpack_pathways", True)

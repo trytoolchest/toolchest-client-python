@@ -412,31 +412,19 @@ TOOL_ARG_LISTS = {
     },
     "humann3": {
         "whitelist": {
-            "--bypass-nucleotide-index": 0,
-            "--bypass-nucleotide-search": 0,
-            "--bypass-prescreen": 0,
-            "--bypass-translated-search": 0,
-            "--metaphlan-options": VARIABLE_ARGS,
-            "--prescreen-threshold": 1,
-            "--bowtie2-options": VARIABLE_ARGS,
-            "--nucleotide-identity-threshold": 1,
-            "--nucleotide-query-coverage-threshold": 1,
-            "--nucleotide-subject-coverage-threshold": 1,
-            "--diamond-options": VARIABLE_ARGS,
-            "--evalue": 1,
-            "--translated-identity-threshold": 1,
-            "--translated-query-coverage-threshold": 1,
-            "--translated-subject-coverage-threshold": 1,
-            "--gap-fill": 1,
-            "--minpath": 1,
-            "--pathways": 1,
-            "--xipe": 1,
-            "--annotation-gene-index": 1,
-            "--output-format": 1,
-            "--output-max-decimals": 1,
-            "--remove-column-description-output": 0,
-            "--remove-stratified-output": 0,
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
         },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "--nucleotide-database",
+            "--protein-database",
+            "--threads",
+            "--memory-use"
+        ]
     },
     "kraken2": {
         "whitelist": {
