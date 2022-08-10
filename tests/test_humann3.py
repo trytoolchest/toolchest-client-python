@@ -31,4 +31,3 @@ def test_humann3_m8():
     assert hash.unordered(output_genefamilies_path) == 917720334
     assert hash.unordered(output_pathabundance_path) == 1938423861
     assert hash.unordered(output_pathcoverage_path) == 1315086232
-
