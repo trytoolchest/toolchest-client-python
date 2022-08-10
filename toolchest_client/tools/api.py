@@ -7,10 +7,11 @@ This module contains the API for using Toolchest tools.
 import os.path
 from datetime import date
 
+from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, \
-    Test, Unicycler
+    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
+    Transfer, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -295,6 +296,45 @@ gzip compressed)
         output_primary_name=output_primary_name,
         tool_args=tool_args,
         distributed=distributed,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def humann3(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs HUMAnN 3 via Toolchest.
+
+    Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
+
+    :param inputs: Path to a *single* file that will be passed in as input. FASTA and FASTQ formats are supported (it
+may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+
+    Note: Paired-end inputs should be concatenated and passed in as a single input file before
+    running HUMAnN 3.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.humann3(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
+
+      """
+    if isinstance(inputs, list) and len(inputs) > 1:
+        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be concatenated "
+              "before being passed in as input.")
+        print("To run the files individually, use a separate humann3 function call for each input.")
+        raise ToolchestException("humann3 only supports single input files.")
+    instance = HUMAnN3(
+        inputs=inputs,
+        output_path=output_path,
+        tool_args=tool_args,
         **kwargs,
     )
     output = instance.run()
