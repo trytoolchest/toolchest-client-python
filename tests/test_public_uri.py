@@ -9,7 +9,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_http_input():
+def test_s3_http_input():
     """
     Tests test function with an http input
     """
