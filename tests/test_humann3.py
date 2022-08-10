@@ -1,6 +1,7 @@
 import os
 import pytest
 
+from tests.util import hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -9,19 +10,25 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_humann3():
+def test_humann3_m8():
     """
-    Tests humann3
+    Tests humann3 with an m8 file
+    Note: This test skips the alignment step.
     """
 
-    test_dir = "temp_test_humann3_default"
+    test_dir = "temp_test_humann3_m8"
     os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}/"
+    output_dir_path = f"./{test_dir}"
+    output_genefamilies_path = f"{output_dir_path}/demo_genefamilies.tsv"
+    output_pathabundance_path = f"{output_dir_path}/demo_pathabundance.tsv"
+    output_pathcoverage_path = f"{output_dir_path}/demo_pathcoverage.tsv"
 
     toolchest.humann3(
         inputs="s3://toolchest-integration-tests/humann3/demo.m8",
-        # inputs="s3://toolchest-integration-tests-private/humann3/test_R1.fastq",
         output_path=output_dir_path,
     )
 
+    assert hash.unordered(output_genefamilies_path) == 917720334
+    assert hash.unordered(output_pathabundance_path) == 1938423861
+    assert hash.unordered(output_pathcoverage_path) == 1315086232
 

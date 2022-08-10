@@ -309,10 +309,10 @@ def humann3(inputs, output_path=None, tool_args="", **kwargs):
 
     :param inputs: Path to a *single* file that will be passed in as input. FASTA and FASTQ formats are supported (it
 may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
-    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
 
-    Note: Paired-end inputs should be concatenated and passed in as a single output file before
+    Note: Paired-end inputs should be concatenated and passed in as a single input file before
     running HUMAnN 3.
 
     Usage::
