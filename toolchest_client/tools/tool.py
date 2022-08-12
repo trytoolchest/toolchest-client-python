@@ -115,8 +115,9 @@ class Tool:
                 # If only one input file exists, use that file explicitly as the DB
                 if self.num_input_files == 1 and not self.compress_inputs:
                     self.database_primary_name = os.path.basename(self.input_files[0])
-                # If DB name isn't one of the input files, (implicitly) use directory of inputs instead as DB
-                if self.database_primary_name not in [os.path.basename(input_path) for input_path in self.input_files]:
+                # If DB name isn't a prefix for an input file, (implicitly) use directory of inputs instead as DB
+                input_basenames = [os.path.basename(input_path) for input_path in self.input_files]
+                if all([self.database_primary_name not in basename for basename in input_basenames]):
                     self.database_primary_name = None
 
     def _output_path_is_local(self):
