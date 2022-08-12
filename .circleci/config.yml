@@ -24,12 +24,14 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run unit tests
           command: |
             cd ~/repo
             poetry install
-            poetry run pytest -v -m "not integration"
+            poetry run pytest -v -m "not (integration or integration_full)"
   integration-tests:
     executor: python/default
     working_directory: ~/repo
@@ -47,6 +49,8 @@ jobs:
             echo "aws_secret_access_key=$AWS_SECRET_ACCESS_KEY" >> ~/.aws/config
       - python/install-packages:
           pkg-manager: poetry
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Run integration tests
           parallel: true

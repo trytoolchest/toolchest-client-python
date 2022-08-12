@@ -7,10 +7,11 @@ This module contains the API for using Toolchest tools.
 import os.path
 from datetime import date
 
+from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, \
-    Test, Unicycler
+    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
+    Transfer, Test, Unicycler
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -301,6 +302,45 @@ gzip compressed)
     return output
 
 
+def humann3(inputs, output_path=None, tool_args="", **kwargs):
+    """Runs HUMAnN 3 via Toolchest.
+
+    Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
+
+    :param inputs: Path to a *single* file that will be passed in as input. FASTA and FASTQ formats are supported (it
+may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+
+    Note: Paired-end inputs should be concatenated and passed in as a single input file before
+    running HUMAnN 3.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.humann3(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
+
+      """
+    if isinstance(inputs, list) and len(inputs) > 1:
+        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be concatenated "
+              "before being passed in as input.")
+        print("To run the files individually, use a separate humann3 function call for each input.")
+        raise ToolchestException("humann3 only supports single input files.")
+    instance = HUMAnN3(
+        inputs=inputs,
+        output_path=output_path,
+        tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
@@ -430,7 +470,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
+def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_image_id=None, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
@@ -443,6 +483,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    :param custom_docker_image: (optional) a tagged docker image to be used as an execution environment that can provide
+    dependencies for the script.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -460,6 +502,7 @@ def python3(script, inputs=[], output_path=None, tool_args="", **kwargs):
         tool_args=tool_args,
         inputs=inputs,
         output_path=output_path,
+        custom_docker_image_id=custom_docker_image_id,
         **kwargs,
     )
     output = instance.run()

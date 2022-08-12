@@ -40,7 +40,7 @@ class Tool:
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
                  is_async=False, is_database_update=False, database_primary_name=None,
-                 skip_decompression=False):
+                 skip_decompression=False, custom_docker_image_id=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -81,6 +81,7 @@ class Tool:
         self.is_database_update = is_database_update
         self.database_primary_name = database_primary_name
         self.skip_decompression = skip_decompression
+        self.custom_docker_image_id = custom_docker_image_id
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -462,6 +463,7 @@ class Tool:
             # Note: multithreaded download may be broken with output_path refactor
             query_args = copy.deepcopy({
                 "custom_database_path": self.custom_database_path,
+                "custom_docker_image_id": self.custom_docker_image_id,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
                 "input_files": input_files,
