@@ -424,6 +424,9 @@ TOOL_ARG_LISTS = {
             "--protein-database",
             "--threads",
             "--memory-use"
+            "--taxonomic-profile",
+            "--input-pathways",
+            "--input-genes"
         ]
     },
     "kraken2": {
