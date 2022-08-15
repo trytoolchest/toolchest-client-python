@@ -15,7 +15,7 @@ class HUMAnN3(Tool):
     """
     The HUMAnN implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, output_path, **kwargs):
+    def __init__(self, tool_args, inputs, output_primary_name, input_prefix_mapping, output_path, **kwargs):
         super().__init__(
             tool_name="humann3",
             tool_version="3.1.1",  # todo: allow version to be set by the user
@@ -23,7 +23,9 @@ class HUMAnN3(Tool):
             database_version="1",
             tool_args=tool_args,
             output_path=output_path,
+            output_primary_name=output_primary_name,
             inputs=inputs,
+            input_prefix_mapping=input_prefix_mapping,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
             **kwargs,
@@ -33,7 +35,7 @@ class HUMAnN3(Tool):
 class HUMAnN3Mode(Enum):
     HUMANN = ("humann", False)
     HUMANN_BARPLOT = ("humann_barplot", True)
-    HUMANN_GENE_FAMILIES_GENUS_LEVEL = ("humann_gene_families_genus_level", True)
+    HUMANN_GENE_FAMILIES_GENUS_LEVEL = ("humann_genefamilies_genus_level", True)
     HUMANN_JOIN_TABLES = ("humann_join_tables", True)
     HUMANN_REDUCE_TABLE = ("humann_reduce_table", True)
     HUMANN_REGROUP_TABLE = ("humann_regroup_table", True)

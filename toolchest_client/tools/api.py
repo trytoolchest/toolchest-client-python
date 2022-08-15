@@ -314,6 +314,11 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
     :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
     :param mode: (optional) Enum to allow for the exemution of humann3 utility scripts. Defaults to executing humann.
+    :param taxonomic_profile: (optional) Path to a MetaPhlAn output tsv (taxonomic profile). Speeds up execution if
+provided.
+    :param input_pathways: (optional) Path to input pathways from a standard humann run for use with
+"humann_unpack_pathways".
+    :param output_primary_name: (optional) The name of the output file if the mode outputs a file.
 
     Note: Paired-end inputs should be concatenated and passed in as a single input file before
     running HUMAnN 3.
@@ -334,10 +339,15 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
               "before being passed in as input.")
         print("To run the files individually, use a separate humann3 function call for each input.")
         raise ToolchestException("humann3 only supports single input files.")
+    elif isinstance(inputs, list):
+        inputs = inputs[0]
     if mode.value[1] and output_primary_name is None:
-        raise ToolchestException(f"{mode.value[0]} requires an output_primary_name be set.")
+        print('WARNING: No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
+        output_primary_name = "output.tsv"
     elif not mode.value[1] and output_primary_name is not None:
-        raise ToolchestException(f"{mode.value[0]} requires an output_primary_name be set.")
+        print(f'WARNING: No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
+              'Removing output_primary_name to continue execution.')
+        output_primary_name = None
 
     tool_args = mode.value[0] + tool_args
     input_prefix_mapping = {
@@ -352,6 +362,7 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
             "prefix": "--taxonomic-profile",
             "order": 1
         }
+        inputs = [inputs, taxonomic_profile]
     elif taxonomic_profile is not None:
         raise ToolchestException(f"Taxonomic profile is only supported for {HUMAnN3Mode.HUMANN.value} mode.")
 
@@ -361,11 +372,14 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
             "prefix": "--input-pathways",
             "order": 1
         }
+        inputs = [inputs, input_pathways]
     elif input_pathways is not None:
         raise ToolchestException(f"Input pathways is only supported for {HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS.value} "
                                  "mode.")
     instance = HUMAnN3(
         inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
