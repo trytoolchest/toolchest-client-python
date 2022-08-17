@@ -528,12 +528,13 @@ class Tool:
             # Print initial completion message
             if self.is_async:
                 print(
-                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
+                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n"
                     f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
                 )
             else:
+                conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
                 print(
-                    f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
+                    f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
                 )
             # Print details about new DB or how to download, depending on whether this is a DB update
             if self.is_database_update:

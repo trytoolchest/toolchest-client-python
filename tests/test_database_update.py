@@ -45,7 +45,7 @@ def test_database_update_s3():
         database_name=update_db_output.database_name,
         database_version=update_db_output.database_version,
     )
-    print(os.path.getsize(output_file_path))  # replace w/ file size assertion
+    assert os.path.getsize(output_file_path) == 64914832
 
 
 @pytest.mark.integration
@@ -54,7 +54,6 @@ def test_database_update_local():
     Tests custom database update for bowtie 2 using local files
     """
     test_dir = "temp_test_db_update_local_bowtie2"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
     input_dir_path = f"./{test_dir}/inputs/"
     input_file_names = [
         "BDGP6.1.bt2",
@@ -66,6 +65,7 @@ def test_database_update_local():
     ]
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/bowtie2_output.sam"
+    os.makedirs(input_dir_path, exist_ok=True)
 
     # Download DB files
     for input_file_name in input_file_names:
@@ -76,8 +76,8 @@ def test_database_update_local():
 
     # Update DB
     update_db_output = toolchest.update_database(
-        database_path=test_dir,
-        tool=toolchest.tools.DiamondBlastx,
+        database_path=input_dir_path,
+        tool=toolchest.tools.Bowtie2,
         database_name="integration_test_bowtie2_fruitfly",
         database_primary_name="BDGP6",
         is_async=False,  # to ensure DB finishes uploading before tool call
@@ -92,7 +92,7 @@ def test_database_update_local():
         database_name=update_db_output.database_name,
         database_version=update_db_output.database_version,
     )
-    print(os.path.getsize(output_file_path))  # replace w/ file size assertion
+    assert os.path.getsize(output_file_path) == 62764495
 
 
 @pytest.mark.integration
