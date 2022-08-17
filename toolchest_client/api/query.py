@@ -76,8 +76,8 @@ class Query:
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, input_files=None, is_database_update=False,
-                  output_path=None, output_primary_name=None, skip_decompression=False,
-                  thread_statuses=None, custom_docker_image_id=None):
+                  database_primary_name=None, output_path=None, output_primary_name=None,
+                  skip_decompression=False, thread_statuses=None, custom_docker_image_id=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -89,6 +89,9 @@ class Query:
         :param custom_database_path: Image id of a custom docker image on the local machine.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
+        :param database_primary_name: Name of the file to use as the primary database file,
+            if updating a database and uploading multiple files. If unspecified, assumes that the
+            *directory* of files is the database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path to directory (client-side) where the output file(s) will be downloaded.
@@ -109,6 +112,7 @@ class Query:
             custom_database_path=custom_database_path,
             custom_docker_image_id=custom_docker_image_id,
             is_database_update=is_database_update,
+            database_primary_name=database_primary_name,
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
@@ -166,7 +170,7 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, custom_database_path,
                               output_primary_name, output_file_path, compress_output,
-                              is_database_update, custom_docker_image_id):
+                              is_database_update, database_primary_name, custom_docker_image_id):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -179,6 +183,7 @@ class Query:
             "database_name": database_name,
             "database_version": database_version,
             "is_database_update": is_database_update,
+            "database_primary_name": database_primary_name,
             "tool_name": tool_name,
             "tool_version": tool_version,
             "output_file_path": output_file_path,
