@@ -430,9 +430,9 @@ class Tool:
         print(f"Found {self.num_input_files} files to upload.")
 
         should_run_in_parallel = self.parallel_enabled \
-                                 and not any(inputs_are_in_s3(self.input_files)) \
-                                 and (self.group_paired_ends or self.num_input_files == 1) \
-                                 and self._system_supports_parallel_execution()
+            and not any(inputs_are_in_s3(self.input_files)) \
+            and (self.group_paired_ends or self.num_input_files == 1) \
+            and self._system_supports_parallel_execution()
 
         if should_run_in_parallel and self.is_async:
             print("WARNING: Disabling async execution for parallel run. This run will be synchronous.")
