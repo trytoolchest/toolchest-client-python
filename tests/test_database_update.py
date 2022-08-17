@@ -33,6 +33,7 @@ def test_database_update_s3():
         tool=toolchest.tools.Bowtie2,
         database_name="integration_test_bowtie2_fruitfly",
         database_primary_name="Dmel_A4_1.0",
+        is_async=False,  # to ensure DB finishes uploading before tool call
     )
     assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
     assert update_db_output.database_version
@@ -79,6 +80,7 @@ def test_database_update_local():
         tool=toolchest.tools.DiamondBlastx,
         database_name="integration_test_bowtie2_fruitfly",
         database_primary_name="BDGP6",
+        is_async=False,  # to ensure DB finishes uploading before tool call
     )
     assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
     assert update_db_output.database_version
@@ -123,8 +125,9 @@ def test_database_add_s3():
         ],
         tool=toolchest.tools.Kraken2,
         database_name=f"integration_test_kraken2_viral_{time.time()}",
+        is_async=False,  # to ensure DB finishes uploading before tool call
     )
-    assert add_db_output.database_name.startswith("integration_test_viral")
+    assert add_db_output.database_name.startswith("integration_test_kraken2_viral")
     assert add_db_output.database_version == "1"
 
     # Run test input on new database

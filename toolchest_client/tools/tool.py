@@ -21,7 +21,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size, \
     split_paired_files_by_lines, compress_files_in_path, OutputType
 from toolchest_client.files.s3 import inputs_are_in_s3, path_is_s3_uri
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
@@ -430,9 +430,9 @@ class Tool:
         print(f"Found {self.num_input_files} files to upload.")
 
         should_run_in_parallel = self.parallel_enabled \
-            and not any(inputs_are_in_s3(self.input_files)) \
-            and (self.group_paired_ends or self.num_input_files == 1) \
-            and self._system_supports_parallel_execution()
+                                 and not any(inputs_are_in_s3(self.input_files)) \
+                                 and (self.group_paired_ends or self.num_input_files == 1) \
+                                 and self._system_supports_parallel_execution()
 
         if should_run_in_parallel and self.is_async:
             print("WARNING: Disabling async execution for parallel run. This run will be synchronous.")
@@ -525,17 +525,31 @@ class Tool:
         else:
             self._postflight(self.thread_outputs[0])
             run_id = self.thread_outputs[0].run_id
+            # Print initial completion message
             if self.is_async:
                 print(
                     f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
                     f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
-                    f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) within 7 days\n"
-                    )
+                )
             else:
                 print(
                     f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
-                    f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n"
+                )
+            # Print details about new DB or how to download, depending on whether this is a DB update
+            if self.is_database_update:
+                print(
+                    f"The parameters of your new database are:\n"
+                    f"\tdatabase_name: \"{self.thread_outputs[0].database_name}\"\n"
+                    f"\tdatabase_version: \"{self.thread_outputs[0].database_version}\"\n"
+                )
+            else:
+                if self.is_async:
+                    print(
+                        f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) "
+                        "within 7 days\n"
                     )
+                else:
+                    print(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:

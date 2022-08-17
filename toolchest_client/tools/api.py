@@ -793,16 +793,19 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(database_path, tool, database_name, database_primary_name=None, **kwargs):
+def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Updates a custom database. The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
 
     If there are multiple files being uploaded, Toolchest will assume that a directory containing
     all database files should be passed in as the database for the tool on the command line. If
@@ -816,6 +819,8 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         (i.e., what you would pass into the command line as the database), if uploading multiple
         files. If unspecified, assumes that the *directory* of files is what will be passed in
         as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -831,7 +836,7 @@ def update_database(database_path, tool, database_name, database_primary_name=No
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
         database_primary_name=database_primary_name,
         output_path=None,
@@ -846,17 +851,20 @@ def update_database(database_path, tool, database_name, database_primary_name=No
     return output
 
 
-def add_database(database_path, tool, database_name, database_primary_name=None, **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
 
     If there are multiple files being uploaded, Toolchest will assume that a directory containing
     all database files should be passed in as the database for the tool on the command line. If
@@ -870,6 +878,8 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
         (i.e., what you would pass into the command line as the database), if uploading multiple
         files. If unspecified, assumes that the *directory* of files is what will be passed in
         as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -885,7 +895,7 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
         database_primary_name=database_primary_name,
         output_path=None,
