@@ -2,7 +2,7 @@ import os
 import time
 import pytest
 
-from tests.util import s3, hash
+from tests.util import s3, hash, filter_output
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -19,6 +19,7 @@ def test_database_update_s3():
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/bowtie2_output.sam"
+    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
 
     # Update DB
     update_db_output = toolchest.update_database(
@@ -45,7 +46,8 @@ def test_database_update_s3():
         database_name=update_db_output.database_name,
         database_version=update_db_output.database_version,
     )
-    assert os.path.getsize(output_file_path) == 64914832
+    filter_output.filter_sam(output_file_path, filtered_output_file_path)
+    assert hash.unordered(filtered_output_file_path) == 107700257
 
 
 @pytest.mark.integration
@@ -65,6 +67,7 @@ def test_database_update_local():
     ]
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/bowtie2_output.sam"
+    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
     os.makedirs(input_dir_path, exist_ok=True)
 
     # Download DB files
@@ -92,7 +95,9 @@ def test_database_update_local():
         database_name=update_db_output.database_name,
         database_version=update_db_output.database_version,
     )
-    assert os.path.getsize(output_file_path) == 62764495
+
+    filter_output.filter_sam(output_file_path, filtered_output_file_path)
+    assert hash.unordered(filtered_output_file_path) == 1936736537
 
 
 @pytest.mark.integration
