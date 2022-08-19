@@ -25,6 +25,7 @@ from toolchest_client.api.exceptions import ToolchestJobError, ToolchestExceptio
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url, path_is_accessible_ftp_url
+from .instance_type import InstanceType
 from .status import Status, ThreadStatus
 from ..files.s3 import UploadTracker
 
@@ -77,7 +78,7 @@ class Query:
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, input_files=None, is_database_update=False,
                   output_path=None, output_primary_name=None, skip_decompression=False,
-                  thread_statuses=None, custom_docker_image_id=None):
+                  thread_statuses=None, custom_docker_image_id=None, instance_type=None, volume_size=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -95,6 +96,9 @@ class Query:
         :param output_type: Type (e.g. GZ_TAR) of the output file.
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
+        :param custom_docker_image_id: image id for a docker image to upload.
+        :param instance_type: instance type that the tool will run on.
+        :param volume_size: size of the volume for the instance.
         """
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
@@ -114,6 +118,8 @@ class Query:
             tool_args=tool_args,
             output_file_path=output_path,
             output_primary_name=output_primary_name,
+            instance_type=instance_type,
+            volume_size=volume_size,
         )
         create_content = create_response.json()
 
@@ -166,11 +172,15 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args,
                               database_name, database_version, custom_database_path,
                               output_primary_name, output_file_path, compress_output,
-                              is_database_update, custom_docker_image_id):
+                              is_database_update, custom_docker_image_id, instance_type, volume_size):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
         """
+        # Casting will check if string based requests are valid and not affect enum based ones
+        validated_instance_type = None
+        if instance_type is not None:
+            validated_instance_type = InstanceType(instance_type).value
 
         create_body = {
             "compress_output": compress_output,
@@ -184,6 +194,8 @@ class Query:
             "output_file_path": output_file_path,
             "output_file_primary_name": output_primary_name,
             "custom_docker_image_id": custom_docker_image_id,
+            "instance_type": validated_instance_type,
+            "volume_size": volume_size or 8,
         }
 
         create_response = requests.post(
