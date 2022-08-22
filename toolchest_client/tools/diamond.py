@@ -13,7 +13,7 @@ class DiamondBlastp(Tool):
     The DIAMOND BLASTP implementation of the Tool class.
     """
     def __init__(self, inputs, database_name, database_version, output_path, output_primary_name, tool_args,
-                 custom_database_path, **kwargs):
+                 custom_database_path, custom_database_primary_name, **kwargs):
         super().__init__(
             tool_name="diamond_blastp",
             tool_version="2.0.14",
@@ -21,6 +21,7 @@ class DiamondBlastp(Tool):
             output_primary_name=output_primary_name,
             inputs=inputs,
             custom_database_path=custom_database_path,
+            custom_database_primary_name=custom_database_primary_name,
             database_name=database_name,
             database_version=database_version,
             parallel_enabled=False,

@@ -229,7 +229,8 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
 
 
 def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", custom_database_path=None, **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", custom_database_path=None,
+                   custom_database_primary_name=None, **kwargs):
     """Runs diamond blastp via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
@@ -241,6 +242,10 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
     :param output_primary_name: (optional) Base name of output file.
     :param custom_database_path: (optional) Path to a custom database.
     This must be an AWS S3 URI accessible by Toolchest.
+    :param custom_database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
     :param tool_args: Additional arguments to be passed to diamond blastp.
 
     If using `custom_database_path`, the given database will supersede any database
@@ -261,6 +266,7 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
         inputs=inputs,
         output_path=output_path,
         custom_database_path=custom_database_path,
+        custom_database_primary_name=custom_database_primary_name,
         database_name=database_name,
         database_version=database_version,
         output_primary_name=output_primary_name,
