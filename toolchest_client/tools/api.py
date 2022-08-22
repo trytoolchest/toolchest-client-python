@@ -476,7 +476,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 
 def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_image_id=None,
-            instance_type=InstanceType.COMPUTE_32, volume_size=8, **kwargs):
+            instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
