@@ -78,7 +78,7 @@ class Query:
                   output_type, tool_args=None, database_name=None, database_version=None,
                   custom_database_path=None, input_files=None, is_database_update=False,
                   database_primary_name=None, output_path=None, output_primary_name=None,
-                  skip_decompression=False, thread_statuses=None, custom_docker_image_id=None, 
+                  skip_decompression=False, thread_statuses=None, custom_docker_image_id=None,
                   instance_type=None, volume_size=None):
         """Executes a query to the Toolchest API.
 
