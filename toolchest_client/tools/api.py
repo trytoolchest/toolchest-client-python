@@ -8,6 +8,7 @@ import os.path
 from datetime import date
 
 from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
@@ -44,6 +45,8 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Alphafold currently.")
     tool_args = (
         (f"--model_preset={model_preset} " if model_preset is not None else "") +
         (f"--max_template_date={max_template_date} " if max_template_date is not None
@@ -217,6 +220,8 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Demucs currently.")
 
     instance = Demucs(
         tool_args=tool_args,
@@ -517,7 +522,8 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_image_id=None, **kwargs):
+def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_image_id=None,
+            instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
@@ -530,8 +536,11 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
-    :param custom_docker_image: (optional) a tagged docker image to be used as an execution environment that can provide
-    dependencies for the script.
+    :param custom_docker_image_id: (optional) a tagged docker image to be used as an execution environment that can
+    provide dependencies for the script.
+    :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
+    script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
+    :param volume_size: (optional) allows you to set the amount of storage needed for your script.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -541,6 +550,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
         ...     tool_args="",
         ... )
     """
+    if inputs is None:
+        inputs = []
     if type(inputs) is str:
         inputs = [inputs]
     inputs.append(script)
@@ -550,6 +561,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
         inputs=inputs,
         output_path=output_path,
         custom_docker_image_id=custom_docker_image_id,
+        instance_type=instance_type,
+        volume_size=volume_size,
         **kwargs,
     )
     output = instance.run()
@@ -789,6 +802,8 @@ def transfer(inputs, output_path=None, **kwargs):
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by transfer currently.")
 
     if isinstance(inputs, list):
         if not path_is_s3_uri(output_path):
