@@ -13,6 +13,7 @@ from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
     Transfer, Test, Unicycler
+from toolchest_client.tools.humann import HUMAnN3Mode
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -307,7 +308,8 @@ gzip compressed)
     return output
 
 
-def humann3(inputs, output_path=None, tool_args="", **kwargs):
+def humann3(inputs, output_path=None, tool_args="", mode=HUMAnN3Mode.HUMANN,
+            taxonomic_profile=None, input_pathways=None, output_primary_name=None, **kwargs):
     """Runs HUMAnN 3 via Toolchest.
 
     Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
@@ -316,6 +318,12 @@ def humann3(inputs, output_path=None, tool_args="", **kwargs):
 may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
     :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+    :param mode: (optional) Enum to allow for the exemution of humann3 utility scripts. Defaults to executing humann.
+    :param taxonomic_profile: (optional) Path to a MetaPhlAn output tsv (taxonomic profile). Speeds up execution if
+provided.
+    :param input_pathways: (optional) Path to input pathways from a standard humann run for use with
+"humann_unpack_pathways".
+    :param output_primary_name: (optional) The name of the output file if the mode outputs a file.
 
     Note: Paired-end inputs should be concatenated and passed in as a single input file before
     running HUMAnN 3.
@@ -336,8 +344,47 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
               "before being passed in as input.")
         print("To run the files individually, use a separate humann3 function call for each input.")
         raise ToolchestException("humann3 only supports single input files.")
+    elif isinstance(inputs, list):
+        inputs = inputs[0]
+    if mode.value[1] and output_primary_name is None:
+        print('WARNING: No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
+        output_primary_name = "output.tsv"
+    elif not mode.value[1] and output_primary_name is not None:
+        print(f'WARNING: No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
+              'Removing output_primary_name to continue execution.')
+        output_primary_name = None
+
+    tool_args = mode.value[0] + tool_args
+    input_prefix_mapping = {
+        inputs: {
+            "prefix": "--input",
+            "order": 0,
+        }
+    }
+
+    if mode == HUMAnN3Mode.HUMANN and taxonomic_profile is not None:
+        input_prefix_mapping[taxonomic_profile] = {
+            "prefix": "--taxonomic-profile",
+            "order": 1
+        }
+        inputs = [inputs, taxonomic_profile]
+    elif taxonomic_profile is not None:
+        raise ToolchestException(f"Taxonomic profile is only supported for {HUMAnN3Mode.HUMANN.value} mode.")
+
+    if mode == HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS and input_pathways is not None:
+        input_prefix_mapping[inputs]["prefix"] = "--input-genes"
+        input_prefix_mapping[input_pathways] = {
+            "prefix": "--input-pathways",
+            "order": 1
+        }
+        inputs = [inputs, input_pathways]
+    elif input_pathways is not None:
+        raise ToolchestException(f"Input pathways is only supported for {HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS.value} "
+                                 "mode.")
     instance = HUMAnN3(
         inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
@@ -808,20 +855,34 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(database_path, tool, database_name, **kwargs):
+def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Updates a custom database. The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
 
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of database to update.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -837,8 +898,9 @@ def update_database(database_path, tool, database_name, **kwargs):
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
@@ -851,21 +913,35 @@ def update_database(database_path, tool, database_name, **kwargs):
     return output
 
 
-def add_database(database_path, tool, database_name, **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
 
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -881,8 +957,9 @@ def add_database(database_path, tool, database_name, **kwargs):
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
