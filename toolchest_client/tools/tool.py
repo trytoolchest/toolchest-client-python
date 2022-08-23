@@ -40,7 +40,8 @@ class Tool:
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
                  is_async=False, is_database_update=False, database_primary_name=None,
-                 skip_decompression=False, custom_docker_image_id=None):
+                 skip_decompression=False, custom_docker_image_id=None,
+                 instance_type=None, volume_size=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -83,6 +84,8 @@ class Tool:
         self.database_primary_name = database_primary_name
         self.skip_decompression = skip_decompression
         self.custom_docker_image_id = custom_docker_image_id
+        self.instance_type = instance_type
+        self.volume_size = volume_size
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -471,6 +474,7 @@ class Tool:
                 "database_version": self.database_version,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
+                "instance_type": self.instance_type,
                 "is_database_update": self.is_database_update,
                 "database_primary_name": self.database_primary_name,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
@@ -480,6 +484,7 @@ class Tool:
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
                 "tool_args": self.tool_args,
+                "volume_size": self.volume_size
             })
 
             # Add non-distinct dictionary for status updates
