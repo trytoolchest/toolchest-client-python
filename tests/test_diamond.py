@@ -51,7 +51,6 @@ def test_diamond_blastp_remote_database():
     assert hash.unordered(output_file_path) == 563371739
 
 
-
 @pytest.mark.integration
 def test_diamond_blastx_standard():
     """
