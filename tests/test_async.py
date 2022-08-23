@@ -24,7 +24,7 @@ def test_async_execution():
     custom_db = "s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/"
     toolchest_run = toolchest.kraken2(
         read_one="s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta",
-        custom_database_path=custom_db,
+        remote_database_path=custom_db,
         output_path=output_dir_path,
         is_async=True,
     )

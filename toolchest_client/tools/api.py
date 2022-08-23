@@ -234,7 +234,8 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
 
 
 def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", remote_database_path=None,
+                   remote_database_primary_name=None, **kwargs):
     """Runs diamond blastp via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
@@ -244,7 +245,16 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
     Log file (diamond.log) will be downloaded in the same directory as the out file(s).
     :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
+    :param remote_database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
     :param tool_args: Additional arguments to be passed to diamond blastp.
+
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
 
     Usage::
 
@@ -260,6 +270,8 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
     instance = DiamondBlastp(
         inputs=inputs,
         output_path=output_path,
+        remote_database_path=remote_database_path,
+        remote_database_primary_name=remote_database_primary_name,
         database_name=database_name,
         database_version=database_version,
         output_primary_name=output_primary_name,
@@ -271,7 +283,8 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
 
 
 def diamond_blastx(inputs, output_path=None, database_name="diamond_blastx_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", distributed=False, **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", distributed=False, remote_database_path=None,
+                   **kwargs):
     """Runs diamond blastx via Toolchest.
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
 gzip compressed)
@@ -280,9 +293,15 @@ gzip compressed)
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
     Log file (diamond.log) will be downloaded in the same directory as the out file(s).
     :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
     :param tool_args: (optional) Additional arguments to be passed to diamond blastx.
     :param distributed: (optional) Distribute DIAMOND BLASTX. Note that this is non-deterministic, and might change
     results.
+
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
+
     Usage::
 
         >>> import toolchest_client as toolchest
@@ -296,6 +315,7 @@ gzip compressed)
       """
     instance = DiamondBlastx(
         inputs=inputs,
+        remote_database_path=remote_database_path,
         database_name=database_name,
         database_version=database_version,
         output_path=output_path,
@@ -394,7 +414,7 @@ provided.
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
+            tool_args="", read_one=None, read_two=None, remote_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -403,8 +423,8 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
-    :param custom_database_path: (optional) Path to a custom database.
-    This must be an AWS S3 URI accessible from Toolchest.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
     :param read_one: (optional) Path to read 1 of paired-end read input files.
     :param read_two: (optional) Path to read 2 of paired-end read input files.
 
@@ -416,7 +436,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
      If using `read_one` and `read_two`, these will be interpreted as the input files
      over anything given in `inputs`.
 
-     If using `custom_database_path`, the given database will supersede any database
+     If using `remote_database_path`, the given database will supersede any database
      selected via `database_name` and `database_version`.
 
     Usage::
@@ -453,7 +473,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
-        custom_database_path=custom_database_path,
+        remote_database_path=remote_database_path,
         **kwargs,
     )
     output = instance.run()
@@ -905,7 +925,7 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         output_primary_name=None,
         database_version=None,
         tool_args="",
-        custom_database_path=None,
+        remote_database_path=None,
         max_inputs=1000,
         **kwargs,
     )
@@ -964,7 +984,7 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
         output_primary_name=None,
         database_version=None,
         tool_args="",
-        custom_database_path=None,
+        remote_database_path=None,
         max_inputs=1000,
         **kwargs,
     )
