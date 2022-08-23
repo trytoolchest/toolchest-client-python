@@ -13,6 +13,7 @@ SHI7_SINGLE_END_HASH = 1570879637
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_shi7_single_end():
     """
     Tests shi7 with a single R1 input
@@ -45,6 +46,7 @@ def test_shi7_single_end():
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_shi7_paired_end():
     """
     Tests shi7 with paired-end inputs

@@ -10,6 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_shogun_filter_and_align():
     """
     Tests shogun (filter and align for simplicity) with a single R1 input

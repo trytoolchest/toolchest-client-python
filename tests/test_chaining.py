@@ -13,6 +13,7 @@ SHOGUN_CHAINED_HASH = 1708070294
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_shi7_shogun_chaining():
     """
     Tests S3-based chaining with shi7 and shogun. Passes the S3 URI of the
