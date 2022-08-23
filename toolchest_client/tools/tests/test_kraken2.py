@@ -13,7 +13,7 @@ def test_kraken2_preflight():
         output_path=output_path,
         database_name="standard",
         database_version=1,
-        custom_database_path=None,
+        remote_database_path=None,
     )
     kraken_instance._preflight()
 

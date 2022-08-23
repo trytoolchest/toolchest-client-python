@@ -75,7 +75,7 @@ class Query:
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  custom_database_path=None, custom_database_primary_name=None, input_files=None,
+                  remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   is_database_update=False, database_primary_name=None, output_path=None, output_primary_name=None,
                   skip_decompression=False, thread_statuses=None, custom_docker_image_id=None):
         """Executes a query to the Toolchest API.
@@ -85,8 +85,8 @@ class Query:
         :param tool_args: Tool-specific arguments to be passed to the tool.
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
-        :param custom_database_path: Path (S3 URI) to a custom database.
-        :param custom_database_primary_name: Primary name (i.e. common prefix) of S3 custom database.
+        :param remote_database_path: Path (S3 URI) to a custom database.
+        :param remote_database_primary_name: Primary name (i.e. common prefix) of S3 custom database.
         :param custom_docker_image_id: Image id of a custom docker image on the local machine.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
@@ -110,8 +110,8 @@ class Query:
             compress_output=True if output_type == OutputType.GZ_TAR else False,
             database_name=database_name,
             database_version=database_version,
-            custom_database_path=custom_database_path,
-            custom_database_primary_name=custom_database_primary_name,
+            remote_database_path=remote_database_path,
+            remote_database_primary_name=remote_database_primary_name,
             custom_docker_image_id=custom_docker_image_id,
             is_database_update=is_database_update,
             database_primary_name=database_primary_name,
@@ -170,7 +170,7 @@ class Query:
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
-                              custom_database_path, custom_database_primary_name, output_primary_name, output_file_path,
+                              remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
                               compress_output, is_database_update, database_primary_name, custom_docker_image_id):
         """Sends the initial request to the Toolchest API to create the query.
 
@@ -180,8 +180,8 @@ class Query:
         create_body = {
             "compress_output": compress_output,
             "custom_tool_args": tool_args,
-            "custom_database_s3_location": custom_database_path,
-            "custom_database_primary_name": custom_database_primary_name,
+            "custom_database_s3_location": remote_database_path,
+            "custom_database_s3_primary_name": remote_database_primary_name,
             "database_name": database_name,
             "database_version": database_version,
             "is_database_update": is_database_update,

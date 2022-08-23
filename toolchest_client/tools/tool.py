@@ -33,7 +33,7 @@ class Tool:
     def __init__(self, tool_name, tool_version, tool_args,
                  inputs, min_inputs=1, max_inputs=100, output_path=None,
                  output_primary_name=None, database_name=None,
-                 database_version=None, custom_database_path=None, custom_database_primary_name=None,
+                 database_version=None, remote_database_path=None, remote_database_primary_name=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
@@ -64,8 +64,8 @@ class Tool:
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
-        self.custom_database_path = custom_database_path
-        self.custom_database_primary_name = custom_database_primary_name
+        self.remote_database_path = remote_database_path
+        self.remote_database_primary_name = remote_database_primary_name
         self.parallel_enabled = parallel_enabled
         self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
@@ -464,8 +464,8 @@ class Tool:
             # Deep copy to make thread safe
             # Note: multithreaded download may be broken with output_path refactor
             query_args = copy.deepcopy({
-                "custom_database_path": self.custom_database_path,
-                "custom_database_primary_name": self.custom_database_primary_name,
+                "remote_database_path": self.remote_database_path,
+                "remote_database_primary_name": self.remote_database_primary_name,
                 "custom_docker_image_id": self.custom_docker_image_id,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
