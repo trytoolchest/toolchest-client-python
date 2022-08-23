@@ -25,6 +25,7 @@ from toolchest_client.api.exceptions import ToolchestJobError, ToolchestExceptio
 from toolchest_client.api.output import Output
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url, path_is_accessible_ftp_url
+from .instance_type import InstanceType
 from .status import Status, ThreadStatus
 from ..files.s3 import UploadTracker
 
@@ -75,9 +76,10 @@ class Query:
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
-                  custom_database_path=None, input_files=None, is_database_update=False,
-                  output_path=None, output_primary_name=None, skip_decompression=False,
-                  thread_statuses=None, custom_docker_image_id=None):
+                  remote_database_path=None, remote_database_primary_name=None, input_files=None,
+                  is_database_update=False, database_primary_name=None, output_path=None, output_primary_name=None,
+                  skip_decompression=False, thread_statuses=None, custom_docker_image_id=None,
+                  instance_type=None, volume_size=None):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -85,16 +87,22 @@ class Query:
         :param tool_args: Tool-specific arguments to be passed to the tool.
         :param database_name: Name of database to be used.
         :param database_version: Version of database to be used.
-        :param custom_database_path: Path (S3 URI) to a custom database.
-        :param custom_database_path: Image id of a custom docker image on the local machine.
+        :param remote_database_path: Path (S3 URI) to a custom database.
+        :param remote_database_primary_name: Primary name (i.e. common prefix) of S3 custom database.
+        :param custom_docker_image_id: Image id of a custom docker image on the local machine.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
+        :param database_primary_name: Name of the file to use as the primary database file,
+            if updating a database and uploading multiple files. If unspecified, assumes that the
+            *directory* of files is the database.
         :param output_primary_name: (optional) basename of the primary output (e.g. "sample.fastq").
         :param input_files: List of paths to be passed in as input.
         :param output_path: Path to directory (client-side) where the output file(s) will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file.
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param thread_statuses: Statuses of all threads, shared between threads.
+        :param instance_type: instance type that the tool will run on.
+        :param volume_size: size of the volume for the instance.
         """
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
@@ -106,14 +114,18 @@ class Query:
             compress_output=True if output_type == OutputType.GZ_TAR else False,
             database_name=database_name,
             database_version=database_version,
-            custom_database_path=custom_database_path,
+            remote_database_path=remote_database_path,
+            remote_database_primary_name=remote_database_primary_name,
             custom_docker_image_id=custom_docker_image_id,
             is_database_update=is_database_update,
+            database_primary_name=database_primary_name,
             tool_name=tool_name,
             tool_version=tool_version,
             tool_args=tool_args,
             output_file_path=output_path,
             output_primary_name=output_primary_name,
+            instance_type=instance_type,
+            volume_size=volume_size,
         )
         create_content = create_response.json()
 
@@ -163,27 +175,35 @@ class Query:
         self.output.set_output_path(output_path, self.unpacked_output_file_paths)
         return self.output
 
-    def _send_initial_request(self, tool_name, tool_version, tool_args,
-                              database_name, database_version, custom_database_path,
-                              output_primary_name, output_file_path, compress_output,
-                              is_database_update, custom_docker_image_id):
+    def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
+                              remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
+                              compress_output, is_database_update, database_primary_name, custom_docker_image_id,
+                              instance_type, volume_size):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
         """
+        # Casting will check if string based requests are valid and not affect enum based ones
+        validated_instance_type = None
+        if instance_type is not None:
+            validated_instance_type = InstanceType(instance_type).value
 
         create_body = {
             "compress_output": compress_output,
             "custom_tool_args": tool_args,
-            "custom_database_s3_location": custom_database_path,
+            "custom_database_s3_location": remote_database_path,
+            "custom_database_s3_primary_name": remote_database_primary_name,
             "database_name": database_name,
             "database_version": database_version,
             "is_database_update": is_database_update,
+            "database_primary_name": database_primary_name,
             "tool_name": tool_name,
             "tool_version": tool_version,
             "output_file_path": output_file_path,
             "output_file_primary_name": output_primary_name,
             "custom_docker_image_id": custom_docker_image_id,
+            "instance_type": validated_instance_type,
+            "volume_size": volume_size or 8,
         }
 
         create_response = requests.post(

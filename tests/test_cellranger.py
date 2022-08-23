@@ -11,6 +11,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_cellranger_count_s3_inputs():
     test_dir = "temp_test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
@@ -26,6 +27,7 @@ def test_cellranger_count_s3_inputs():
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_cellranger_count_local_inputs():
     test_dir = "temp_test_cellranger_count_local_inputs"
     input_dir_path = f"./{test_dir}/inputs/"

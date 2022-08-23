@@ -21,7 +21,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size,\
+from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size, \
     split_paired_files_by_lines, compress_files_in_path, OutputType
 from toolchest_client.files.s3 import inputs_are_in_s3, path_is_s3_uri
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
@@ -33,14 +33,15 @@ class Tool:
     def __init__(self, tool_name, tool_version, tool_args,
                  inputs, min_inputs=1, max_inputs=100, output_path=None,
                  output_primary_name=None, database_name=None,
-                 database_version=None, custom_database_path=None,
+                 database_version=None, remote_database_path=None, remote_database_primary_name=None,
                  input_prefix_mapping=None, parallel_enabled=False,
                  max_input_bytes_per_file=FOUR_POINT_FIVE_GIGABYTES,
                  max_input_bytes_per_file_parallel=FOUR_POINT_FIVE_GIGABYTES,
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
-                 is_async=False, is_database_update=False,
-                 skip_decompression=False, custom_docker_image_id=None):
+                 is_async=False, is_database_update=False, database_primary_name=None,
+                 skip_decompression=False, custom_docker_image_id=None,
+                 instance_type=None, volume_size=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -64,7 +65,8 @@ class Tool:
         self.max_inputs = max_inputs
         self.database_name = database_name
         self.database_version = database_version
-        self.custom_database_path = custom_database_path
+        self.remote_database_path = remote_database_path
+        self.remote_database_primary_name = remote_database_primary_name
         self.parallel_enabled = parallel_enabled
         self.output_validation_enabled = True
         self.group_paired_ends = group_paired_ends
@@ -79,8 +81,11 @@ class Tool:
         self.expected_output_file_names = expected_output_file_names or []
         self.is_async = is_async
         self.is_database_update = is_database_update
+        self.database_primary_name = database_primary_name
         self.skip_decompression = skip_decompression
         self.custom_docker_image_id = custom_docker_image_id
+        self.instance_type = instance_type
+        self.volume_size = volume_size
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -105,6 +110,19 @@ class Tool:
         if self.max_inputs and self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
+
+        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
+        # Note: if compress_inputs is True, this won't check against all input names, and behavior will be undefined
+        if self.is_database_update:
+            if self.database_primary_name:
+                self.database_primary_name = os.path.basename(self.database_primary_name)
+                # If only one input file exists, use that file explicitly as the DB
+                if self.num_input_files == 1 and not self.compress_inputs:
+                    self.database_primary_name = os.path.basename(self.input_files[0])
+                # If DB name isn't a prefix for an input file, (implicitly) use directory of inputs instead as DB
+                input_basenames = [os.path.basename(input_path) for input_path in self.input_files]
+                if all([self.database_primary_name not in basename for basename in input_basenames]):
+                    self.database_primary_name = None
 
     def _output_path_is_local(self):
         return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
@@ -449,13 +467,16 @@ class Tool:
             # Deep copy to make thread safe
             # Note: multithreaded download may be broken with output_path refactor
             query_args = copy.deepcopy({
-                "custom_database_path": self.custom_database_path,
+                "remote_database_path": self.remote_database_path,
+                "remote_database_primary_name": self.remote_database_primary_name,
                 "custom_docker_image_id": self.custom_docker_image_id,
                 "database_name": self.database_name,
                 "database_version": self.database_version,
                 "input_files": input_files,
                 "input_prefix_mapping": self.input_prefix_mapping,
+                "instance_type": self.instance_type,
                 "is_database_update": self.is_database_update,
+                "database_primary_name": self.database_primary_name,
                 "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
                 "output_primary_name": self.output_primary_name,
                 "output_type": self.output_type,
@@ -463,6 +484,7 @@ class Tool:
                 "tool_name": self.tool_name,
                 "tool_version": self.tool_version,
                 "tool_args": self.tool_args,
+                "volume_size": self.volume_size
             })
 
             # Add non-distinct dictionary for status updates
@@ -510,17 +532,32 @@ class Tool:
         else:
             self._postflight(self.thread_outputs[0])
             run_id = self.thread_outputs[0].run_id
+            # Print initial completion message
             if self.is_async:
                 print(
-                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n\n"
+                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n"
                     f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
-                    f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) within 7 days\n"
-                    )
+                )
             else:
+                conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
                 print(
-                    f"\nYour Toolchest run is complete! The run ID and output locations are included in the return.\n\n"
-                    f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n"
+                    f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
+                )
+            # Print details about new DB or how to download, depending on whether this is a DB update
+            if self.is_database_update:
+                print(
+                    f"The parameters of your new database are:\n"
+                    f"\tdatabase_name: \"{self.thread_outputs[0].database_name}\"\n"
+                    f"\tdatabase_version: \"{self.thread_outputs[0].database_version}\"\n"
+                )
+            else:
+                if self.is_async:
+                    print(
+                        f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) "
+                        "within 7 days\n"
                     )
+                else:
+                    print(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
 
         # Note: output information is only returned if parallelization is disabled
         if not should_run_in_parallel:

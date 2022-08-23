@@ -5,6 +5,7 @@ import docker
 import pytest
 
 import toolchest_client as toolchest
+from toolchest_client.api.instance_type import InstanceType
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
@@ -26,6 +27,7 @@ def test_python3():
         script="s3://toolchest-integration-tests/write_test.py",
         inputs="s3://toolchest-integration-tests/example.fastq",
         output_path=f"{test_dir}/",
+        instance_type=InstanceType.COMPUTE_2
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
@@ -53,7 +55,8 @@ def test_python3_with_docker():
     toolchest.python3(
         script="s3://toolchest-integration-tests/numpy_test.py",
         output_path=f"{test_dir}/",
-        custom_docker_image_id="python3-numpy:3.9"
+        custom_docker_image_id="python3-numpy:3.9",
+        instance_type="compute-2",
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")

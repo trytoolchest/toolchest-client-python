@@ -33,11 +33,12 @@ def test_humann3_m8():
     assert hash.unordered(output_pathcoverage_path) == 1315086232
 
 
-@pytest.mark.integration_full
+@pytest.mark.integration
 def test_humann3_fastq():
     """
     Tests humann3 with a fastq.gz file
-    Note: This test takes about 1 hour and should be run on pre-deploy tests only.
+    Note: This test uses taxonomic profile (from running the same input without one) to speed up execution. This skips
+    some steps that would otherwise happen but cause the test to take around an hour.
     """
 
     test_dir = "temp_test_humann3_fastq"
@@ -50,6 +51,7 @@ def test_humann3_fastq():
     toolchest.humann3(
         inputs="s3://toolchest-integration-tests/humann3/demo.fastq.gz",
         output_path=output_dir_path,
+        taxonomic_profile="s3://toolchest-integration-tests/humann3/demo_metaphlan_bugs_list.tsv",
     )
 
     # Assert existence

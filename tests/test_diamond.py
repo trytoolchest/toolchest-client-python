@@ -30,6 +30,28 @@ def test_diamond_blastp_standard():
 
 
 @pytest.mark.integration
+def test_diamond_blastp_remote_database():
+    """
+    Tests DIAMOND BLASTP with a remote database, including a primary name
+    """
+    test_dir = "test_diamond_blastp_remote_database"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}"
+    output_file_name = "sample_output.tsv"
+    output_file_path = f"{output_dir_path}/{output_file_name}"
+
+    toolchest.diamond_blastp(
+        inputs="s3://toolchest-integration-tests/short_diamond_blastp_input.fa",
+        remote_database_path="s3://toolchest-fsx-databases/tests/",
+        remote_database_primary_name="custom_diamond_blastp_db",
+        output_path=output_dir_path,
+        output_primary_name=output_file_name,
+    )
+
+    assert hash.unordered(output_file_path) == 563371739
+
+
+@pytest.mark.integration
 def test_diamond_blastx_standard():
     """
     Tests Diamond blastx mode

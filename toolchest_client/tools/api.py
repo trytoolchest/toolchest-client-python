@@ -8,10 +8,12 @@ import os.path
 from datetime import date
 
 from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
     Transfer, Test, Unicycler
+from toolchest_client.tools.humann import HUMAnN3Mode
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -43,6 +45,8 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Alphafold currently.")
     tool_args = (
         (f"--model_preset={model_preset} " if model_preset is not None else "") +
         (f"--max_template_date={max_template_date} " if max_template_date is not None
@@ -216,6 +220,8 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Demucs currently.")
 
     instance = Demucs(
         tool_args=tool_args,
@@ -228,7 +234,8 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
 
 
 def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", remote_database_path=None,
+                   remote_database_primary_name=None, **kwargs):
     """Runs diamond blastp via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
@@ -238,7 +245,16 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
     Log file (diamond.log) will be downloaded in the same directory as the out file(s).
     :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
+    :param remote_database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
     :param tool_args: Additional arguments to be passed to diamond blastp.
+
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
 
     Usage::
 
@@ -254,6 +270,8 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
     instance = DiamondBlastp(
         inputs=inputs,
         output_path=output_path,
+        remote_database_path=remote_database_path,
+        remote_database_primary_name=remote_database_primary_name,
         database_name=database_name,
         database_version=database_version,
         output_primary_name=output_primary_name,
@@ -265,7 +283,8 @@ def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_stand
 
 
 def diamond_blastx(inputs, output_path=None, database_name="diamond_blastx_standard", database_version="1",
-                   output_primary_name="out_file.tsv", tool_args="", distributed=False, **kwargs):
+                   output_primary_name="out_file.tsv", tool_args="", distributed=False, remote_database_path=None,
+                   **kwargs):
     """Runs diamond blastx via Toolchest.
     :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
 gzip compressed)
@@ -274,9 +293,15 @@ gzip compressed)
     :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
     Log file (diamond.log) will be downloaded in the same directory as the out file(s).
     :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
     :param tool_args: (optional) Additional arguments to be passed to diamond blastx.
     :param distributed: (optional) Distribute DIAMOND BLASTX. Note that this is non-deterministic, and might change
     results.
+
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
+
     Usage::
 
         >>> import toolchest_client as toolchest
@@ -290,6 +315,7 @@ gzip compressed)
       """
     instance = DiamondBlastx(
         inputs=inputs,
+        remote_database_path=remote_database_path,
         database_name=database_name,
         database_version=database_version,
         output_path=output_path,
@@ -302,7 +328,8 @@ gzip compressed)
     return output
 
 
-def humann3(inputs, output_path=None, tool_args="", **kwargs):
+def humann3(inputs, output_path=None, tool_args="", mode=HUMAnN3Mode.HUMANN,
+            taxonomic_profile=None, input_pathways=None, output_primary_name=None, **kwargs):
     """Runs HUMAnN 3 via Toolchest.
 
     Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
@@ -311,6 +338,12 @@ def humann3(inputs, output_path=None, tool_args="", **kwargs):
 may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
     :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+    :param mode: (optional) Enum to allow for the exemution of humann3 utility scripts. Defaults to executing humann.
+    :param taxonomic_profile: (optional) Path to a MetaPhlAn output tsv (taxonomic profile). Speeds up execution if
+provided.
+    :param input_pathways: (optional) Path to input pathways from a standard humann run for use with
+"humann_unpack_pathways".
+    :param output_primary_name: (optional) The name of the output file if the mode outputs a file.
 
     Note: Paired-end inputs should be concatenated and passed in as a single input file before
     running HUMAnN 3.
@@ -331,8 +364,47 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
               "before being passed in as input.")
         print("To run the files individually, use a separate humann3 function call for each input.")
         raise ToolchestException("humann3 only supports single input files.")
+    elif isinstance(inputs, list):
+        inputs = inputs[0]
+    if mode.value[1] and output_primary_name is None:
+        print('WARNING: No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
+        output_primary_name = "output.tsv"
+    elif not mode.value[1] and output_primary_name is not None:
+        print(f'WARNING: No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
+              'Removing output_primary_name to continue execution.')
+        output_primary_name = None
+
+    tool_args = mode.value[0] + tool_args
+    input_prefix_mapping = {
+        inputs: {
+            "prefix": "--input",
+            "order": 0,
+        }
+    }
+
+    if mode == HUMAnN3Mode.HUMANN and taxonomic_profile is not None:
+        input_prefix_mapping[taxonomic_profile] = {
+            "prefix": "--taxonomic-profile",
+            "order": 1
+        }
+        inputs = [inputs, taxonomic_profile]
+    elif taxonomic_profile is not None:
+        raise ToolchestException(f"Taxonomic profile is only supported for {HUMAnN3Mode.HUMANN.value} mode.")
+
+    if mode == HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS and input_pathways is not None:
+        input_prefix_mapping[inputs]["prefix"] = "--input-genes"
+        input_prefix_mapping[input_pathways] = {
+            "prefix": "--input-pathways",
+            "order": 1
+        }
+        inputs = [inputs, input_pathways]
+    elif input_pathways is not None:
+        raise ToolchestException(f"Input pathways is only supported for {HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS.value} "
+                                 "mode.")
     instance = HUMAnN3(
         inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
@@ -342,7 +414,7 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
+            tool_args="", read_one=None, read_two=None, remote_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -351,8 +423,8 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
-    :param custom_database_path: (optional) Path to a custom database.
-    This must be an AWS S3 URI accessible from Toolchest.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
     :param read_one: (optional) Path to read 1 of paired-end read input files.
     :param read_two: (optional) Path to read 2 of paired-end read input files.
 
@@ -364,7 +436,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
      If using `read_one` and `read_two`, these will be interpreted as the input files
      over anything given in `inputs`.
 
-     If using `custom_database_path`, the given database will supersede any database
+     If using `remote_database_path`, the given database will supersede any database
      selected via `database_name` and `database_version`.
 
     Usage::
@@ -401,7 +473,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
-        custom_database_path=custom_database_path,
+        remote_database_path=remote_database_path,
         **kwargs,
     )
     output = instance.run()
@@ -470,7 +542,8 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_image_id=None, **kwargs):
+def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_image_id=None,
+            instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
@@ -483,8 +556,11 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
-    :param custom_docker_image: (optional) a tagged docker image to be used as an execution environment that can provide
-    dependencies for the script.
+    :param custom_docker_image_id: (optional) a tagged docker image to be used as an execution environment that can
+    provide dependencies for the script.
+    :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
+    script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
+    :param volume_size: (optional) allows you to set the amount of storage needed for your script.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -494,6 +570,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
         ...     tool_args="",
         ... )
     """
+    if inputs is None:
+        inputs = []
     if type(inputs) is str:
         inputs = [inputs]
     inputs.append(script)
@@ -503,6 +581,8 @@ def python3(script, inputs=[], output_path=None, tool_args="", custom_docker_ima
         inputs=inputs,
         output_path=output_path,
         custom_docker_image_id=custom_docker_image_id,
+        instance_type=instance_type,
+        volume_size=volume_size,
         **kwargs,
     )
     output = instance.run()
@@ -742,6 +822,8 @@ def transfer(inputs, output_path=None, **kwargs):
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by transfer currently.")
 
     if isinstance(inputs, list):
         if not path_is_s3_uri(output_path):
@@ -793,20 +875,34 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(database_path, tool, database_name, **kwargs):
+def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Updates a custom database. The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
 
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of database to update.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -822,13 +918,14 @@ def update_database(database_path, tool, database_name, **kwargs):
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
         tool_args="",
-        custom_database_path=None,
+        remote_database_path=None,
         max_inputs=1000,
         **kwargs,
     )
@@ -836,21 +933,35 @@ def update_database(database_path, tool, database_name, **kwargs):
     return output
 
 
-def add_database(database_path, tool, database_name, **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
     - the success status is
     toolchest_client.api.status.COMPLETE ('complete') instead of
-    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client)
-    - is_async is True by default
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
 
-    Note that it may take 24-48 hours for the custom database to be ready for use.
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
 
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
 
     Usage::
 
@@ -866,13 +977,14 @@ def add_database(database_path, tool, database_name, **kwargs):
     instance = tool(
         inputs=database_path,
         database_name=database_name,
-        is_async=True,
+        is_async=is_async,
         is_database_update=True,
+        database_primary_name=database_primary_name,
         output_path=None,
         output_primary_name=None,
         database_version=None,
         tool_args="",
-        custom_database_path=None,
+        remote_database_path=None,
         max_inputs=1000,
         **kwargs,
     )
