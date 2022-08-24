@@ -374,7 +374,7 @@ provided.
               'Removing output_primary_name to continue execution.')
         output_primary_name = None
 
-    tool_args = " ".join(mode.value[0], tool_args)
+    tool_args = " ".join([mode.value[0], tool_args])
     input_prefix_mapping = {
         inputs: {
             "prefix": "--input",
