@@ -203,7 +203,7 @@ class Query:
             "output_file_primary_name": output_primary_name,
             "custom_docker_image_id": custom_docker_image_id,
             "instance_type": validated_instance_type,
-            "volume_size": volume_size or 8,
+            "volume_size": volume_size,  # API tool definitions provide a default if not set here
         }
 
         create_response = requests.post(
