@@ -11,8 +11,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance,\
-    Transfer, Test, Unicycler
+    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter,\
+    STARInstance,Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -626,6 +626,76 @@ def rapsearch2(inputs, output_path=None, output_primary_name="output", database_
 
 # Adds rapsearch as an alias for rapsearch2
 rapsearch = rapsearch2
+
+
+def salmon(output_path=None, tool_args="", read_one=None, read_two=None, single_end=None, library_type="A",
+           database_name="salmon_hg38", database_version="1", **kwargs):
+    """Runs Salmon via Toolchest.
+
+    :param database_name: Name of database to use for STAR alignment (defaults to GRCh38).
+    :param database_version: Version of database to use for STAR alignment (defaults to 1).
+    :param library_type: (optional) `--libType` value. Defaults to "A" for automatic. See
+    https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype
+    :param output_path: (optional) Path (local or S3) to a directory where the output files will be downloaded.
+    :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
+    :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
+    :param single_end: (optional) `-r` inputs. Path or list of paths for single-end inputs (no interleaved files).
+    :param tool_args: (optional) Additional arguments to be passed to Salmon.
+
+    .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
+    versa. In other words, the nth read in `read_one` should be paired with the nth read
+    in `read_two`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.salmon(
+        ...     tool_args="",
+        ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
+        ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    # Guard against library type in tool args
+    if "-l" in tool_args or "--libType" in tool_args:
+        raise ValueError("A library type is set in 'tool_args'. Use the 'library_type' argument instead.")
+
+    # If input parameters are lists, parse these for input_prefix_mapping.
+    tag_to_param_map = {
+        "-1": read_one,
+        "-2": read_two,
+        "-r": single_end,
+    }
+    input_list = []  # list of all inputs
+    input_prefix_mapping = {}  # map of each input to its respective tag
+    for tag, param in tag_to_param_map.items():
+        if isinstance(param, list):
+            for index, input_file in enumerate(param):
+                input_list.append(input_file)
+                input_prefix_mapping[input_file] = {
+                    "prefix": tag,
+                    "order": index,
+                }
+        elif isinstance(param, str):
+            input_list.append(param)
+            input_prefix_mapping[param] = {
+                "prefix": tag,
+                "order": 0,
+            }
+
+    instance = Salmon(
+        database_name=database_name,
+        database_version=database_version,
+        input_prefix_mapping=input_prefix_mapping,
+        inputs=input_list,
+        output_path=output_path,
+        tool_args=f"--libType {library_type} {tool_args}",
+        **kwargs,
+    )
+    output = instance.run()
+    return output
 
 
 def shi7(inputs, output_path=None, tool_args="", **kwargs):
