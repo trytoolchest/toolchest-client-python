@@ -502,6 +502,23 @@ TOOL_ARG_LISTS = {
             "-x": 1,
         },
     },
+    "salmon": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "-1",
+            "-2",
+            "-a",
+            "-p",
+            "--threads"
+        ]
+    },
     "shi7": {
         "whitelist": {
             "--debug": 0,

@@ -11,6 +11,7 @@ from .kraken2 import Kraken2
 from .megahit import Megahit
 from .python3 import Python3
 from .rapsearch2 import Rapsearch2
+from .salmon import Salmon
 from .shi7 import Shi7
 from .shogun import ShogunAlign, ShogunFilter
 from .star import STARInstance
