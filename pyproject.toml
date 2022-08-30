@@ -24,12 +24,12 @@ packages = [
 
 [tool.poetry.dependencies]
 boto3 = "^1.18.29"
-python = "^3.6"
+python = "^3.7"
 requests = "^2.25.1"
 python-dotenv = "^0.18.0"
 importlib-metadata = { version = "~=1.0", python = "<3.8" }
 sentry-sdk = "^1.5.8"
-docker = "^5.0.3"
+docker = "^6.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
