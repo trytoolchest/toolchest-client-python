@@ -1,7 +1,6 @@
 import os
 import pytest
 
-from tests.util import hash
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -27,5 +26,5 @@ def test_salmon_hg38():
         database_version=1,
     )
 
-    # Non-deterministic – move to different hash or to size
-    assert hash.unordered(os.path.join(output_dir_path, "quant.sf")) == 1516704631
+    # Non-deterministic
+    assert 8143860 <= os.path.getsize(os.path.join(output_dir_path, "quant.sf")) <= 8143880
