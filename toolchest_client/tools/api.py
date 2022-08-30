@@ -12,7 +12,7 @@ from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
     DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter,\
-    STARInstance,Transfer, Test, Unicycler
+    STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
