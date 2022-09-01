@@ -20,7 +20,7 @@ def test_salmon_hg38():
     output_dir_path = f"./{test_dir}"
 
     toolchest.salmon(
-        single_end="/Users/noahlebovic/code/toolchest-client-python/small_salmon.fastq",
+        single_end="s3://toolchest-integration-tests/salmon/SRR2557119_500k.fastq",
         output_path=output_dir_path,
         database_name="salmon_hg38",
         database_version=1,
