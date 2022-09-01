@@ -3,8 +3,6 @@
 import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
-import sentry_sdk
-from sentry_sdk import utils as sentry_utils
 import os
 
 # set __version__ module
@@ -34,11 +32,3 @@ from toolchest_client.api.urls import get_api_url, set_api_url
 from .tools.api import add_database, alphafold, blastn, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, \
     diamond_blastx, humann3, kraken2, megahit, python3, rapsearch, rapsearch2, salmon, shi7, shogun_align, \
     shogun_filter, STAR, test, transfer, unicycler, update_database
-
-sentry_utils.MAX_STRING_LENGTH = 8192  # monkey patch for Sentry max message length
-sentry_sdk.init(
-    None,
-
-    traces_sample_rate=0.0,
-    environment=os.getenv("DEPLOY_ENVIRONMENT", 'production')
-)
