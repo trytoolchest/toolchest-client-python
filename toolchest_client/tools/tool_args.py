@@ -176,6 +176,19 @@ TOOL_ARG_LISTS = {
             "--non-deterministic": 0,
         },
     },
+    "bracken": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "-d",
+        ]
+    },
     "cellranger_count": {
         "whitelist": {
             "--no-bam": 0,
