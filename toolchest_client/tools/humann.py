@@ -40,5 +40,6 @@ class HUMAnN3Mode(Enum):
     HUMANN_REDUCE_TABLE = ("humann_reduce_table", True)
     HUMANN_REGROUP_TABLE = ("humann_regroup_table", True)
     HUMANN_RENORM_TABLE = ("humann_renorm_table", True)
+    HUMANN_RENAME_TABLE = ("humann_rename_table", True)
     HUMANN_SPLIT_STRATIFIED_TABLE = ("humann_split_stratified_table", False)
     HUMANN_UNPACK_PATHWAYS = ("humann_unpack_pathways", True)
