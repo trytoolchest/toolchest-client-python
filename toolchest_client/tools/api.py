@@ -380,6 +380,8 @@ may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compresse
 provided.
     :param input_pathways: (optional) Path to input pathways from a standard humann run for use with
 "humann_unpack_pathways".
+    :param names: (optional) Path to feature type to be renamed, for use with
+    "humann_rename_table".
     :param output_primary_name: (optional) The name of the output file if the mode outputs a file.
 
     Note: Paired-end inputs should be concatenated and passed in as a single input file before
