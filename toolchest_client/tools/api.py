@@ -11,7 +11,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, \
+    DiamondBlastp, DiamondBlastx, HUMAnN3, Kraken2, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, \
     ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
@@ -511,6 +511,53 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         database_name=database_name,
         database_version=database_version,
         remote_database_path=remote_database_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=None, tool_args="",
+        instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
+    """Runs Python via Toolchest and Lug.
+
+    :param script: path to the Python script to run.
+    :param tool_version: the python version you want to use in major.minor format.
+    :param custom_docker_image_id: a tagged docker image to be used as an execution environment where any calls to the
+    system (via os.system(), subprocess.run(), or subprocess.popen()) will be executed.
+    :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
+    script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
+    :param volume_size: (optional) allows you to set the amount of storage needed for your script.
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.lug(
+        ...     script="./path/to/script.py",
+        ...     tool_version="3.9",
+        ...     custom_docker_image_id="docker-container:latest",
+        ...     inputs=["./path/to/input1.txt", "./path/to/input2.fastq"],
+        ...     output_path="./path/to/local/output/",
+        ...     tool_args="",
+        ... )
+    """
+    if tool_version not in ['3.7', '3.8', '3.9', '3.10', '3.11']:
+        raise ToolchestException('Incompatible python version. Must be one of [3.7, 3.8, 3.9, 3.10, 3.11].')
+    if inputs is None:
+        inputs = []
+    if type(inputs) is str:
+        inputs = [inputs]
+    inputs.append(script)
+    tool_args = f'./input/{os.path.basename(script)};{tool_args}'
+    instance = Lug(
+        tool_args=tool_args,
+        tool_version=tool_version,
+        custom_docker_image_id=custom_docker_image_id,
+        inputs=inputs,
+        output_path=output_path,
+        instance_type=instance_type,
+        volume_size=volume_size,
         **kwargs,
     )
     output = instance.run()
