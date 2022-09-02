@@ -524,7 +524,7 @@ def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=N
     :param script: path to the Python script to run.
     :param tool_version: the python version you want to use in major.minor format.
     :param custom_docker_image_id: a tagged docker image to be used as an execution environment where any calls to the
-    system (via os.system(), subprocess.run(), or subprocess.popen()) will be executed.
+    system (via os.system(), subprocess.run(), or subprocess.Popen()) will be executed.
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
