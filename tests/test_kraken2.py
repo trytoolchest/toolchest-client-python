@@ -78,7 +78,7 @@ def test_kraken2_s3_with_bracken():
     report_file_path = f"{output_dir_path}/kraken2_report.txt"
 
     toolchest.kraken2(
-        inputs="s3://toolchest-integration-tests/humann3/demo.fastq.gz",
+        inputs="s3://toolchest-integration-tests/kraken2/demo.fastq.gz",
         output_path=output_dir_path,
         database_name="standard",
         database_version="1",
