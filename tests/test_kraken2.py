@@ -67,21 +67,38 @@ def test_kraken2_paired_end():
 
 
 @pytest.mark.integration
-def test_kraken2_s3():
+def test_kraken2_s3_with_bracken():
     """
-    Tests Kraken 2 with an example input in S3 against the std (v1) DB
+    Tests Kraken 2 with an example input in S3 against the std (v1) DB, with Bracken
     """
     test_dir = "temp_test_kraken2_s3"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/kraken2_output.txt"
+    report_file_path = f"{output_dir_path}/kraken2_report.txt"
 
     toolchest.kraken2(
-        inputs="s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta",
+        inputs="s3://toolchest-integration-tests/kraken2/demo.fastq.gz",
         output_path=output_dir_path,
+        database_name="standard",
+        database_version="1",
     )
 
-    assert hash.unordered(output_file_path) == KRAKEN2_SINGLE_END_HASH
+    assert hash.unordered(output_file_path) == 913900323
+    assert hash.unordered(report_file_path) == 701943163
+
+    bracken_primary_name = "test.bracken"
+
+    toolchest.bracken(
+        kraken2_report=report_file_path,
+        output_path=output_dir_path,
+        output_primary_name=bracken_primary_name,
+        database_name="standard",
+        database_version="1",
+        tool_args="-r 150 -l G",
+    )
+
+    assert hash.unordered(os.path.join(output_dir_path, bracken_primary_name)) == 459225326
 
 
 @pytest.mark.integration

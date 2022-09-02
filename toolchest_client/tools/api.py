@@ -10,9 +10,9 @@ from datetime import date
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
-from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp,\
-    DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter,\
-    STARInstance, Transfer, Test, Unicycler
+from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
+    DiamondBlastp, DiamondBlastx, HUMAnN3, Kraken2, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, \
+    ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -93,6 +93,43 @@ def blastn(inputs, output_path=None, database_name="blastn_nt", database_version
         database_name=database_name,
         database_version=database_version,
         tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def bracken(kraken2_report, output_path=None, database_name="standard", database_version="1",
+            tool_args="", output_primary_name="output.bracken", remote_database_path=None, **kwargs):
+    """Runs Bracken via Toolchest.
+
+    :param kraken2_report: Path to the Kraken 2 output file to be used..
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of Bracken output file. Defaults to output.bracken
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param database_name: (optional) Name of database that was used for Kraken 2 alignment. Defaults to standard.
+    :param database_version: (optional) Version of database that was used for Kraken 2 alignment. Defaults to 1.
+    :param remote_database_path: (optional) Path to remote database that was used with Kraken 2. Overrides other DBs.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.bracken(
+        ...     inputs="./path/to/input.fastq",
+        ...     output_path="./path/to/output",
+        ...     tool_args="-r 150 -l G -t 10",
+        ... )
+
+    """
+
+    instance = Bracken(
+        tool_args=tool_args,
+        inputs=kraken2_report,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
+        remote_database_path=remote_database_path,
         **kwargs,
     )
     output = instance.run()

@@ -32,6 +32,18 @@ def test_humann3_m8():
     assert hash.unordered(output_pathabundance_path) == 1938423861
     assert hash.unordered(output_pathcoverage_path) == 1315086232
 
+    renamed_genefamilies_name = "renamed_demo_genefamilies.tsv"
+    renamed_genefamilies_path = f"{output_dir_path}/{renamed_genefamilies_name}"
+    toolchest.humann3(
+        mode=toolchest.tools.humann.HUMAnN3Mode.HUMANN_RENAME_TABLE,
+        inputs=output_genefamilies_path,
+        tool_args="--names uniref50",
+        output_primary_name=renamed_genefamilies_name,
+        output_path=output_dir_path,
+    )
+
+    assert hash.unordered(renamed_genefamilies_path) == 417465229
+
 
 @pytest.mark.integration
 def test_humann3_fastq():

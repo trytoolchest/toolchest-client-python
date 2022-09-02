@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 
 import boto3
 import requests
-import sentry_sdk
 import docker
 from requests.exceptions import HTTPError
 from docker.errors import ImageNotFound, DockerException, APIError
@@ -507,7 +506,6 @@ class Query:
         """Checks for flag set by parent process to see if it should terminate self."""
         thread_status = self.thread_statuses.get(self.thread_name)
         if thread_status == ThreadStatus.INTERRUPTING:
-            sentry_sdk.set_tag('send_page', False)
             self._update_status_to_failed(
                 error_message="Terminating due to failure in sibling thread or parent process",
                 force_raise=False,
