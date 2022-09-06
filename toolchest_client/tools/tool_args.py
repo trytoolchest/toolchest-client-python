@@ -455,6 +455,17 @@ TOOL_ARG_LISTS = {
             "--report-minimizer-data": 0,
         },
     },
+    "lug": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            "-i",
+            "-c",
+            "-m"
+        ]
+    },
     "megahit": {
         "blacklist": [
             "--continue",

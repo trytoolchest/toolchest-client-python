@@ -9,6 +9,7 @@ from .demucs import Demucs
 from .diamond import DiamondBlastp, DiamondBlastx
 from .humann import HUMAnN3
 from .kraken2 import Kraken2
+from .lug import Lug
 from .megahit import Megahit
 from .python3 import Python3
 from .rapsearch2 import Rapsearch2

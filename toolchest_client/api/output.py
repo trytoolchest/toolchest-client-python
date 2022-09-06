@@ -75,10 +75,10 @@ class Output:
         )
         return self.output_file_paths
 
-    def get_status(self):
+    def get_status(self, **kwargs):
         """
         Returns the status of a run. Only for use when the Output instance is initialized with a run_id.
         """
         if not self.run_id:
             raise ValueError("Cannot get status on an output that has no run_id")
-        return get_status(self.run_id)
+        return get_status(self.run_id, **kwargs)
