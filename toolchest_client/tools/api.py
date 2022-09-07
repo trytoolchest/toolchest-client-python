@@ -11,8 +11,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, HUMAnN3, Kraken2, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, \
-    ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, \
+    ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -359,6 +359,60 @@ gzip compressed)
         output_primary_name=output_primary_name,
         tool_args=tool_args,
         distributed=distributed,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def fastqc(inputs, output_path=None, tool_args="", contaminants="", adapters="", limits="", **kwargs):
+    """Runs FastQC via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to FastQC.
+    :param contaminants: (optional) Path to a file to specify the list of contaminants to screen overrepresented
+    sequences against.
+    :param adapters: (optional) Path to a file to specify the list of adapter sequences which will be explicity searched
+    against the library
+    :param limits: (optional) Path to a file that the contains a set of criteria which will be used to determine the
+    warn/error limits for the various modules
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.fastqc(
+        ...     inputs="./path/to/file.fastq",
+        ...     output_path="./path/to/directory/",
+        ... )
+
+    """
+    input_prefix_mapping = {}
+    if isinstance(inputs, str):
+        inputs = [inputs]
+    for i in inputs:
+        input_prefix_mapping[i] = {
+            "prefix": "",
+        }
+    if contaminants:
+        inputs += contaminants
+        input_prefix_mapping[contaminants] = {
+            "prefix": "-c",
+        }
+    if adapters:
+        inputs += adapters
+        input_prefix_mapping[adapters] = {
+            "prefix": "-a",
+        }
+    if limits:
+        inputs += limits
+        input_prefix_mapping[limits] = {
+            "prefix": "-l",
+        }
+    instance = FastQC(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
         **kwargs,
     )
     output = instance.run()

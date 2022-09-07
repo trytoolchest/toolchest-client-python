@@ -423,6 +423,32 @@ TOOL_ARG_LISTS = {
             "-n": 1,
         },
     },
+    "fastqc":{
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            "-o",
+            "--outdir",
+            "-h",
+            "--help",
+            "-v",
+            "--version"
+            "-j",
+            "--java",
+            "-t",
+            "--threads",
+            "-d",
+            "--dir",
+            "-c",
+            "--contaminants",
+            "-a",
+            "--adapters",
+            "-l",
+            "--limits",
+        ]
+    },
     "humann3": {
         "whitelist": {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg
