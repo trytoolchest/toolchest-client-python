@@ -423,7 +423,7 @@ TOOL_ARG_LISTS = {
             "-n": 1,
         },
     },
-    "fastqc":{
+    "fastqc": {
         "whitelist": {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg
             "*": 0
