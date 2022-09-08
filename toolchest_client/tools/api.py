@@ -395,17 +395,17 @@ def fastqc(inputs, output_path=None, tool_args="", contaminants="", adapters="",
             "prefix": "",
         }
     if contaminants:
-        inputs += contaminants
+        inputs.append(contaminants)
         input_prefix_mapping[contaminants] = {
             "prefix": "-c",
         }
     if adapters:
-        inputs += adapters
+        inputs.append(adapters)
         input_prefix_mapping[adapters] = {
             "prefix": "-a",
         }
     if limits:
-        inputs += limits
+        inputs.append(limits)
         input_prefix_mapping[limits] = {
             "prefix": "-l",
         }
