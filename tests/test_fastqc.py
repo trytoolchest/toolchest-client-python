@@ -29,7 +29,7 @@ def test_fastqc():
         os.path.join(test_dir, "sample_r1_shortened_fastqc.html"),
         filtered_html_output_path,
         search_regex='id="header_filename">([\\w\\s]+)<br',
-        replacement_str='id="header_filename">)<br'
+        replacement_str='id="header_filename"><br'
     )
-    assert hash.unordered(filtered_html_output_path) == 730605983
+    assert hash.unordered(filtered_html_output_path) == 816103024
     assert 325000 <= os.path.getsize(os.path.join(test_dir, "sample_r1_shortened_fastqc.zip")) <= 327000
