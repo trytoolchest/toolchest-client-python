@@ -21,7 +21,7 @@ def test_fastqc():
     output_dir_path = f"./{test_dir}"
 
     toolchest.fastqc(
-        single_end="s3://toolchest-integration-tests/sample_r1_shortened.fastq",
+        inputs="s3://toolchest-integration-tests/sample_r1_shortened.fastq",
         output_path=output_dir_path
     )
 
