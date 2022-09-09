@@ -17,7 +17,7 @@ class FastQC(Tool):
     def __init__(self, tool_args, inputs, output_path, **kwargs):
         super().__init__(
             tool_name="fastqc",
-            tool_version="0.11.9",  # todo: allow salmon version to be set by the user
+            tool_version="0.11.9",
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
