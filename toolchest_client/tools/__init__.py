@@ -7,6 +7,7 @@ from .cellranger import CellRangerCount
 from .clustalo import ClustalO
 from .demucs import Demucs
 from .diamond import DiamondBlastp, DiamondBlastx
+from .fastqc import FastQC
 from .humann import HUMAnN3
 from .kraken2 import Kraken2
 from .lug import Lug
