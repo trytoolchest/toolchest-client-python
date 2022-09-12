@@ -571,8 +571,8 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     return output
 
 
-def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database_name="aclid_last", database_version="1",
-            tool_args="", **kwargs):
+def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database_name="aclid_last",
+            database_version="1", tool_args="", **kwargs):
     """Runs Last's lastal5 command via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
