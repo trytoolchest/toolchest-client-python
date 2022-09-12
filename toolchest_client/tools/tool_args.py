@@ -481,6 +481,15 @@ TOOL_ARG_LISTS = {
             "--report-minimizer-data": 0,
         },
     },
+    "lastal5": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-P"
+        ]
+    },
     "lug": {
         "whitelist": {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg

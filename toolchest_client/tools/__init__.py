@@ -10,6 +10,7 @@ from .diamond import DiamondBlastp, DiamondBlastx
 from .fastqc import FastQC
 from .humann import HUMAnN3
 from .kraken2 import Kraken2
+from .last import Lastal5
 from .lug import Lug
 from .megahit import Megahit
 from .python3 import Python3
