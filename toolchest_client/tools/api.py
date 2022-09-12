@@ -11,7 +11,7 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, \
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, \
     ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
@@ -565,6 +565,43 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
         database_name=database_name,
         database_version=database_version,
         remote_database_path=remote_database_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database_name="aclid_last", database_version="1",
+            tool_args="", **kwargs):
+    """Runs Last's lastal5 command via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input(s).
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of the output file.
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param database_name: (optional) Name of database to use for lastal5 alignment.
+    :param database_version: (optional) Version of database to use for lastal5 alignment. Defaults to 1.
+    :type database_version: str
+    This must be an AWS S3 URI accessible by Toolchest.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.lastal5(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fastq",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = Lastal5(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
         **kwargs,
     )
     output = instance.run()
