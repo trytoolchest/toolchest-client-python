@@ -578,7 +578,7 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
     :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param output_primary_name: (optional) Name of the output file.
-    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param tool_args: (optional) Additional arguments to be passed to lastal5.
     :param database_name: (optional) Name of database to use for lastal5 alignment.
     :param database_version: (optional) Version of database to use for lastal5 alignment. Defaults to 1.
     :type database_version: str

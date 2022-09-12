@@ -1,5 +1,5 @@
 """
-toolchest_client.tools.kraken2
+toolchest_client.tools.last
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This is the Last implementation of the Tool class.
@@ -16,7 +16,7 @@ class Lastal5(Tool):
     def __init__(self, tool_args, inputs, output_path, output_primary_name, database_name, database_version, **kwargs):
         super().__init__(
             tool_name="lastal5",
-            tool_version="1411",  # todo: allow kraken 2 version to be set by the user
+            tool_version="1411",
             tool_args=tool_args,
             output_path=output_path,
             output_primary_name=output_primary_name,
