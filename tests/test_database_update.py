@@ -51,6 +51,39 @@ def test_database_update_s3():
 
 
 @pytest.mark.integration
+def test_database_update_s3_prefix():
+    """
+        Tests custom database update for bowtie 2 using an S3 prefix
+        """
+    test_dir = "temp_test_db_update_s3_bowtie2"
+    os.makedirs(f"./{test_dir}", exist_ok=True)
+    output_dir_path = f"./{test_dir}"
+    output_file_path = f"{output_dir_path}/bowtie2_output.sam"
+    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
+
+    # Update DB
+    update_db_output = toolchest.update_database(
+        database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/bowtie2-fruitfly",
+        tool=toolchest.tools.Bowtie2,
+        database_name="integration_test_bowtie2_fruitfly",
+        database_primary_name="Dmel_A4_1.0",
+        is_async=False,  # to ensure DB finishes uploading before tool call
+    )
+    assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
+    assert update_db_output.database_version
+
+    # Run job on updated DB
+    toolchest.bowtie2(
+        inputs="s3://toolchest-integration-tests/bowtie2/fruitfly-ncbi/GSM868349.fastq.gz",
+        output_path=output_dir_path,
+        database_name=update_db_output.database_name,
+        database_version=update_db_output.database_version,
+    )
+    filter_output.filter_sam(output_file_path, filtered_output_file_path)
+    assert hash.unordered(filtered_output_file_path) == 107700257
+
+
+@pytest.mark.integration
 def test_database_update_local():
     """
     Tests custom database update for bowtie 2 using local files
