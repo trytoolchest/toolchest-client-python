@@ -55,7 +55,7 @@ def test_database_update_s3_prefix():
     """
         Tests custom database update for bowtie 2 using an S3 prefix
         """
-    test_dir = "temp_test_db_update_s3_bowtie2"
+    test_dir = "temp_test_db_update_s3_prefix_bowtie2"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/bowtie2_output.sam"
