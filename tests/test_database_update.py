@@ -53,8 +53,11 @@ def test_database_update_s3():
 @pytest.mark.integration
 def test_database_update_s3_prefix():
     """
-        Tests custom database update for bowtie 2 using an S3 prefix
-        """
+    Tests custom database update for bowtie 2 using an S3 prefix and assumed primary name
+
+    NOTE: to test auto-generation of database_primary_name, this should be run right after
+    test_database_update_s3
+    """
     test_dir = "temp_test_db_update_s3_prefix_bowtie2"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
@@ -62,11 +65,11 @@ def test_database_update_s3_prefix():
     filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
 
     # Update DB
+    # This should be the same Dmel_A4_1.0 database as test_database_update_s3()
     update_db_output = toolchest.update_database(
         database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/bowtie2-fruitfly",
         tool=toolchest.tools.Bowtie2,
         database_name="integration_test_bowtie2_fruitfly",
-        database_primary_name="Dmel_A4_1.0",
         is_async=False,  # to ensure DB finishes uploading before tool call
     )
     assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
@@ -164,6 +167,7 @@ def test_database_add_s3():
         tool=toolchest.tools.Kraken2,
         database_name=f"integration_test_kraken2_viral_{time.time()}",
         is_async=False,  # to ensure DB finishes uploading before tool call
+        database_primary_name=None,
     )
     assert add_db_output.database_name.startswith("integration_test_kraken2_viral")
     assert add_db_output.database_version == "1"
