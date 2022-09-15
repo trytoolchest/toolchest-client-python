@@ -10,7 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_fastqc():
+def test_metaphlan():
     """
     Tests MetaPhlAn with a fastq file
 

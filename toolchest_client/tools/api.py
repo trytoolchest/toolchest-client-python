@@ -718,20 +718,21 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
 
 def metaphlan(inputs, output_path=None, output_primary_name='out.txt', tool_args="", **kwargs):
-    """Runs FastQC via Toolchest.
+    """Runs MetaPhlAn via Toolchest.
 
     :param inputs: Path or list containing the path (client-side) to be passed in as input.
     :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param output_primary_name: (optional) Name of the output file.
     :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
-    :param tool_args: (optional) Additional arguments to be passed to FastQC.
+    :param tool_args: (optional) Additional arguments to be passed to MetaPhlAn.
 
     Usage::
 
         >>> import toolchest_client as toolchest
-        >>> toolchest.fastqc(
+        >>> toolchest.metaphlan(
         ...     inputs="./path/to/file.fastq",
         ...     output_path="./path/to/directory/",
+        ...     output_primary_name='new_name.txt'
         ...     tool_args='',
         ... )
 
