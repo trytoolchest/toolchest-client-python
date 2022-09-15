@@ -11,8 +11,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, \
-    ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, Rapsearch2, \
+    Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -711,6 +711,52 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def metaphlan(inputs, output_path=None, output_primary_name='out.txt', tool_args="", **kwargs):
+    """Runs MetaPhlAn via Toolchest.
+
+    :param inputs: Path or list containing the path (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of the output file.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to MetaPhlAn.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.metaphlan(
+        ...     inputs="./path/to/file.fastq",
+        ...     output_path="./path/to/directory/",
+        ...     output_primary_name='new_name.txt'
+        ...     tool_args='',
+        ... )
+
+    """
+
+    if "--input_type" not in tool_args:
+        input_path = inputs
+        if not isinstance(input_path, str):
+            input_path = inputs[0]
+
+        if 'fastq' in input_path:
+            tool_args += " --input_type fastq"
+        elif 'bowtie2' in input_path:
+            tool_args += " --input_type bowtie2out"
+        elif 'fasta' in input_path:
+            tool_args += " --input_type fasta"
+        elif 'sam' in input_path:
+            tool_args += " --input_type sam"
+
+    instance = MetaPhlAn(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
