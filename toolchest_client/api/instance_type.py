@@ -28,3 +28,5 @@ class InstanceType(Enum):
     MEMORY_256 = "memory-256"
     MEMORY_384 = "memory-384"
     MEMORY_512 = "memory-512"
+    # GPU instances, lists core GPU type
+    GPU_V100 = "gpu-V100"

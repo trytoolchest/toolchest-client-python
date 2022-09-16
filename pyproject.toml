@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.9.41"
+version = "0.9.42"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bryce@trytoolchest.com>",
