@@ -4,7 +4,10 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
+import math
+import os.path
 import sys
+import threading
 
 import requests
 from requests.exceptions import HTTPError
@@ -99,3 +102,67 @@ def inputs_are_in_s3(input_paths):
         input_paths = [input_paths]
 
     return [path_is_s3_uri(file_path) for file_path in input_paths]
+
+
+def pretty_print_file_size(num_bytes):
+    """Returns a pretty formatted number of bytes (e.g. 1.80MB)
+
+    :param num_bytes size of file in bytes
+    """
+    pretty_abbreviation = ["B", "KB", "MB", "GB", "TB"]
+    abbreviation_index = math.floor(math.log(num_bytes, 1024))
+    return f"{(num_bytes / (1024 ** abbreviation_index)):.1f}{pretty_abbreviation[abbreviation_index]}"
+
+
+class UploadTracker:
+    def __init__(self, file_path):
+        self._filename = os.path.basename(file_path)
+        self._size = float(os.path.getsize(file_path))  # tracker only used for local files
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        # To simplify we'll assume this is hooked up
+        # to a single filename.
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = round((self._seen_so_far / self._size) * 100, 2)
+            print(
+                "\r{}  {} of {} ({:.2f}%)".format(
+                    self._filename,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                end="",
+                flush=True,
+            )
+            if percentage == 100.00:  # Adds newline at end of upload
+                print(flush=True)
+
+
+class DownloadTracker:
+    def __init__(self, client, bucket, object_name):
+        self._filename = os.path.basename(object_name)
+        self._size = client.head_object(Bucket=bucket, Key=object_name)['ContentLength']
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+
+    def __call__(self, bytes_amount):
+        # To simplify we'll assume this is hooked up
+        # to a single filename.
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            percentage = round((self._seen_so_far / self._size) * 100, 2)
+            print(
+                "\r{}  {} of {} ({:.2f}%)".format(
+                    self._filename,
+                    pretty_print_file_size(self._seen_so_far),
+                    pretty_print_file_size(self._size),
+                    percentage
+                ).ljust(100),  # pads right end with spaces to flush carriage return
+                end="",
+                flush=True,
+            )
+            if percentage == 100.00:  # Adds newline at end of download
+                print(flush=True)

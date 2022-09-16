@@ -3,7 +3,6 @@
 import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
-import sentry_sdk
 import os
 
 # set __version__ module
@@ -30,12 +29,6 @@ from toolchest_client.api.exceptions import ToolchestException, DataLimitError, 
 from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from toolchest_client.api.urls import get_api_url, set_api_url
-from .tools.api import alphafold, bowtie2, cellranger_count, clustalo, demucs, diamond_blastp, diamond_blastx, kraken2,\
-    megahit, rapsearch, rapsearch2, shi7, shogun_align, shogun_filter, STAR, test, unicycler
-
-sentry_sdk.init(
-    "https://c7db7e7a4ac349cc974c55f1fcb7d2f7@o1171636.ingest.sentry.io/6271973",
-
-    traces_sample_rate=1.0,
-    environment=os.getenv("DEPLOY_ENVIRONMENT", 'production')
-)
+from .tools.api import add_database, alphafold, blastn, bowtie2, bracken, cellranger_count, clustalo, demucs,\
+    diamond_blastp, diamond_blastx, fastqc, humann3, kraken2, lastal5, lug, megahit, metaphlan, python3, rapsearch, \
+    rapsearch2, salmon, shi7, shogun_align, shogun_filter, STAR, test, transfer, unicycler, update_database

@@ -13,6 +13,7 @@ SHOGUN_CHAINED_HASH = 1708070294
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_shi7_shogun_chaining():
     """
     Tests S3-based chaining with shi7 and shogun. Passes the S3 URI of the
@@ -26,7 +27,7 @@ def test_shi7_shogun_chaining():
     If the Output class is modified, this test should be modified as well.
     """
 
-    test_dir = "test_shi7_shogun_chaining"
+    test_dir = "temp_test_shi7_shogun_chaining"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path_shogun = f"{output_dir_path}/alignment.bowtie2.sam"
@@ -37,9 +38,9 @@ def test_shi7_shogun_chaining():
     )
 
     # Note: since output_path was omitted from the shi7 function call,
-    # local download is skipped, and the local output_path of output_shi7
+    # local download is skipped, and the local output_file_paths of output_shi7
     # should be None.
-    assert output_shi7.output_path is None
+    assert output_shi7.output_file_paths is None
 
     output_shogun = toolchest.shogun_align(
         inputs=output_shi7.s3_uri,
@@ -47,4 +48,4 @@ def test_shi7_shogun_chaining():
     )
 
     assert hash.unordered(output_file_path_shogun) == SHOGUN_CHAINED_HASH
-    assert hash.unordered(output_shogun.output_path) == SHOGUN_CHAINED_HASH
+    assert hash.unordered(output_shogun.output_file_paths) == SHOGUN_CHAINED_HASH

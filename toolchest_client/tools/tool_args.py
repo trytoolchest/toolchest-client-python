@@ -34,6 +34,69 @@ TOOL_ARG_LISTS = {
             "--db_preset": 0,
         },  # Alphafold args are hardcoded based on tool input
     },
+    "blastn": {
+        "blacklist": {
+            "-db",
+            "-query",
+            "-out",
+            "-subject",
+            "-subject_loc",
+            "-gilist",
+            "-negative_gilist",
+            "-entrez_query",
+            "-import_search_strategy",
+            "-export_search_strategy",
+            "-num_threads",
+            "-remote",
+        },
+        "dangerlist": [
+            "-max_target_seqs",
+            "-html",
+        ],
+        "whitelist": {
+            "-query_loc": 1,
+            "-evalue": 1,
+            "-show_gis": 0,
+            "-num_descriptions": 1,
+            "-num_alignments": 1,
+            "-max_hsps": 1,
+            "-culling_limit": 1,
+            "-best_hit_overhang": 1,
+            "-best_hit_score_edge": 1,
+            "-dbsize": 1,
+            "-searchsp": 1,
+            "-parse_deflines": 0,
+            "-outfmt": VARIABLE_ARGS,
+            "-word_size": 1,
+            "-gapopen": 1,
+            "-gapextend": 1,
+            "-reward": 1,
+            "-penalty": 1,
+            "-strand": 1,
+            "-dust": 1,
+            "-filtering_db": 1,
+            "-window_masker_taxid": 1,
+            "-window_masker_db": 1,
+            "-soft_masking": 1,
+            "-lcase_masking": 0,
+            "-db_soft_mask": 1,
+            "-db_hard_mask": 1,
+            "-perc_identity": 1,
+            "-template_type": 1,
+            "-template_length": 1,
+            "-use_index": 1,
+            "-index_name": 1,
+            "-xdrop_ungap": 1,
+            "-xdrop_gap": 1,
+            "-xdrop_gap_final": 1,
+            "-no_greedy": 0,
+            "-min_raw_gapped_score": 1,
+            "-ungapped": 0,
+            "-window_size": 1,
+            "-mt_mode": 1,
+            "-task": 1,
+        },
+    },
     "bowtie2": {
         "whitelist": {
             "-q": 0,
@@ -112,6 +175,19 @@ TOOL_ARG_LISTS = {
             "--seed": 1,
             "--non-deterministic": 0,
         },
+    },
+    "bracken": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "-d",
+        ]
     },
     "cellranger_count": {
         "whitelist": {
@@ -347,6 +423,51 @@ TOOL_ARG_LISTS = {
             "-n": 1,
         },
     },
+    "fastqc": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-o",
+            "--outdir",
+            "-h",
+            "--help",
+            "-v",
+            "--version"
+            "-j",
+            "--java",
+            "-t",
+            "--threads",
+            "-d",
+            "--dir",
+            "-c",
+            "--contaminants",
+            "-a",
+            "--adapters",
+            "-l",
+            "--limits",
+        ]
+    },
+    "humann3": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "--nucleotide-database",
+            "--protein-database",
+            "--threads",
+            "--memory-use"
+            "--taxonomic-profile",
+            "--input-pathways",
+            "--input-genes"
+        ]
+    },
     "kraken2": {
         "whitelist": {
             "--quick": 0,
@@ -357,7 +478,28 @@ TOOL_ARG_LISTS = {
             "--bzip2-compressed": 0,
             "--minimum-hit-groups": 1,
             "--paired": 0,
+            "--report-minimizer-data": 0,
         },
+    },
+    "lastal5": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-P"
+        ]
+    },
+    "lug": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            "-i",
+            "-c",
+            "-m"
+        ]
     },
     "megahit": {
         "blacklist": [
@@ -385,6 +527,44 @@ TOOL_ARG_LISTS = {
             "--min-contig-len": 1,
         },
     },
+    "metaphlan": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-o",
+            "--output",
+            "--bowtie2out",
+            "--bowtie2db",
+            "--nproc",
+            "--force",
+            "-x",
+            "--index",
+            "--bowtie2_exe",
+            "--bowtie2_build",
+            "--tmp_dir",
+            "-s",
+            "--samout",
+            "--install",
+            "--force_download",
+            "-v",
+            "--version",
+            "-h",
+            "--help",
+        ]
+    },
+    "python3": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [  # Toolchest only allows non-interactive script execution
+            "-i",
+            "-c",
+            "-m"
+        ]
+    },
     "rapsearch2": {
         "blacklist": [
             "-q",
@@ -407,6 +587,23 @@ TOOL_ARG_LISTS = {
             "-w": 1,
             "-x": 1,
         },
+    },
+    "salmon": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-i",
+            "--input",
+            "-o",
+            "--output",
+            "-1",
+            "-2",
+            "-a",
+            "-p",
+            "--threads"
+        ]
     },
     "shi7": {
         "whitelist": {
@@ -529,6 +726,9 @@ TOOL_ARG_LISTS = {
     "test": {
         "whitelist": {},
         "blacklist": ["--bad"],
+    },
+    "transfer": {
+        "whitelist": {},
     },
     "unicycler": {
         "whitelist": {

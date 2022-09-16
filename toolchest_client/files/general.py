@@ -8,7 +8,8 @@ General file handling functions.
 import os
 import shutil
 
-from .http import get_url_with_protocol, path_is_http_url, get_http_url_file_size
+from .public_uris import get_url_with_protocol, path_is_http_url, path_is_accessible_ftp_url, \
+    get_ftp_url_file_size
 from .s3 import assert_accessible_s3, get_s3_file_size, path_is_s3_uri
 
 
@@ -24,7 +25,7 @@ def assert_exists(path, must_be_file=False, must_be_directory=False):
     :type must_be_directory: bool
     """
     if not os.path.exists(path):
-        raise FileNotFoundError(f"No file or directory found at {path}")
+        raise FileNotFoundError(f"No accessible file or directory found at {path}")
     if must_be_file and not os.path.isfile(path):
         raise ValueError(f"Directory entry at {path} is not a file")
     if must_be_directory and not os.path.isdir(path):
@@ -44,15 +45,18 @@ def check_file_size(file_path, max_size_bytes=None):
         # NOTE: If the file is already in S3, the size is checked as well to enforce an expected file size
         file_size_bytes = get_s3_file_size(file_path)
     elif path_is_http_url(file_path):
-        # Get file size via a HEAD request.
-        file_size_bytes = get_http_url_file_size(file_path)
+        # Client does not track size for http inputs
+        file_size_bytes = 0
+    elif path_is_accessible_ftp_url(file_path):
+        # Get file size via a SIZE request
+        file_size_bytes = get_ftp_url_file_size(file_path)
     else:
         assert_exists(file_path, must_be_file=True)
         file_size_bytes = os.stat(file_path).st_size
 
     if max_size_bytes:
         if file_size_bytes >= max_size_bytes:
-            raise ValueError(f"File at {file_path} is larger than your plan's per-file limit")
+            raise ValueError(f"File at {file_path} is larger than your per-file limit for this tool")
 
     return file_size_bytes
 
@@ -79,6 +83,10 @@ def files_in_path(files):
     # If it's an HTTP or HTTPS URL, treat it as a file
     if path_is_http_url(files):
         return [get_url_with_protocol(files)]
+
+    # If it's an FTP URL, treat it as a file
+    if path_is_accessible_ftp_url(files):
+        return [files]
 
     # Path is local, expand ~ in path if present
     files = os.path.expanduser(files)

@@ -8,7 +8,7 @@ This module contains a function to check pipeline_segment_instance statuses and 
 from enum import Enum
 
 
-def get_status(run_id):
+def get_status(run_id, **kwargs):
     """Returns the status of the Toolchest run.
 
         Call this less than once a second to avoid being rate-limited.
@@ -22,7 +22,7 @@ def get_status(run_id):
         pipeline_segment_instance_id=run_id,
     )
 
-    return query.get_job_status()
+    return query.get_job_status(**kwargs)
 
 
 class Status(str, Enum):
@@ -46,6 +46,7 @@ class Status(str, Enum):
 class ThreadStatus(str, Enum):
     """Status values for local threads"""
 
+    INITIALIZING = "initializing"
     INITIALIZED = "initialized"
     UPLOADING = "uploading"
     EXECUTING = "executing"

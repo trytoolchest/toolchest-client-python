@@ -9,12 +9,11 @@ def test_kraken2_preflight():
     output_path = f"{THIS_DIRECTORY}/output"
     kraken_instance = Kraken2(
         tool_args="",
-        output_name='output.tar.gz',
         inputs=f"{THIS_DIRECTORY}/test_kraken2.py",
         output_path=output_path,
         database_name="standard",
         database_version=1,
-        custom_database_path=None,
+        remote_database_path=None,
     )
     kraken_instance._preflight()
 

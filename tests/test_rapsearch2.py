@@ -15,7 +15,7 @@ def test_rapsearch2():
     Tests rapsearch2 on SeqScreen DB
     """
 
-    test_dir = "./test_rapsearch"
+    test_dir = "./temp_test_rapsearch2"
     os.makedirs(f"{test_dir}", exist_ok=True)
     output_file_path_aln = f"./{test_dir}/rapsearch2.aln"
     output_file_path_m8 = f"./{test_dir}/rapsearch2.m8"
@@ -23,7 +23,8 @@ def test_rapsearch2():
     toolchest.rapsearch2(
         tool_args="-e 1e-9",
         inputs="s3://toolchest-integration-tests/example.fastq",
-        output_path=f"{test_dir}/rapsearch2",
+        output_path=f"{test_dir}/",
+        output_primary_name="rapsearch2",
     )
 
     # m8 output is nondeterministic, so we check file size

@@ -11,8 +11,9 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_cellranger_count_s3_inputs():
-    test_dir = "test_cellranger_count_s3_inputs"
+    test_dir = "temp_test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
 
     # Test using a compressed archive in S3
@@ -22,12 +23,13 @@ def test_cellranger_count_s3_inputs():
         output_path=output_dir_path,
         skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output.output_path, output_dir_path)
+    verify_cellranger_count_outputs(output.output_file_paths, output_dir_path)
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="Load reduction for integration tests")
 def test_cellranger_count_local_inputs():
-    test_dir = "test_cellranger_count_local_inputs"
+    test_dir = "temp_test_cellranger_count_local_inputs"
     input_dir_path = f"./{test_dir}/inputs/"
     output_dir_path = f"./{test_dir}/output/"
     os.makedirs(input_dir_path, exist_ok=True)
@@ -45,7 +47,7 @@ def test_cellranger_count_local_inputs():
         output_path=output_dir_path,
         skip_decompression=True,
     )
-    verify_cellranger_count_outputs(output.output_path, output_dir_path)
+    verify_cellranger_count_outputs(output.output_file_paths, output_dir_path)
 
 
 def verify_cellranger_count_outputs(archive_path, output_dir_path):

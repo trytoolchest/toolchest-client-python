@@ -4,9 +4,16 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+import os.path
 from datetime import date
-from toolchest_client.tools import AlphaFold, Bowtie2, CellRangerCount, ClustalO, Demucs, DiamondBlastp, DiamondBlastx,\
-    Kraken2, Megahit, Rapsearch2, Shi7, ShogunAlign, ShogunFilter, STARInstance, Test, Unicycler
+
+from toolchest_client.api.exceptions import ToolchestException
+from toolchest_client.api.instance_type import InstanceType
+from toolchest_client.files import path_is_s3_uri
+from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, Rapsearch2, \
+    Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+from toolchest_client.tools.humann import HUMAnN3Mode
 
 
 def alphafold(inputs, output_path=None, model_preset=None, max_template_date=None, use_reduced_dbs=False,
@@ -38,6 +45,8 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Alphafold currently.")
     tool_args = (
         (f"--model_preset={model_preset} " if model_preset is not None else "") +
         (f"--max_template_date={max_template_date} " if max_template_date is not None
@@ -55,6 +64,78 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     return output
 
 
+def blastn(inputs, output_path=None, database_name="blastn_nt", database_version="1", tool_args="",
+           output_primary_name="blastn_results.out", **kwargs):
+    """Runs BLASTN via Toolchest.
+
+    :param inputs: Path to a file that will be passed in as input. Only FASTA formats are supported.
+    :param database_name: (optional) Name of database to use for BLASTN.
+    :param database_version: (optional) Version of database to use for BLASTN.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_primary_name: (optional) Base name of output file.
+    :param tool_args: Additional arguments to be passed to BLASTN.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.blastn(
+        ...     inputs="./path/to/input.fna",
+        ...     output_path="./path/to/output/",
+        ...     database_name="nt",
+        ...     tool_args="",
+        ... )
+
+      """
+    instance = BLASTN(
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
+        tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def bracken(kraken2_report, output_path=None, database_name="standard", database_version="1",
+            tool_args="", output_primary_name="output.bracken", remote_database_path=None, **kwargs):
+    """Runs Bracken via Toolchest.
+
+    :param kraken2_report: Path to the Kraken 2 output file to be used..
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of Bracken output file. Defaults to output.bracken
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param database_name: (optional) Name of database that was used for Kraken 2 alignment. Defaults to standard.
+    :param database_version: (optional) Version of database that was used for Kraken 2 alignment. Defaults to 1.
+    :param remote_database_path: (optional) Path to remote database that was used with Kraken 2. Overrides other DBs.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.bracken(
+        ...     inputs="./path/to/input.fastq",
+        ...     output_path="./path/to/output",
+        ...     tool_args="-r 150 -l G -t 10",
+        ... )
+
+    """
+
+    instance = Bracken(
+        tool_args=tool_args,
+        inputs=kraken2_report,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
+        remote_database_path=remote_database_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_version="1", tool_args="", **kwargs):
     """Runs Bowtie 2 (for alignment) via Toolchest.
 
@@ -64,7 +145,7 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
     :param database_version: (optional) Version of database to use for Bowtie 2 alignment.
     :type database_version: str
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded
 
     Usage::
 
@@ -80,7 +161,6 @@ def bowtie2(inputs, output_path=None, database_name="GRCh38_noalt_as", database_
 
     instance = Bowtie2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -118,7 +198,6 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
 
     instance = CellRangerCount(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -129,11 +208,12 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
     return output
 
 
-def clustalo(inputs, output_path=None, tool_args="", **kwargs):
+def clustalo(inputs, output_path=None, output_primary_name=None, tool_args="", **kwargs):
     """Runs Clustal Omega via Toolchest.
 
     :param inputs: Path (client-side) to a FASTA file that will be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
+    :param output_primary_name: (optional) Base name of output file.
     :param tool_args: Additional arguments to be passed to Clustal Omega.
 
     Usage::
@@ -142,16 +222,18 @@ def clustalo(inputs, output_path=None, tool_args="", **kwargs):
         >>> toolchest.clustalo(
         ...     tool_args="",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output.fasta",
+        ...     output_path="./path/to/output",
+        ...     output_primary_name="output.fasta",
+        ...     # primary output file will be downloaded to ./path/to/output/output.fasta
         ... )
 
     """
 
     instance = ClustalO(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
@@ -162,7 +244,7 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
     """Runs demucs via Toolchest.
 
     :param inputs: Path to a file that will be passed in as input. All formats supported by ffmpeg are allowed.
-    :param output_path: (optional) Path where the output will be downloaded.
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
     :param tool_args: Additional arguments to be passed to demucs.
 
     Usage::
@@ -175,10 +257,11 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
         ... )
 
     """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by Demucs currently.")
 
     instance = Demucs(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -187,29 +270,48 @@ def demucs(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
-def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
+def diamond_blastp(inputs, output_path=None, database_name="diamond_blastp_standard", database_version="1",
+                   output_primary_name="out_file.tsv", tool_args="", remote_database_path=None,
+                   remote_database_primary_name=None, **kwargs):
     """Runs diamond blastp via Toolchest.
 
-      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
-        gzip compressed)
-      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
-        downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to diamond blastp.
+    :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+    gzip compressed)
+    :param database_name: (optional) Name of database to use for DIAMOND BLASTP.
+    :param database_version: (optional) Version of database to use for DIAMOND BLASTP.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+    :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
+    :param remote_database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param tool_args: Additional arguments to be passed to diamond blastp.
 
-      Usage::
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
 
-          >>> import toolchest_client as toolchest
-          >>> toolchest.diamond_blastp(
-          ...     tool_args="",
-          ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/out_file.tsv",
-          ... )
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.diamond_blastp(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
 
       """
     instance = DiamondBlastp(
         inputs=inputs,
-        output_name='output.tar.gz',
         output_path=output_path,
+        remote_database_path=remote_database_path,
+        remote_database_primary_name=remote_database_primary_name,
+        database_name=database_name,
+        database_version=database_version,
+        output_primary_name=output_primary_name,
         tool_args=tool_args,
         **kwargs,
     )
@@ -217,24 +319,183 @@ def diamond_blastp(inputs, output_path=None, tool_args="", **kwargs):
     return output
 
 
-def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
+def diamond_blastx(inputs, output_path=None, database_name="diamond_blastx_standard", database_version="1",
+                   output_primary_name="out_file.tsv", tool_args="", distributed=False, remote_database_path=None,
+                   **kwargs):
     """Runs diamond blastx via Toolchest.
-      :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
-        gzip compressed)
-      :param output_path: (optional) File path where the output will be downloaded. Log file (diamond.log) will be
-        downloaded in the same directory as the out file
-      :param tool_args: Additional arguments to be passed to diamond blastx.
-      Usage::
-          >>> import toolchest_client as toolchest
-          >>> toolchest.diamond_blastp(
-          ...     tool_args="",
-          ...     inputs="./path/to/input.fa",
-          ...     output_path="./path/to/output/out_file.tsv",
-          ... )
+    :param inputs: Path to a file that will be passed in as input. FASTA or FASTQ formats are supported (it may be
+gzip compressed)
+    :param database_name: (optional) Name of database to use for DIAMOND BLASTX.
+    :param database_version: (optional) Version of database to use for DIAMOND BLASTX.
+    :param output_path: (optional) (optional) Path to directory where the output file(s) will be downloaded.
+    Log file (diamond.log) will be downloaded in the same directory as the out file(s).
+    :param output_primary_name: (optional) Base name of output file.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
+    :param tool_args: (optional) Additional arguments to be passed to diamond blastx.
+    :param distributed: (optional) Distribute DIAMOND BLASTX. Note that this is non-deterministic, and might change
+    results.
+
+    If using `remote_database_path`, the given database will supersede any database
+     selected via `database_name` and `database_version`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.diamond_blastx(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
+
       """
     instance = DiamondBlastx(
         inputs=inputs,
-        output_name='output.tar.gz',
+        remote_database_path=remote_database_path,
+        database_name=database_name,
+        database_version=database_version,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        tool_args=tool_args,
+        distributed=distributed,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def fastqc(inputs, output_path=None, tool_args="", contaminants="", adapters="", limits="", **kwargs):
+    """Runs FastQC via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to FastQC.
+    :param contaminants: (optional) Path to a file to specify the list of contaminants to screen overrepresented
+    sequences against.
+    :param adapters: (optional) Path to a file to specify the list of adapter sequences which will be explicity searched
+    against the library
+    :param limits: (optional) Path to a file that the contains a set of criteria which will be used to determine the
+    warn/error limits for the various modules
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.fastqc(
+        ...     inputs="./path/to/file.fastq",
+        ...     output_path="./path/to/directory/",
+        ... )
+
+    """
+    input_prefix_mapping = {}
+    if isinstance(inputs, str):
+        inputs = [inputs]
+    for i in inputs:
+        input_prefix_mapping[i] = {
+            "prefix": "",
+        }
+    if contaminants:
+        inputs.append(contaminants)
+        input_prefix_mapping[contaminants] = {
+            "prefix": "-c",
+        }
+    if adapters:
+        inputs.append(adapters)
+        input_prefix_mapping[adapters] = {
+            "prefix": "-a",
+        }
+    if limits:
+        inputs.append(limits)
+        input_prefix_mapping[limits] = {
+            "prefix": "-l",
+        }
+    instance = FastQC(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def humann3(inputs, output_path=None, tool_args="", mode=HUMAnN3Mode.HUMANN,
+            taxonomic_profile=None, input_pathways=None, output_primary_name=None, **kwargs):
+    """Runs HUMAnN 3 via Toolchest.
+
+    Uses the ChocoPhlAn and UniRef databases packaged with HUMAnN.
+
+    :param inputs: Path to a *single* file that will be passed in as input. FASTA and FASTQ formats are supported (it
+may be gzip compressed). SAM/BAM and M8 inputs are also supported (non-compressed).
+    :param output_path: (optional) Path to directory where the output file(s) will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to HUMAnN.
+    :param mode: (optional) Enum to allow for the exemution of humann3 utility scripts. Defaults to executing humann.
+    :param taxonomic_profile: (optional) Path to a MetaPhlAn output tsv (taxonomic profile). Speeds up execution if
+provided.
+    :param input_pathways: (optional) Path to input pathways from a standard humann run for use with
+"humann_unpack_pathways".
+    :param output_primary_name: (optional) The name of the output file if the mode outputs a file.
+
+    Note: Paired-end inputs should be concatenated and passed in as a single input file before
+    running HUMAnN 3.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.humann3(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fa",
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="out_file.tsv",
+        ... )
+
+      """
+    if isinstance(inputs, list) and len(inputs) > 1:
+        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be concatenated "
+              "before being passed in as input.")
+        print("To run the files individually, use a separate humann3 function call for each input.")
+        raise ToolchestException("humann3 only supports single input files.")
+    elif isinstance(inputs, list):
+        inputs = inputs[0]
+    if mode.value[1] and output_primary_name is None:
+        print('WARNING: No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
+        output_primary_name = "output.tsv"
+    elif not mode.value[1] and output_primary_name is not None:
+        print(f'WARNING: No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
+              'Removing output_primary_name to continue execution.')
+        output_primary_name = None
+
+    tool_args = " ".join([mode.value[0], tool_args])
+    input_prefix_mapping = {
+        inputs: {
+            "prefix": "--input",
+            "order": 0,
+        }
+    }
+
+    if mode == HUMAnN3Mode.HUMANN and taxonomic_profile is not None:
+        input_prefix_mapping[taxonomic_profile] = {
+            "prefix": "--taxonomic-profile",
+            "order": 1
+        }
+        inputs = [inputs, taxonomic_profile]
+    elif taxonomic_profile is not None:
+        raise ToolchestException(f"Taxonomic profile is only supported for {HUMAnN3Mode.HUMANN.value} mode.")
+
+    if mode == HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS and input_pathways is not None:
+        input_prefix_mapping[inputs]["prefix"] = "--input-genes"
+        input_prefix_mapping[input_pathways] = {
+            "prefix": "--input-pathways",
+            "order": 1
+        }
+        inputs = [inputs, input_pathways]
+    elif input_pathways is not None:
+        raise ToolchestException(f"Input pathways is only supported for {HUMAnN3Mode.HUMANN_UNPACK_PATHWAYS.value} "
+                                 "mode.")
+    instance = HUMAnN3(
+        inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
         **kwargs,
@@ -244,7 +505,7 @@ def diamond_blastx(inputs, output_path=None, tool_args="", **kwargs):
 
 
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
-            tool_args="", read_one=None, read_two=None, custom_database_path=None, **kwargs):
+            tool_args="", read_one=None, read_two=None, remote_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
@@ -253,8 +514,8 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
     :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
     :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
     :type database_version: str
-    :param custom_database_path: (optional) Path to a custom database.
-    This must be an AWS S3 URI accessible from Toolchest.
+    :param remote_database_path: (optional) Path to a custom database.
+    This must be an AWS S3 URI accessible by Toolchest.
     :param read_one: (optional) Path to read 1 of paired-end read input files.
     :param read_two: (optional) Path to read 2 of paired-end read input files.
 
@@ -266,7 +527,7 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
      If using `read_one` and `read_two`, these will be interpreted as the input files
      over anything given in `inputs`.
 
-     If using `custom_database_path`, the given database will supersede any database
+     If using `remote_database_path`, the given database will supersede any database
      selected via `database_name` and `database_version`.
 
     Usage::
@@ -299,12 +560,95 @@ def kraken2(output_path=None, inputs=[], database_name="standard", database_vers
 
     instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
         database_version=database_version,
-        custom_database_path=custom_database_path,
+        remote_database_path=remote_database_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database_name="standard_last",
+            database_version="1", tool_args="", **kwargs):
+    """Runs Last's lastal5 command via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input(s).
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of the output file.
+    :param tool_args: (optional) Additional arguments to be passed to lastal5.
+    :param database_name: (optional) Name of database to use for lastal5 alignment.
+    :param database_version: (optional) Version of database to use for lastal5 alignment. Defaults to 1.
+    :type database_version: str
+    This must be an AWS S3 URI accessible by Toolchest.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.lastal5(
+        ...     tool_args="",
+        ...     inputs="./path/to/input.fastq",
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    instance = Lastal5(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        database_name=database_name,
+        database_version=database_version,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=None, tool_args="",
+        instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
+    """Runs Python via Toolchest and Lug.
+
+    :param script: path to the Python script to run.
+    :param tool_version: the python version you want to use in major.minor format.
+    :param custom_docker_image_id: a tagged docker image to be used as an execution environment where any calls to the
+    system (via os.system(), subprocess.run(), or subprocess.Popen()) will be executed.
+    :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
+    script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
+    :param volume_size: (optional) allows you to set the amount of storage needed for your script.
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.lug(
+        ...     script="./path/to/script.py",
+        ...     tool_version="3.9",
+        ...     custom_docker_image_id="docker-container:latest",
+        ...     inputs=["./path/to/input1.txt", "./path/to/input2.fastq"],
+        ...     output_path="./path/to/local/output/",
+        ...     tool_args="",
+        ... )
+    """
+    if tool_version not in ['3.7', '3.8', '3.9', '3.10', '3.11']:
+        raise ToolchestException('Incompatible python version. Must be one of [3.7, 3.8, 3.9, 3.10, 3.11].')
+    if inputs is None:
+        inputs = []
+    if type(inputs) is str:
+        inputs = [inputs]
+    inputs.append(script)
+    tool_args = f'./input/{os.path.basename(script)};{tool_args}'
+    instance = Lug(
+        tool_args=tool_args,
+        tool_version=tool_version,
+        custom_docker_image_id=custom_docker_image_id,
+        inputs=inputs,
+        output_path=output_path,
+        instance_type=instance_type,
+        volume_size=volume_size,
         **kwargs,
     )
     output = instance.run()
@@ -315,7 +659,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
             single_end=None, **kwargs):
     """Runs Megahit via Toolchest.
 
-    :param output_path: (optional) Path (client-side) where the output will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param tool_args: (optional) Additional arguments to be passed to Megahit.
     :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
     :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
@@ -364,7 +708,6 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
 
     instance = Megahit(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
@@ -374,12 +717,106 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
     return output
 
 
-def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", database_version="1",
-               tool_args="", **kwargs):
+def metaphlan(inputs, output_path=None, output_primary_name='out.txt', tool_args="", **kwargs):
+    """Runs MetaPhlAn via Toolchest.
+
+    :param inputs: Path or list containing the path (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of the output file.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to MetaPhlAn.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.metaphlan(
+        ...     inputs="./path/to/file.fastq",
+        ...     output_path="./path/to/directory/",
+        ...     output_primary_name='new_name.txt'
+        ...     tool_args='',
+        ... )
+
+    """
+
+    if "--input_type" not in tool_args:
+        input_path = inputs
+        if not isinstance(input_path, str):
+            input_path = inputs[0]
+
+        if 'fastq' in input_path:
+            tool_args += " --input_type fastq"
+        elif 'bowtie2' in input_path:
+            tool_args += " --input_type bowtie2out"
+        elif 'fasta' in input_path:
+            tool_args += " --input_type fasta"
+        elif 'sam' in input_path:
+            tool_args += " --input_type sam"
+
+    instance = MetaPhlAn(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_image_id=None,
+            instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
+    """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
+
+    Within your Python3 script, input files are available at `./input/`.
+
+    Only output written to `./output/` is captured by Toolchest. Writing to other directories such as
+    `./temp/file.txt` is allowed. However, that file will not be captured and returned by Toolchest unless it's
+    written to `./output/file.txt` instead.
+
+    :param script: path to the Python script to run.
+    :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
+    :param custom_docker_image_id: (optional) a tagged docker image to be used as an execution environment that can
+    provide dependencies for the script.
+    :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
+    script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
+    :param volume_size: (optional) allows you to set the amount of storage needed for your script.
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.python3(
+        ...     script="./path/to/script.py",
+        ...     inputs=["./path/to/input1.txt", "./path/to/input2.fastq"],
+        ...     output_path="./path/to/local/output/",
+        ...     tool_args="",
+        ... )
+    """
+    if inputs is None:
+        inputs = []
+    if type(inputs) is str:
+        inputs = [inputs]
+    inputs.append(script)
+    tool_args = f'./input/{os.path.basename(script)} {tool_args}'
+    instance = Python3(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        custom_docker_image_id=custom_docker_image_id,
+        instance_type=instance_type,
+        volume_size=volume_size,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def rapsearch2(inputs, output_path=None, output_primary_name="output", database_name="rapsearch2_seqscreen",
+               database_version="1", tool_args="", **kwargs):
     """Runs RAPSearch2 via Toolchest.
     :param inputs: Path to a FASTA/FASTQ file that will be passed in as input.
-    :param output_path: (optional) Base path to where the output file(s) will be downloaded.
-    (Functions the same way as the "-o" tag for Rapsearch.)
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Base name of output file(s).
+    (Functions the same way as the "-o" tag for RAPSearch2, in combination with `output_path`.)
     :param tool_args: (optional) Additional arguments to be passed to RAPSearch2.
     :param database_name: (optional) Name of database to use for RAPSearch2 alignment. Defaults to SeqScreen DB.
     :param database_version: (optional) Version of database to use for RAPSearch2 alignment. Defaults to 1.
@@ -389,17 +826,19 @@ def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", d
         >>> toolchest.rapsearch(
         ...     tool_args="",
         ...     inputs="./path/to/input",
-        ...     output_path="./path/to/output/base",  # outputs
+        ...     output_path="./path/to/output/",
+        ...     output_primary_name="base"
+        ...     # full base output path (-o flag) is ./path/to/output/base
         ... )
     """
 
     instance = Rapsearch2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         database_name=database_name,
         database_version=database_version,
         inputs=inputs,
         output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
@@ -410,12 +849,82 @@ def rapsearch2(inputs, output_path=None, database_name="rapsearch2_seqscreen", d
 rapsearch = rapsearch2
 
 
+def salmon(output_path=None, tool_args="", read_one=None, read_two=None, single_end=None, library_type="A",
+           database_name="salmon_hg38", database_version="1", **kwargs):
+    """Runs Salmon via Toolchest.
+
+    :param database_name: Name of database to use for STAR alignment (defaults to GRCh38).
+    :param database_version: Version of database to use for STAR alignment (defaults to 1).
+    :param library_type: (optional) `--libType` value. Defaults to "A" for automatic. See
+    https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype
+    :param output_path: (optional) Path (local or S3) to a directory where the output files will be downloaded.
+    :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
+    :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
+    :param single_end: (optional) `-r` inputs. Path or list of paths for single-end inputs (no interleaved files).
+    :param tool_args: (optional) Additional arguments to be passed to Salmon.
+
+    .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
+    versa. In other words, the nth read in `read_one` should be paired with the nth read
+    in `read_two`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.salmon(
+        ...     tool_args="",
+        ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
+        ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    # Guard against library type in tool args
+    if "-l" in tool_args or "--libType" in tool_args:
+        raise ValueError("A library type is set in 'tool_args'. Use the 'library_type' argument instead.")
+
+    # If input parameters are lists, parse these for input_prefix_mapping.
+    tag_to_param_map = {
+        "-1": read_one,
+        "-2": read_two,
+        "-r": single_end,
+    }
+    input_list = []  # list of all inputs
+    input_prefix_mapping = {}  # map of each input to its respective tag
+    for tag, param in tag_to_param_map.items():
+        if isinstance(param, list):
+            for index, input_file in enumerate(param):
+                input_list.append(input_file)
+                input_prefix_mapping[input_file] = {
+                    "prefix": tag,
+                    "order": index,
+                }
+        elif isinstance(param, str):
+            input_list.append(param)
+            input_prefix_mapping[param] = {
+                "prefix": tag,
+                "order": 0,
+            }
+
+    instance = Salmon(
+        database_name=database_name,
+        database_version=database_version,
+        input_prefix_mapping=input_prefix_mapping,
+        inputs=input_list,
+        output_path=output_path,
+        tool_args=f"--libType {library_type} {tool_args}",
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def shi7(inputs, output_path=None, tool_args="", **kwargs):
     """Runs shi7 via Toolchest.
 
     :param tool_args: (optional) Additional arguments to be passed to shi7.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -430,7 +939,6 @@ def shi7(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Shi7(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -448,7 +956,7 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -465,7 +973,6 @@ def shogun_align(inputs, output_path=None, database_name="shogun_standard", data
 
     instance = ShogunAlign(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -485,7 +992,7 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
     :param database_version: (optional) Version of database to use for Shogun alignment.
     :type database_version: str
     :param inputs: Path to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :return: An Output object, containing info about the output file's location in cloud and/or local storage.
 
     Usage::
@@ -502,7 +1009,6 @@ def shogun_filter(inputs, output_path=None, database_name="shogun_standard", dat
 
     instance = ShogunFilter(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         inputs=inputs,
         output_path=output_path,
         database_name=database_name,
@@ -523,7 +1029,7 @@ def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1
     :param tool_args: (optional) Additional arguments to be passed to STAR.
     :param read_one: Path to the file containing single input file, or R1 short reads for paired-end inputs.
     :param read_two: (optional) Path to the file containing R2 short reads for paired-end inputs.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
     :param parallelize: (optional) Allow parallelization of STAR if needed.
 
     .. note:: Single-read inputs should be supplied in the `read_one` argument by themselves.
@@ -546,7 +1052,7 @@ def STAR(read_one, database_name="GRCh38", output_path=None, database_version="1
         inputs.append(read_two)
     instance = STARInstance(
         tool_args=tool_args,
-        output_name="Aligned.out.sam" if parallelize else "output.tar.gz",
+        output_primary_name="Aligned.out.sam" if parallelize else None,
         input_prefix_mapping={
             read_one: None,
             read_two: None,
@@ -567,7 +1073,7 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     :param tool_args: Additional arguments, present to maintain a consistent interface. This is disregarded.
     :param inputs: Path or list of paths (client-side) to be passed in as input.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
 
     Usage::
 
@@ -581,7 +1087,40 @@ def test(inputs, output_path=None, tool_args="", **kwargs):
 
     instance = Test(
         tool_args=tool_args,
-        output_name='output.tar.gz',
+        inputs=inputs,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def transfer(inputs, output_path=None, **kwargs):
+    """Transfers files via Toolchest from an input (local, S3, or HTTP) to an output directory (local or S3)."
+
+    :param inputs: Path or list of files (local, S3, or HTTP) to be transferred.
+    :param output_path: Path (local or S3) to a directory where the output files will be downloaded.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.transfer(
+        ...     inputs=[
+        ...       "https://rest.uniprot.org/uniprotkb/P48754.fasta",
+        ...       "https://rest.uniprot.org/uniprotkb/P48755.fasta",
+        ...     ],
+        ...     output_path="s3://example/uniprot/",
+        ... )
+
+    """
+    if 'instance_type' in kwargs:
+        raise ToolchestException("Argument 'instance_type' is not supported by transfer currently.")
+
+    if isinstance(inputs, list):
+        if not path_is_s3_uri(output_path):
+            raise NotImplementedError("Transferring multiple files at once is supported only for an S3 output_path")
+
+    instance = Transfer(
         inputs=inputs,
         output_path=output_path,
         **kwargs,
@@ -597,7 +1136,7 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     :param read_one: (optional) Path to the file containing R1 short reads.
     :param read_two: (optional) Path to the file containing R2 short reads.
     :param long_reads: (optional) Path to the file containing long reads.
-    :param output_path: (optional) Path (client-side) where the output file will be downloaded.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
 
     Usage::
 
@@ -614,7 +1153,6 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
 
     instance = Unicycler(
         tool_args=tool_args,
-        output_name="output.tar.gz",
         input_prefix_mapping={
             read_one: {"prefix": "-1"},
             read_two: {"prefix": "-2"},
@@ -622,6 +1160,123 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
         },
         inputs=[read_one, read_two, long_reads],
         output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
+    """Updates a custom database. The new database version is returned immediately after initialization.
+
+    This executes just like any other tool, except:
+    - the success status is
+    toolchest_client.api.status.COMPLETE ('complete') instead of
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
+
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
+
+    :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
+    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
+    :param database_name: Name of database to update.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.update_database(
+        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
+        ...     tool=toolchest.tools.kraken2,
+        ...     database_name="standard",
+        ... )
+
+    """
+
+    instance = tool(
+        inputs=database_path,
+        database_name=database_name,
+        is_async=is_async,
+        is_database_update=True,
+        database_primary_name=database_primary_name,
+        output_path=None,
+        output_primary_name=None,
+        database_version=None,
+        tool_args="",
+        remote_database_path=None,
+        max_inputs=1000,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
+    """Adds a custom database and attaches it to a tool.
+    The new database version is returned immediately after initialization.
+
+    This executes just like any other tool, except:
+    - the success status is
+    toolchest_client.api.status.COMPLETE ('complete') instead of
+    toolchest_client.api.status.READY_TO_TRANSFER_TO_CLIENT ('ready_to_transfer_to_client')
+    - is_async is True by default (but can be set to False)
+
+    Note that it may take at least a few minutes for the custom database to be ready for use.
+    Larger databases will require more time (roughly 1 extra minute for every 5-10 GB).
+    To ensure that subsequent Toolchest calls will be run after the database is ready to use,
+    set `is_async=False`.
+
+    If there are multiple files being uploaded, Toolchest will assume that a directory containing
+    all database files should be passed in as the database for the tool on the command line. If
+    only one of these files should be specified instead, use the `database_primary_name` argument
+    to specify this file.
+
+    :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
+    :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
+    :param database_name: Name of the new database.
+    :param database_primary_name: Name or path of the file to use as the primary database file
+        (i.e., what you would pass into the command line as the database), if uploading multiple
+        files. If unspecified, assumes that the *directory* of files is what will be passed in
+        as the database.
+    :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
+        this is set to `True` by default.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.add_database(
+        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
+        ...     tool=toolchest.tools.Kraken2,
+        ...     database_name="my_new_database",
+        ... )
+
+    """
+
+    instance = tool(
+        inputs=database_path,
+        database_name=database_name,
+        is_async=is_async,
+        is_database_update=True,
+        database_primary_name=database_primary_name,
+        output_path=None,
+        output_primary_name=None,
+        database_version=None,
+        tool_args="",
+        remote_database_path=None,
+        max_inputs=1000,
         **kwargs,
     )
     output = instance.run()

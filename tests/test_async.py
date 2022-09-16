@@ -16,7 +16,7 @@ def test_async_execution():
     Tests Kraken 2 running async using a small reference database
     """
 
-    test_dir = "test_async_execution"
+    test_dir = "temp_test_async_execution"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
     output_file_path = f"{output_dir_path}/kraken2_output.txt"
@@ -24,7 +24,7 @@ def test_async_execution():
     custom_db = "s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/"
     toolchest_run = toolchest.kraken2(
         read_one="s3://toolchest-integration-tests/synthetic_bacteroides_reads.fasta",
-        custom_database_path=custom_db,
+        remote_database_path=custom_db,
         output_path=output_dir_path,
         is_async=True,
     )

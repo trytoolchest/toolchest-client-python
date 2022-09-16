@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from tests.util import s3, hash
+from tests.util import s3, hash, filter_output
 import toolchest_client as toolchest
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
@@ -14,7 +14,7 @@ def test_star_grch38():
     """
     Tests STAR against the grch38 database
     """
-    test_dir = "test_star_grch38"
+    test_dir = "temp_test_star_grch38"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}"
@@ -37,9 +37,7 @@ def test_star_grch38():
     assert 185952700 <= os.path.getsize(output_file_path) <= 185952900  # expected size 185952796
 
     # Filter non-deterministic metadata lines
-    with open(filtered_output_file_path, "w") as outfile:
-        with open(output_file_path, "r") as infile:
-            outfile.writelines([line for line in infile if not line.startswith("@PG") and not line.startswith("@CO")])
+    filter_output.filter_sam(output_file_path, filtered_output_file_path)
     assert hash.unordered(filtered_output_file_path) == 2099424598
 
 
@@ -49,7 +47,7 @@ def test_star_grch38_parallel():
     """
     Tests STAR against the grch38 database, using parallel mode
     """
-    test_dir = "test_star_grch38_parallel"
+    test_dir = "temp_test_star_grch38_parallel"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./large_star.fastq"
     output_dir_path = f"./{test_dir}"
@@ -79,7 +77,7 @@ def test_star_grch38_dangerous_arg():
     """
     Tests STAR against the grch38 database, with a dangerous arg (changing functionality)
     """
-    test_dir = "test_star_grch38"
+    test_dir = "temp_test_star_grch38"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     input_file_path = "./small_star.fastq"
     output_dir_path = f"./{test_dir}"
