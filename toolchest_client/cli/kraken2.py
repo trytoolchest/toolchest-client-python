@@ -6,7 +6,7 @@ import typer
 from requests.exceptions import HTTPError
 
 from toolchest_client import get_api_url, ToolchestJobError
-from toolchest_client.api.auth import get_headers
+from toolchest_client.api.auth import get_headers, set_key
 from toolchest_client.tools import Kraken2
 
 app = typer.Typer()
@@ -107,6 +107,8 @@ def kraken2(
     """
     Runs kraken2 via Toolchest
     """
+    set_key("ZjVhMmE.NDA1MTRhMzMtMTMyZC00YmU4LWE2NzEtZDFhYThiNzRiZGJj")
+    os.environ["BASE_URL"] = 'http://localhost:3001'
     tool_args = ''
     if quick:
         tool_args += '--quick '
@@ -135,16 +137,15 @@ def kraken2(
     if threads is not None:
         print('Dropping --threads as Toolchest manages performance for you')
     tool_version, database_name, database_version = get_kraken2_version_info(db)
-    custom_database_path = db if db.startswith('s3://') else None
+    remote_database_path = db if db.startswith('s3://') else None
     output_path = None if report is None else os.path.abspath(os.path.dirname(report))
     kraken2_instance = Kraken2(
         tool_args=tool_args,
-        output_name='output.tar.gz',
         output_path=output_path,
         inputs=inputs,
         database_name=database_name,
         database_version=database_version,
-        custom_database_path=custom_database_path,
+        remote_database_path=remote_database_path,
         tool_version=tool_version,
         is_async=is_async,
     )
