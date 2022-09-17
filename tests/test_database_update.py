@@ -10,7 +10,7 @@ if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
 
-@pytest.mark.integration
+@pytest.mark.integration_part
 def test_database_update_s3():
     """
     Tests custom database update for bowtie 2 using S3 files
@@ -50,7 +50,7 @@ def test_database_update_s3():
     assert hash.unordered(filtered_output_file_path) == 107700257
 
 
-@pytest.mark.integration
+@pytest.mark.integration_part
 def test_database_update_s3_prefix():
     """
     Tests custom database update for bowtie 2 using an S3 prefix and assumed primary name
