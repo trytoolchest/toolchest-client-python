@@ -1,11 +1,8 @@
-import sentry_sdk
 import typer
 
 import toolchest_client.cli.kraken2 as kraken2
 import toolchest_client.cli.test as test
 
-
-sentry_sdk.set_tag('send_page', False)
 
 app = typer.Typer()
 
