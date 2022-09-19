@@ -14,10 +14,10 @@ class Kraken2(Tool):
     The Kraken2 implementation of the Tool class.
     """
     def __init__(self, tool_args, inputs, output_path,
-                 database_name, database_version, remote_database_path, **kwargs):
+                 database_name, database_version, remote_database_path, tool_version='2.1.1', **kwargs):
         super().__init__(
             tool_name="kraken2",
-            tool_version="2.1.1",  # todo: allow kraken 2 version to be set by the user
+            tool_version=tool_version,
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
