@@ -31,7 +31,7 @@ jobs:
           command: |
             cd ~/repo
             poetry install
-            poetry run pytest -v -m "not (integration or integration_part or integration_full)"
+            poetry run pytest -v -m "not (integration or integration_full)"
   integration-tests:
     executor: python/default
     working_directory: ~/repo

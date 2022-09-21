@@ -10,16 +10,17 @@ if toolchest_api_key:
     toolchest.set_key(toolchest_api_key)
 
 
-@pytest.mark.integration_part
+@pytest.mark.integration
 def test_database_update_s3():
     """
-    Tests custom database update for bowtie 2 using S3 files
+    Tests custom database update for bowtie 2 using S3 files.
+    Runs 2 update tests in sequence. The second part tests using
+    an S3 prefix and auto-generated primary name.
     """
-    test_dir = "temp_test_db_update_s3_bowtie2"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}"
-    output_file_path = f"{output_dir_path}/bowtie2_output.sam"
-    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
+    # Part 1: test using explicitly listed files and primary name
+    listed_files_test_dir = "temp_test_db_update_s3_bowtie2"
+    os.makedirs(f"./{listed_files_test_dir}", exist_ok=True)
+    output_dir_path = f"./{listed_files_test_dir}"
 
     # Update DB
     update_db_output = toolchest.update_database(
@@ -39,33 +40,19 @@ def test_database_update_s3():
     assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
     assert update_db_output.database_version
 
-    # Run job on updated DB
-    toolchest.bowtie2(
-        inputs="s3://toolchest-integration-tests/bowtie2/fruitfly-ncbi/GSM868349.fastq.gz",
-        output_path=output_dir_path,
-        database_name=update_db_output.database_name,
-        database_version=update_db_output.database_version,
+    run_and_test_bowtie2_on_updated_db(
+        expected_hash=107700257,
+        output_dir_path=output_dir_path,
+        update_db_output=update_db_output
     )
-    filter_output.filter_sam(output_file_path, filtered_output_file_path)
-    assert hash.unordered(filtered_output_file_path) == 107700257
 
-
-@pytest.mark.integration_part
-def test_database_update_s3_prefix():
-    """
-    Tests custom database update for bowtie 2 using an S3 prefix and assumed primary name
-
-    NOTE: to test auto-generation of database_primary_name, this should be run right after
-    test_database_update_s3
-    """
-    test_dir = "temp_test_db_update_s3_prefix_bowtie2"
-    os.makedirs(f"./{test_dir}", exist_ok=True)
-    output_dir_path = f"./{test_dir}"
-    output_file_path = f"{output_dir_path}/bowtie2_output.sam"
-    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
+    # Part 2: test using an S3 prefix and assumed primary name
+    prefix_test_dir = "temp_test_db_update_s3_prefix_bowtie2"
+    os.makedirs(f"./{prefix_test_dir}", exist_ok=True)
+    output_dir_path = f"./{prefix_test_dir}"
 
     # Update DB
-    # This should be the same Dmel_A4_1.0 database as test_database_update_s3()
+    # This should be the same Dmel_A4_1.0 database
     update_db_output = toolchest.update_database(
         database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/bowtie2-fruitfly",
         tool=toolchest.tools.Bowtie2,
@@ -75,15 +62,11 @@ def test_database_update_s3_prefix():
     assert update_db_output.database_name == "integration_test_bowtie2_fruitfly"
     assert update_db_output.database_version
 
-    # Run job on updated DB
-    toolchest.bowtie2(
-        inputs="s3://toolchest-integration-tests/bowtie2/fruitfly-ncbi/GSM868349.fastq.gz",
-        output_path=output_dir_path,
-        database_name=update_db_output.database_name,
-        database_version=update_db_output.database_version,
+    run_and_test_bowtie2_on_updated_db(
+        expected_hash=107700257,
+        output_dir_path=output_dir_path,
+        update_db_output=update_db_output
     )
-    filter_output.filter_sam(output_file_path, filtered_output_file_path)
-    assert hash.unordered(filtered_output_file_path) == 107700257
 
 
 @pytest.mark.integration
@@ -102,8 +85,6 @@ def test_database_update_local():
         "BDGP6.rev.2.bt2",
     ]
     output_dir_path = f"./{test_dir}"
-    output_file_path = f"{output_dir_path}/bowtie2_output.sam"
-    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
     os.makedirs(input_dir_path, exist_ok=True)
 
     # Download DB files
@@ -125,15 +106,11 @@ def test_database_update_local():
     assert update_db_output.database_version
 
     # Run job on updated DB
-    toolchest.bowtie2(
-        inputs="s3://toolchest-integration-tests/bowtie2/fruitfly-ncbi/GSM868349.fastq.gz",
-        output_path=output_dir_path,
-        database_name=update_db_output.database_name,
-        database_version=update_db_output.database_version,
+    run_and_test_bowtie2_on_updated_db(
+        expected_hash=1936736537,
+        output_dir_path=output_dir_path,
+        update_db_output=update_db_output
     )
-
-    filter_output.filter_sam(output_file_path, filtered_output_file_path)
-    assert hash.unordered(filtered_output_file_path) == 1936736537
 
 
 @pytest.mark.integration
@@ -150,20 +127,7 @@ def test_database_add_s3():
 
     # Add database
     add_db_output = toolchest.add_database(
-        database_path=[
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database100mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database150mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database200mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database250mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database300mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database50mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/database75mers.kmer_distrib",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/hash.k2d",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/inspect.txt",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/opts.k2d",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/seqid2taxid.map",
-            "s3://toolchest-integration-tests/databases/k2_viral_20210517/taxo.k2d",
-        ],
+        database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/kraken2-viral/",
         tool=toolchest.tools.Kraken2,
         database_name=f"integration_test_kraken2_viral_{time.time()}",
         is_async=False,  # to ensure DB finishes uploading before tool call
@@ -180,3 +144,22 @@ def test_database_add_s3():
         output_path=output_dir_path,
     )
     assert hash.unordered(output_file_path) == KRAKEN2_OUTPUT_VIRAL_HASH
+
+
+def run_and_test_bowtie2_on_updated_db(
+        expected_hash,
+        output_dir_path,
+        update_db_output,
+):
+    """Tests a Bowtie 2 run on the updated DB."""
+    output_file_path = f"{output_dir_path}/bowtie2_output.sam"
+    filtered_output_file_path = f"{output_dir_path}/bowtie2_output.filtered.sam"
+
+    toolchest.bowtie2(
+        inputs="s3://toolchest-integration-tests/bowtie2/fruitfly-ncbi/GSM868349.fastq.gz",
+        output_path=output_dir_path,
+        database_name=update_db_output.database_name,
+        database_version=update_db_output.database_version,
+    )
+    filter_output.filter_sam(output_file_path, filtered_output_file_path)
+    assert hash.unordered(filtered_output_file_path) == expected_hash
