@@ -534,38 +534,12 @@ def kallisto(output_path=None, inputs=[], database_name="kallisto_homo_sapiens",
     input_prefix_mapping = {}  # map of each input to its respective tag
     index = 0
     if gtf:
-        if '--gtf' in tool_args:
-            tool_args_list = tool_args.split(" ")
-            arg_index = tool_args_list.index("--gtf")
-            tool_args_list.pop(arg_index)
-            tool_args_list.pop(arg_index)
-            tool_args = " ".join(tool_args_list)
-        elif '-g' in tool_args:
-            tool_args_list = tool_args.split(" ")
-            arg_index = tool_args_list.index("-g")
-            tool_args_list.pop(arg_index)
-            tool_args_list.pop(arg_index)
-            tool_args = " ".join(tool_args_list)
         input_prefix_mapping[gtf] = {
             "prefix": "--gtf",
             "order": index
         }
         index += 1
-    elif "--genomebam" in tool_args:
-        raise ToolchestException("--genomebam requires gtf parameter be set")
     if chromosomes:
-        if '--chromosomes' in tool_args:
-            tool_args_list = tool_args.split(" ")
-            arg_index = tool_args_list.index("--chromosomes")
-            tool_args_list.pop(arg_index)
-            tool_args_list.pop(arg_index)
-            tool_args = " ".join(tool_args_list)
-        elif '-c' in tool_args:
-            tool_args_list = tool_args.split(" ")
-            arg_index = tool_args_list.index("-c")
-            tool_args_list.pop(arg_index)
-            tool_args_list.pop(arg_index)
-            tool_args = " ".join(tool_args_list)
         input_prefix_mapping[gtf] = {
             "prefix": "--chromosomes",
             "order": index
