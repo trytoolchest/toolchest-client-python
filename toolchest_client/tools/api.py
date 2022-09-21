@@ -506,13 +506,13 @@ provided.
 
 def kallisto(output_path=None, inputs=[], database_name="kallisto_homo_sapiens", database_version="1",
              tool_args="", gtf=None, chromosomes=None, **kwargs):
-    """Runs Kallisto via Toolchest.
+    """Runs Kallisto quant via Toolchest.
 
     :param inputs: Path or list of paths (client-side) to be passed in as input(s).
     :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
-    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
-    :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
-    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
+    :param tool_args: (optional) Additional arguments to be passed to Kallisto.
+    :param database_name: (optional) Name of database to use for Kallisto alignment. Defaults to the Homo sapiens DB.
+    :param database_version: (optional) Version of database to use for Kallisto alignment. Defaults to 1.
     :type database_version: str
     :param gtf: (optional) path to a GTF file for transcriptome information (required for --genomebam).
     :param chromosomes: (optional) Path to a tab separated file with chromosome names and lengths.
