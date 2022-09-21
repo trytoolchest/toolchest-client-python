@@ -468,6 +468,21 @@ TOOL_ARG_LISTS = {
             "--input-genes"
         ]
     },
+    "kallisto": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-o",
+            "--output-dir",
+            "--verbose",
+            "-t",
+            "--threads",
+            "-i",
+            "--index",
+        ]
+    },
     "kraken2": {
         "whitelist": {
             "--quick": 0,

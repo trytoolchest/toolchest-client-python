@@ -11,8 +11,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, Rapsearch2, \
-    Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, \
+    Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -498,6 +498,104 @@ provided.
         output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def kallisto(output_path=None, inputs=[], database_name="kallisto_homo_sapiens", database_version="1",
+             tool_args="", gtf=None, chromosomes=None, **kwargs):
+    """Runs Kallisto via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input(s).
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Kraken 2.
+    :param database_name: (optional) Name of database to use for Kraken 2 alignment. Defaults to standard DB.
+    :param database_version: (optional) Version of database to use for Kraken 2 alignment. Defaults to 1.
+    :type database_version: str
+    :param gtf: (optional) path to a GTF file for transcriptome information (required for --genomebam).
+    :param chromosomes: (optional) Path to a tab separated file with chromosome names and lengths.
+
+    .. note:: Single-end read inputs require --single, --fragment-length (or -l), and --sd (or -s) to be provided via
+    tool_args
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.kallisto(
+        ...     tool_args="",
+        ...     inputs=["./path/to/input_r1.fastq", "./path/to/input_r2.fastq"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    input_prefix_mapping = {}  # map of each input to its respective tag
+    index = 0
+    if gtf:
+        if '--gtf' in tool_args:
+            tool_args_list = tool_args.split(" ")
+            arg_index = tool_args_list.index("--gtf")
+            tool_args_list.pop(arg_index)
+            tool_args_list.pop(arg_index)
+            tool_args = " ".join(tool_args_list)
+        elif '-g' in tool_args:
+            tool_args_list = tool_args.split(" ")
+            arg_index = tool_args_list.index("-g")
+            tool_args_list.pop(arg_index)
+            tool_args_list.pop(arg_index)
+            tool_args = " ".join(tool_args_list)
+        input_prefix_mapping[gtf] = {
+            "prefix": "--gtf",
+            "order": index
+        }
+        index += 1
+    elif "--genomebam" in tool_args:
+        raise ToolchestException("--genomebam requires gtf parameter be set")
+    if chromosomes:
+        if '--chromosomes' in tool_args:
+            tool_args_list = tool_args.split(" ")
+            arg_index = tool_args_list.index("--chromosomes")
+            tool_args_list.pop(arg_index)
+            tool_args_list.pop(arg_index)
+            tool_args = " ".join(tool_args_list)
+        elif '-c' in tool_args:
+            tool_args_list = tool_args.split(" ")
+            arg_index = tool_args_list.index("-c")
+            tool_args_list.pop(arg_index)
+            tool_args_list.pop(arg_index)
+            tool_args = " ".join(tool_args_list)
+        input_prefix_mapping[gtf] = {
+            "prefix": "--chromosomes",
+            "order": index
+        }
+        index += 1
+    if isinstance(inputs, list):
+        for input_file in inputs:
+            input_prefix_mapping[input_file] = {
+                "prefix": "",
+                "order": index,
+            }
+            index += 1
+    elif isinstance(inputs, str):
+        input_prefix_mapping[inputs] = {
+            "prefix": "",
+            "order": index,
+        }
+        inputs = [inputs]
+    if gtf:
+        inputs.append(gtf)
+    if chromosomes:
+        inputs.append(chromosomes)
+
+    instance = Kallisto(
+        tool_args=tool_args,
+        inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,
         **kwargs,
     )
     output = instance.run()
