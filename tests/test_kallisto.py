@@ -12,11 +12,11 @@ if toolchest_api_key:
 @pytest.mark.integration
 def test_kallisto_homo_sapiens():
     """
-    Tests kallisto with a scRNA-Seq FASTA file
+    Tests kallisto with a scRNA-Seq FASTQ file
 
     """
 
-    test_dir = "temp_test_kallisto_hg38"
+    test_dir = "temp_test_kallisto_homo_sapiens"
     os.makedirs(f"./{test_dir}", exist_ok=True)
     output_dir_path = f"./{test_dir}"
 
