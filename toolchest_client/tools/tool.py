@@ -109,22 +109,6 @@ class Tool:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
 
-        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
-        # Note: if compress_inputs is True, this won't check against all input names, and behavior will be undefined
-        if self.is_database_update:
-            if self.database_primary_name:
-                self.database_primary_name = os.path.basename(self.database_primary_name)
-                # Sanitize database_primary_name if all files are local
-                # (If there is an S3 URI, it could be a prefix, so we skip overwriting database_primary_name)
-                if not any(path_is_s3_uri(input_path) for input_path in self.input_files):
-                    # If only one input file exists, use that file explicitly as the DB
-                    if self.num_input_files == 1 and not self.compress_inputs:
-                        self.database_primary_name = os.path.basename(self.input_files[0])
-                    # If DB name isn't a prefix for an input file, (implicitly) use directory of inputs instead as DB
-                    input_basenames = [os.path.basename(input_path) for input_path in self.input_files]
-                    if all([self.database_primary_name not in basename for basename in input_basenames]):
-                        self.database_primary_name = None
-
     def _output_path_is_local(self):
         return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
 
