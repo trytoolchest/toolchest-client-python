@@ -35,7 +35,7 @@ jobs:
   integration-tests:
     executor: python/default
     working_directory: ~/repo
-    parallelism: 4
+    parallelism: 8
     steps:
       - checkout
       - run:
