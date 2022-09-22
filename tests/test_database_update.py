@@ -13,7 +13,7 @@ if toolchest_api_key:
 @pytest.mark.integration
 def test_database_add_and_update_s3():
     """
-    Tests custom database add and update for bowtie 2 using S3 files.
+    Tests custom database add/update for bowtie 2 using S3 files.
     The update test assumes the database primary name from the add test.
     """
     add_test_dir = "temp_test_db_add_s3_bowtie2"
@@ -73,33 +73,34 @@ def test_database_add_and_update_s3():
 
 
 @pytest.mark.integration
-def test_database_update_local():
+def test_database_update_local_list():
+    base_test_database_update_local(test_with_prefix=False)
+
+
+@pytest.mark.integration
+def test_database_update_local_prefix():
+    base_test_database_update_local(test_with_prefix=True)
+
+
+def base_test_database_update_local(test_with_prefix):
     """
-    Tests custom database update for bowtie 2 using local files
+    Tests custom database update for bowtie 2 using local files.
+    Uses a directory of inputs if test_with_prefix is True;
+    otherwise, uses a list of inputs.
     """
     test_dir = "temp_test_db_update_local_bowtie2"
     input_dir_path = f"./{test_dir}/inputs/"
-    input_file_names = [
-        "BDGP6.1.bt2",
-        "BDGP6.2.bt2",
-        "BDGP6.3.bt2",
-        "BDGP6.4.bt2",
-        "BDGP6.rev.1.bt2",
-        "BDGP6.rev.2.bt2",
-    ]
-    output_dir_path = f"./{test_dir}"
-    os.makedirs(input_dir_path, exist_ok=True)
+    output_dir_path = f"./{test_dir}/output"
+    if test_with_prefix:
+        output_dir_path += "_prefix"
 
-    # Download DB files
-    for input_file_name in input_file_names:
-        s3.download_integration_test_input(
-            s3_file_key=f"databases/bowtie2-fruitfly-BDGP6/{input_file_name}",
-            output_file_path=f"{input_dir_path}{input_file_name}",
-        )
+    downloaded_full_paths = download_db_files_for_local_tests(input_dir_path)
+
+    database_path_arg = input_dir_path if test_with_prefix else downloaded_full_paths
 
     # Update DB
     update_db_output = toolchest.update_database(
-        database_path=input_dir_path,
+        database_path=database_path_arg,
         tool=toolchest.tools.Bowtie2,
         database_name="integration_test_bowtie2_fruitfly",
         database_primary_name="BDGP6",
@@ -165,3 +166,26 @@ def run_and_test_bowtie2_on_updated_db(
     )
     filter_output.filter_sam(output_file_path, filtered_output_file_path)
     assert hash.unordered(filtered_output_file_path) == expected_hash
+
+
+def download_db_files_for_local_tests(input_dir_path):
+    db_file_names = [
+        "BDGP6.1.bt2",
+        "BDGP6.2.bt2",
+        "BDGP6.3.bt2",
+        "BDGP6.4.bt2",
+        "BDGP6.rev.1.bt2",
+        "BDGP6.rev.2.bt2",
+    ]
+
+    os.makedirs(input_dir_path, exist_ok=True)
+    downloaded_full_paths = []
+    for db_file_name in db_file_names:
+        downloaded_full_path = os.path.join(input_dir_path, db_file_name)
+        if not os.path.isfile(downloaded_full_path):
+            s3.download_integration_test_input(
+                s3_file_key=f"databases/bowtie2-fruitfly-BDGP6/{db_file_name}",
+                output_file_path=downloaded_full_path,
+            )
+        downloaded_full_paths.append(downloaded_full_path)
+    return downloaded_full_paths
