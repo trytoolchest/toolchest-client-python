@@ -76,8 +76,8 @@ class Query:
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
-                  is_database_update=False, database_primary_name=None, output_path=None, output_primary_name=None,
-                  skip_decompression=False, thread_statuses=None, custom_docker_image_id=None,
+                  input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
+                  output_primary_name=None, skip_decompression=False, thread_statuses=None, custom_docker_image_id=None,
                   instance_type=None, volume_size=None):
         """Executes a query to the Toolchest API.
 
@@ -89,6 +89,8 @@ class Query:
         :param remote_database_path: Path (S3 URI) to a custom database.
         :param remote_database_primary_name: Primary name (i.e. common prefix) of S3 custom database.
         :param custom_docker_image_id: Image id of a custom docker image on the local machine.
+        :param input_is_compressed: Whether the input file is a compressed archive of local files.
+            Only used in cases where a single input is given.
         :param input_prefix_mapping: Mapping of input filepaths to associated prefix tags (e.g., "-1").
         :param is_database_update: Whether the call is to update an existing database.
         :param database_primary_name: Name of the file to use as the primary database file,
@@ -153,7 +155,7 @@ class Query:
 
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
-        self._upload(input_files, input_prefix_mapping)
+        self._upload(input_files, input_prefix_mapping, input_is_compressed)
         self._upload_docker_image(custom_docker_image_id)
         self._check_if_should_terminate()
 
@@ -236,7 +238,7 @@ class Query:
             print(f"Failed to update size for file: {file_id}", file=sys.stderr)
             raise
 
-    def _register_input_file(self, input_file_path, input_prefix, input_order):
+    def _register_input_file(self, input_file_path, input_prefix, input_order, input_is_compressed):
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'input-files'
@@ -258,6 +260,7 @@ class Query:
                 "s3_uri": input_file_path if input_is_in_s3 else None,
                 "http_url": input_file_path if input_is_http_url else None,
                 "ftp_url": input_file_path if input_is_ftp_url else None,
+                "is_compressed": input_is_compressed,
             },
         )
         try:
@@ -277,7 +280,7 @@ class Query:
                 "file_id": response_json.get('file_id'),
             }
 
-    def _upload(self, input_file_paths, input_prefix_mapping):
+    def _upload(self, input_file_paths, input_prefix_mapping, input_is_compressed):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
@@ -296,6 +299,7 @@ class Query:
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
+                    input_is_compressed=input_is_compressed,
                 )
             else:
                 print(f"Uploading {file_path}")

@@ -7,7 +7,6 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import copy
 import datetime
-import itertools
 import os
 import re
 import signal
@@ -91,15 +90,17 @@ class Tool:
     def _prepare_inputs(self):
         """Prepares the input files."""
         if self.compress_inputs and isinstance(self.inputs, str):
-            # TODO: compress inputs in cases where inputs is a list
             if path_is_s3_uri(self.inputs):
-                # If the given path is in S3, it is assumed to be compressed already.
+                # If the given path is in S3, it does not require compression.
                 self.input_files = [self.inputs]
+                self.compress_inputs = False
             else:
                 # Input files are all .tar.gz'd together, preserving directory structure
                 self.input_files = [compress_files_in_path(os.path.expanduser(self.inputs))]
             self.num_input_files = 1
         else:
+            # TODO: compress inputs in cases where inputs is a list
+            self.compress_inputs = False
             # Input files are handled individually, destroying directory structure
             self.input_files = files_in_path(self.inputs)  # expands ~ in filepath if local
             self.num_input_files = len(self.input_files)
@@ -459,6 +460,7 @@ class Tool:
                 "database_name": self.database_name,
                 "database_version": self.database_version,
                 "input_files": input_files,
+                "input_is_compressed": self.compress_inputs,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "instance_type": self.instance_type,
                 "is_database_update": self.is_database_update,
