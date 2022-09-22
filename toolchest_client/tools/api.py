@@ -1172,6 +1172,7 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
+        compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )
     output = instance.run()
@@ -1231,6 +1232,7 @@ def add_database(database_path, tool, database_name, database_primary_name, is_a
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
+        compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )
     output = instance.run()

@@ -7,6 +7,7 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import copy
 import datetime
+import itertools
 import os
 import re
 import signal
@@ -89,7 +90,8 @@ class Tool:
 
     def _prepare_inputs(self):
         """Prepares the input files."""
-        if self.compress_inputs:
+        if self.compress_inputs and isinstance(self.inputs, str):
+            # TODO: compress inputs in cases where inputs is a list
             if path_is_s3_uri(self.inputs):
                 # If the given path is in S3, it is assumed to be compressed already.
                 self.input_files = [self.inputs]
