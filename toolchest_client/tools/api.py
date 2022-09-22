@@ -1202,8 +1202,8 @@ def add_database(database_path, tool, database_name, database_primary_name, is_a
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
     :param database_primary_name: Base name of the file/prefix that would normally be passed in
-        to the command line call. Use `database_primary_name=None` to pass the entire *directory*
-        of files as the database.
+        to the command line call. Use `database_primary_name=None` to use the directory name
+        as the database.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
 
