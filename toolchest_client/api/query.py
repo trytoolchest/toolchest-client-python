@@ -248,6 +248,8 @@ class Query:
         if input_is_http_url:
             url_path = urlparse(input_file_path).path
             file_name = os.path.basename(url_path)
+        if input_is_in_s3:
+            file_name = os.path.basename(input_file_path.rstrip("/"))
         response = requests.post(
             register_input_file_url,
             headers=self.HEADERS,
