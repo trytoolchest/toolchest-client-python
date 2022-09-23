@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.9.41"
+version = "0.9.43"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bryce@trytoolchest.com>",
@@ -30,6 +30,7 @@ requests = "^2.25.1"
 docker = "^6.0.0"
 importlib-metadata = "~=4.2"
 python-dotenv = "^0.20.0"
+typer = "^0.4.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^5.0.4"
@@ -48,6 +49,9 @@ secondary = true
 name = "test-pypi"
 url = "https://test.pypi.org/legacy/"
 secondary = true
+
+[tool.poetry.scripts]
+toolchest = "toolchest_client.cli.cli:app"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

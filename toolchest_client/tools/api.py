@@ -11,8 +11,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kraken2, Lastal5, Lug, Megahit, Python3, Rapsearch2, Salmon, Shi7, \
-    ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, \
+    Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -504,6 +504,78 @@ provided.
     return output
 
 
+def kallisto(output_path=None, inputs=[], database_name="kallisto_homo_sapiens", database_version="1",
+             tool_args="", gtf=None, chromosomes=None, **kwargs):
+    """Runs Kallisto quant via Toolchest.
+
+    :param inputs: Path or list of paths (client-side) to be passed in as input(s).
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Kallisto.
+    :param database_name: (optional) Name of database to use for Kallisto alignment. Defaults to the Homo sapiens DB.
+    :param database_version: (optional) Version of database to use for Kallisto alignment. Defaults to 1.
+    :type database_version: str
+    :param gtf: (optional) path to a GTF file for transcriptome information (required for --genomebam).
+    :param chromosomes: (optional) Path to a tab separated file with chromosome names and lengths.
+
+    .. note:: Single-end read inputs require --single, --fragment-length (or -l), and --sd (or -s) to be provided via
+    tool_args
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.kallisto(
+        ...     tool_args="",
+        ...     inputs=["./path/to/input_r1.fastq", "./path/to/input_r2.fastq"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    input_prefix_mapping = {}  # map of each input to its respective tag
+    index = 0
+    if gtf:
+        input_prefix_mapping[gtf] = {
+            "prefix": "--gtf",
+            "order": index
+        }
+        index += 1
+    if chromosomes:
+        input_prefix_mapping[gtf] = {
+            "prefix": "--chromosomes",
+            "order": index
+        }
+        index += 1
+    if isinstance(inputs, list):
+        for input_file in inputs:
+            input_prefix_mapping[input_file] = {
+                "prefix": "",
+                "order": index,
+            }
+            index += 1
+    elif isinstance(inputs, str):
+        input_prefix_mapping[inputs] = {
+            "prefix": "",
+            "order": index,
+        }
+        inputs = [inputs]
+    if gtf:
+        inputs.append(gtf)
+    if chromosomes:
+        inputs.append(chromosomes)
+
+    instance = Kallisto(
+        tool_args=tool_args,
+        inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_path=output_path,
+        database_name=database_name,
+        database_version=database_version,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def kraken2(output_path=None, inputs=[], database_name="standard", database_version="1",
             tool_args="", read_one=None, read_two=None, remote_database_path=None, **kwargs):
     """Runs Kraken 2 via Toolchest.
@@ -711,6 +783,52 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         input_prefix_mapping=input_prefix_mapping,
         inputs=input_list,
         output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def metaphlan(inputs, output_path=None, output_primary_name='out.txt', tool_args="", **kwargs):
+    """Runs MetaPhlAn via Toolchest.
+
+    :param inputs: Path or list containing the path (client-side) to be passed in as input.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param output_primary_name: (optional) Name of the output file.
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to MetaPhlAn.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.metaphlan(
+        ...     inputs="./path/to/file.fastq",
+        ...     output_path="./path/to/directory/",
+        ...     output_primary_name='new_name.txt'
+        ...     tool_args='',
+        ... )
+
+    """
+
+    if "--input_type" not in tool_args:
+        input_path = inputs
+        if not isinstance(input_path, str):
+            input_path = inputs[0]
+
+        if 'fastq' in input_path:
+            tool_args += " --input_type fastq"
+        elif 'bowtie2' in input_path:
+            tool_args += " --input_type bowtie2out"
+        elif 'fasta' in input_path:
+            tool_args += " --input_type fasta"
+        elif 'sam' in input_path:
+            tool_args += " --input_type sam"
+
+    instance = MetaPhlAn(
+        tool_args=tool_args,
+        inputs=inputs,
+        output_path=output_path,
+        output_primary_name=output_primary_name,
         **kwargs,
     )
     output = instance.run()
@@ -1203,8 +1321,8 @@ def add_database(database_path, tool, database_name, database_primary_name, is_a
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
     :param database_primary_name: Base name of the file/prefix that would normally be passed in
-        to the command line call. Use `database_primary_name=None` to pass the entire *directory*
-        of files as the database.
+        to the command line call. Use `database_primary_name=None` to use the directory name
+        as the database.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
 

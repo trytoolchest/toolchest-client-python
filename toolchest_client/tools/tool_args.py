@@ -428,7 +428,7 @@ TOOL_ARG_LISTS = {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg
             "*": 0
         },
-        "blacklist": [  # Toolchest only allows non-interactive script execution
+        "blacklist": [
             "-o",
             "--outdir",
             "-h",
@@ -454,7 +454,7 @@ TOOL_ARG_LISTS = {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg
             "*": 0
         },
-        "blacklist": [  # Toolchest only allows non-interactive script execution
+        "blacklist": [
             "-i",
             "--input",
             "-o",
@@ -466,6 +466,21 @@ TOOL_ARG_LISTS = {
             "--taxonomic-profile",
             "--input-pathways",
             "--input-genes"
+        ]
+    },
+    "kallisto": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-o",
+            "--output-dir",
+            "--verbose",
+            "-t",
+            "--threads",
+            "-i",
+            "--index",
         ]
     },
     "kraken2": {
@@ -526,6 +541,33 @@ TOOL_ARG_LISTS = {
             "--presets": 1,
             "--min-contig-len": 1,
         },
+    },
+    "metaphlan": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-o",
+            "--output",
+            "--bowtie2out",
+            "--bowtie2db",
+            "--nproc",
+            "--force",
+            "-x",
+            "--index",
+            "--bowtie2_exe",
+            "--bowtie2_build",
+            "--tmp_dir",
+            "-s",
+            "--samout",
+            "--install",
+            "--force_download",
+            "-v",
+            "--version",
+            "-h",
+            "--help",
+        ]
     },
     "python3": {
         "whitelist": {
