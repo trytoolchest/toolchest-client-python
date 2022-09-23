@@ -309,6 +309,7 @@ class Query:
                     input_file_path=file_path,
                     input_prefix=input_prefix,
                     input_order=input_order,
+                    input_is_compressed=input_is_compressed,
                 )
 
                 try:
