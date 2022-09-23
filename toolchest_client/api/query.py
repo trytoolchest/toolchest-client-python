@@ -386,7 +386,7 @@ class Query:
                 # Print doesn't work on some consoles, like the JetBrains suite
                 sys.stdout.write(
                     "\r{} {}".format(
-                        update.get("status"),
+                        update.get("status", ""),
                         update.get("progress", ""),
                     ).ljust(120),
                 )
