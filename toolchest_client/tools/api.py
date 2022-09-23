@@ -1290,6 +1290,9 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
+        # Only compress inputs if a single local directory/file is given.
+        # (Tool._prepare_inputs() will skip compressing single S3/HTTP inputs,
+        # and lists of local files will not be compressed.)
         compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )
@@ -1350,6 +1353,9 @@ def add_database(database_path, tool, database_name, database_primary_name, is_a
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
+        # Only compress inputs if a single local directory/file is given.
+        # (Tool._prepare_inputs() will skip compressing single S3/HTTP inputs,
+        # and lists of local files will not be compressed.)
         compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )

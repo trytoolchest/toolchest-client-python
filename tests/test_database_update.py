@@ -73,16 +73,8 @@ def test_database_add_and_update_s3():
 
 
 @pytest.mark.integration
-def test_database_update_local_list():
-    base_test_database_update_local(test_with_prefix=False)
-
-
-@pytest.mark.integration
-def test_database_update_local_prefix():
-    base_test_database_update_local(test_with_prefix=True)
-
-
-def base_test_database_update_local(test_with_prefix):
+@pytest.mark.parametrize("test_with_prefix", [False, True])
+def test_database_update_local(test_with_prefix):
     """
     Tests custom database update for bowtie 2 using local files.
     Uses a directory of inputs if test_with_prefix is True;
