@@ -338,7 +338,7 @@ class Query:
         except ImageNotFound:
             raise ToolchestException(f"Unable to find image {custom_docker_image_id}.")
         except (APIError, DockerException):
-            raise EnvironmentError('Unable to connect to Docker. Make sure yoe have docker installed and that it is '
+            raise EnvironmentError('Unable to connect to Docker. Make sure you have docker installed and that it is '
                                    'currently running.')
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
@@ -376,9 +376,23 @@ class Query:
             docker_image_name_and_tag = custom_docker_image_id.split(':')
             docker_tag = docker_image_name_and_tag[1] if len(docker_image_name_and_tag) > 1 else 'latest'
             image.tag(f"{registry}/{aws_info['repository_name']}:{docker_tag}", docker_tag)
-            push_output = client.api.push(f"{registry}/{aws_info['repository_name']}:{docker_tag}", docker_tag)
-            if 'errorDetail' in push_output:
-                raise ToolchestJobError("Failed to push image.")
+            push_output = client.api.push(
+                f"{registry}/{aws_info['repository_name']}:{docker_tag}",
+                tag=docker_tag,
+                stream=True,
+                decode=True,
+            )
+            for update in push_output:
+                if 'errorDetail' in update:
+                    raise ToolchestJobError("Failed to push image.")
+                # Print doesn't work on some consoles, like the JetBrains suite
+                sys.stdout.write(
+                    "\r{} {}".format(
+                        update.get("status", ""),
+                        update.get("progress", ""),
+                    ).ljust(120),
+                )
+                sys.stdout.flush()
         except APIError:
             raise EnvironmentError('Unable to access ECR at this time. '
                                    'Contact Toolchest support if this error persists')

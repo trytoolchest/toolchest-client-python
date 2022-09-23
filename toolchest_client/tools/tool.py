@@ -362,8 +362,6 @@ class Tool:
             if uploading:
                 time.sleep(5)
 
-        print("Finished spawning jobs.")
-
     def _generate_jobs(self, should_run_in_parallel):
         """Generates staggered jobs for both parallel and non-parallel runs.
 
@@ -478,7 +476,6 @@ class Tool:
             self.query_threads.append(new_thread)
             self.query_thread_statuses[new_thread.getName()] = ThreadStatus.INITIALIZING
 
-            print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
 
         self._wait_for_threads_to_finish()
