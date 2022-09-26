@@ -50,7 +50,7 @@ def test_python3_with_docker():
         platform="linux/amd64"
     )
 
-    test_dir = "./temp_test_python3"
+    test_dir = "./temp_test_python3/with_docker"
     os.makedirs(f"{test_dir}", exist_ok=True)
     toolchest.python3(
         script="s3://toolchest-integration-tests/numpy_test.py",
