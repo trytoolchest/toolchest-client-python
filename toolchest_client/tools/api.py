@@ -1238,8 +1238,7 @@ def unicycler(output_path=None, read_one=None, read_two=None, long_reads=None, t
     return output
 
 
-def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, volume_size=512,
-                    **kwargs):
+def update_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Updates a custom database. The new database version is returned immediately after initialization.
 
     This executes just like any other tool, except:
@@ -1267,8 +1266,6 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         as the database.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
-    :param volume_size: The size the disk will be on the instance. This should be set to be
-        larger than the total size of the database.
 
     Usage::
 
@@ -1293,7 +1290,7 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
-        volume_size=volume_size,
+        volume_size=8,
         instance_type=InstanceType.COMPUTE_2,
         **kwargs,
     )
@@ -1301,8 +1298,7 @@ def update_database(database_path, tool, database_name, database_primary_name=No
     return output
 
 
-def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, volume_size=512,
-                 **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
@@ -1331,8 +1327,6 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
         as the database.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
-    :param volume_size: The size the disk will be on the instance. This should be set to be
-        larger than the total size of the database.
 
     Usage::
 
@@ -1357,7 +1351,7 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
         tool_args="",
         remote_database_path=None,
         max_inputs=1000,
-        volume_size=volume_size,
+        volume_size=8,
         instance_type=InstanceType.COMPUTE_2,
         **kwargs,
     )
