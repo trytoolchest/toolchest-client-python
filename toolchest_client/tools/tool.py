@@ -89,15 +89,18 @@ class Tool:
 
     def _prepare_inputs(self):
         """Prepares the input files."""
-        if self.compress_inputs:
+        if self.compress_inputs and isinstance(self.inputs, str):
             if path_is_s3_uri(self.inputs):
-                # If the given path is in S3, it is assumed to be compressed already.
+                # If the given path is in S3, it does not require compression.
                 self.input_files = [self.inputs]
+                self.compress_inputs = False
             else:
                 # Input files are all .tar.gz'd together, preserving directory structure
                 self.input_files = [compress_files_in_path(os.path.expanduser(self.inputs))]
             self.num_input_files = 1
         else:
+            # TODO: compress inputs in cases where inputs is a list
+            self.compress_inputs = False
             # Input files are handled individually, destroying directory structure
             self.input_files = files_in_path(self.inputs)  # expands ~ in filepath if local
             self.num_input_files = len(self.input_files)
@@ -108,19 +111,6 @@ class Tool:
         if self.max_inputs and self.num_input_files > self.max_inputs:
             raise ValueError(f"Too many input files submitted. "
                              f"Maximum is {self.max_inputs}, {self.num_input_files} found.")
-
-        # If this is a database update, sanitizes database_primary_name argument to just the filename, if specified.
-        # Note: if compress_inputs is True, this won't check against all input names, and behavior will be undefined
-        if self.is_database_update:
-            if self.database_primary_name:
-                self.database_primary_name = os.path.basename(self.database_primary_name)
-                # If only one input file exists, use that file explicitly as the DB
-                if self.num_input_files == 1 and not self.compress_inputs:
-                    self.database_primary_name = os.path.basename(self.input_files[0])
-                # If DB name isn't a prefix for an input file, (implicitly) use directory of inputs instead as DB
-                input_basenames = [os.path.basename(input_path) for input_path in self.input_files]
-                if all([self.database_primary_name not in basename for basename in input_basenames]):
-                    self.database_primary_name = None
 
     def _output_path_is_local(self):
         return isinstance(self.output_path, str) and not path_is_s3_uri(self.output_path)
@@ -375,8 +365,6 @@ class Tool:
             if uploading:
                 time.sleep(5)
 
-        print("Finished spawning jobs.")
-
     def _generate_jobs(self, should_run_in_parallel):
         """Generates staggered jobs for both parallel and non-parallel runs.
 
@@ -470,6 +458,7 @@ class Tool:
                 "database_name": self.database_name,
                 "database_version": self.database_version,
                 "input_files": input_files,
+                "input_is_compressed": self.compress_inputs,
                 "input_prefix_mapping": self.input_prefix_mapping,
                 "instance_type": self.instance_type,
                 "is_database_update": self.is_database_update,
@@ -491,7 +480,6 @@ class Tool:
             self.query_threads.append(new_thread)
             self.query_thread_statuses[new_thread.getName()] = ThreadStatus.INITIALIZING
 
-            print(f"Spawning job #{len(self.query_threads)}...")
             new_thread.start()
 
         self._wait_for_threads_to_finish()

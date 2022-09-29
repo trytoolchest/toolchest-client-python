@@ -1260,10 +1260,9 @@ def update_database(database_path, tool, database_name, database_primary_name=No
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of database to update.
-    :param database_primary_name: Name or path of the file to use as the primary database file
-        (i.e., what you would pass into the command line as the database), if uploading multiple
-        files. If unspecified, assumes that the *directory* of files is what will be passed in
-        as the database.
+    :param database_primary_name: Base name of the file/prefix that would normally be passed in
+        to the command line call. If left unspecified, assumes the primary name of the previous
+        version.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
 
@@ -1271,9 +1270,10 @@ def update_database(database_path, tool, database_name, database_primary_name=No
 
         >>> import toolchest_client as toolchest
         >>> toolchest.update_database(
-        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
-        ...     tool=toolchest.tools.kraken2,
-        ...     database_name="standard",
+        ...     database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/bowtie2-fruitfly",
+        ...     tool=toolchest.tools.Bowtie2,
+        ...     database_name="my_new_database",
+        ...     database_primary_name="Dmel_A4_1.0",
         ... )
 
     """
@@ -1292,13 +1292,17 @@ def update_database(database_path, tool, database_name, database_primary_name=No
         max_inputs=1000,
         volume_size=8,
         instance_type=InstanceType.COMPUTE_2,
+        # Only compress inputs if a single local directory/file is given.
+        # (Tool._prepare_inputs() will skip compressing single S3/HTTP inputs,
+        # and lists of local files will not be compressed.)
+        compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )
     output = instance.run()
     return output
 
 
-def add_database(database_path, tool, database_name, database_primary_name=None, is_async=True, **kwargs):
+def add_database(database_path, tool, database_name, database_primary_name, is_async=True, **kwargs):
     """Adds a custom database and attaches it to a tool.
     The new database version is returned immediately after initialization.
 
@@ -1321,9 +1325,8 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
     :param database_path: Path or list of paths (local or S3) to be passed in as inputs.
     :param tool: Toolchest tool with which you use the database (e.g. toolchest.tools.Kraken2).
     :param database_name: Name of the new database.
-    :param database_primary_name: Name or path of the file to use as the primary database file
-        (i.e., what you would pass into the command line as the database), if uploading multiple
-        files. If unspecified, assumes that the *directory* of files is what will be passed in
+    :param database_primary_name: Base name of the file/prefix that would normally be passed in
+        to the command line call. Use `database_primary_name=None` to use the directory name
         as the database.
     :param is_async: Whether to run the database addition asynchronously. Unlike tool runs,
         this is set to `True` by default.
@@ -1332,9 +1335,10 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
 
         >>> import toolchest_client as toolchest
         >>> toolchest.add_database(
-        ...     database_path="s3://toolchest-fsx-databases/kraken2/k2_viral_20210517/",
-        ...     tool=toolchest.tools.Kraken2,
+        ...     database_path="s3://toolchest-public-examples-no-encryption/integration-test-db/bowtie2-fruitfly",
+        ...     tool=toolchest.tools.Bowtie2,
         ...     database_name="my_new_database",
+        ...     database_primary_name="Dmel_A4_1.0",
         ... )
 
     """
@@ -1353,6 +1357,10 @@ def add_database(database_path, tool, database_name, database_primary_name=None,
         max_inputs=1000,
         volume_size=8,
         instance_type=InstanceType.COMPUTE_2,
+        # Only compress inputs if a single local directory/file is given.
+        # (Tool._prepare_inputs() will skip compressing single S3/HTTP inputs,
+        # and lists of local files will not be compressed.)
+        compress_inputs=True if isinstance(database_path, str) else False,
         **kwargs,
     )
     output = instance.run()
