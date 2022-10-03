@@ -721,6 +721,7 @@ def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=N
         output_path=output_path,
         instance_type=instance_type,
         volume_size=volume_size,
+        streaming_enabled=True,
         **kwargs,
     )
     output = instance.run()
@@ -876,6 +877,7 @@ def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_i
         custom_docker_image_id=custom_docker_image_id,
         instance_type=instance_type,
         volume_size=volume_size,
+        streaming_enabled=True,
         **kwargs,
     )
     output = instance.run()
