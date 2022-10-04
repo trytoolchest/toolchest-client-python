@@ -45,7 +45,7 @@ class StreamingClient:
             while stream_is_open:
                 try:
                     stream_lines = await websocket.recv()
-                    print(stream_lines)
+                    print(stream_lines, end="")
                 except ConnectionClosed:
                     stream_is_open = False
 
