@@ -67,6 +67,7 @@ class Query:
             self.PIPELINE_SEGMENT_INSTANCE_ID = None
             self.PIPELINE_SEGMENT_INSTANCE_URL = None
             self.STATUS_URL = None
+            self.STREAMING_ATTRIBUTES_URL = None
 
         self.mark_as_failed = False
         self.thread_name = ''
@@ -150,6 +151,10 @@ class Query:
         self.STATUS_URL = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
+        ])
+        self.STREAMING_ATTRIBUTES_URL = "/".join([
+            self.PIPELINE_SEGMENT_INSTANCE_URL,
+            "output-stream",
         ])
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)

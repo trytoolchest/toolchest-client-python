@@ -342,11 +342,14 @@ class Tool:
                 if check_health:
                     self._check_thread_health()
 
-                if not self.streaming_enabled:
-                    self._pretty_print_pipeline_segment_status(elapsed_seconds)
+                if self.streaming_enabled and self.streaming_client.params_initialized:
+                    # Initialize and start streaming (in place of regular status updates).
+                    if not streaming_task:
+                        # Clear the last status line before streaming begins
+                        print("Printed lines:".ljust(120))
+                        streaming_task = asyncio.create_task(self.streaming_client.receive_stream())
                 else:
-                    if self.streaming_client.params_initialized and not streaming_task:
-                        streaming_task = asyncio.create_task(self.streaming_client.receive_stream)
+                    self._pretty_print_pipeline_segment_status(elapsed_seconds)
 
                 elapsed_seconds += increment_seconds
                 await asyncio.sleep(increment_seconds)

@@ -27,7 +27,8 @@ def test_python3():
         script="s3://toolchest-integration-tests/write_test.py",
         inputs="s3://toolchest-integration-tests/example.fastq",
         output_path=f"{test_dir}/",
-        instance_type=InstanceType.COMPUTE_2
+        instance_type=InstanceType.COMPUTE_2,
+        streaming_enabled=False,  # TODO: confirm that this works w/ streaming and remove
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
@@ -57,9 +58,44 @@ def test_python3_with_docker():
         output_path=f"{test_dir}/",
         custom_docker_image_id="python3-numpy:3.9",
         instance_type="compute-2",
+        streaming_enabled=False,  # TODO: confirm that this works w/ streaming and remove
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
     assert output_file.readline() == "[[ 58  64]\n"
     assert output_file.readline() == " [139 154]]"
     output_file.close()
+
+
+def test_python3_streaming():
+    test_dir = "./temp_test_python3_streaming"
+    os.makedirs(f"{test_dir}", exist_ok=True)
+    test_script_path = f"{test_dir}/test_script.py"
+
+    with open(test_script_path, "w") as test_script_file:
+        script = """
+import datetime
+import time
+print("attempting to print timestamps every second")
+for _ in range(5):
+    message = datetime.datetime.utcnow().isoformat() + "Z"
+    print(message)
+    time.sleep(1)
+with open("./output/output.txt", "w") as f:
+    f.write("Success")
+            """
+        test_script_file.write(script)
+
+    toolchest.python3(
+        tool_args="./input/example.fastq",
+        script=test_script_path,
+        output_path=f"{test_dir}/",
+        instance_type=InstanceType.COMPUTE_2,
+        streaming_enabled=True,
+    )
+
+    output_file = open(f"{test_dir}/output.txt", "r")
+    assert output_file.readline() == "Success"
+    output_file.close()
+
+    # TODO: add asserts on streamed output
