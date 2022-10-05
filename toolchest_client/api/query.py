@@ -584,4 +584,3 @@ class Query:
                     streaming_ip_address=streaming_ip_address,
                     streaming_tls_cert=streaming_tls_cert,
                 )
-
