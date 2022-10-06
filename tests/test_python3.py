@@ -1,5 +1,8 @@
+import datetime
+import io
 import os
 import pathlib
+import sys
 
 import docker
 import pytest
@@ -18,6 +21,8 @@ THIS_FILE_PATH = pathlib.Path(__file__).parent.resolve()
 def test_python3():
     """
     Tests python3 tool's inputs, output, and tool_arg
+
+    NOTE: streaming is disabled for this test
     """
 
     test_dir = "./temp_test_python3"
@@ -28,7 +33,7 @@ def test_python3():
         inputs="s3://toolchest-integration-tests/example.fastq",
         output_path=f"{test_dir}/",
         instance_type=InstanceType.COMPUTE_2,
-        streaming_enabled=False,  # TODO: confirm that this works w/ streaming and remove
+        streaming_enabled=False,
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
@@ -58,7 +63,6 @@ def test_python3_with_docker():
         output_path=f"{test_dir}/",
         custom_docker_image_id="python3-numpy:3.9",
         instance_type="compute-2",
-        streaming_enabled=False,  # TODO: confirm that this works w/ streaming and remove
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
@@ -69,6 +73,9 @@ def test_python3_with_docker():
 
 @pytest.mark.integration
 def test_python3_streaming():
+    """
+    Tests python3 with output streaming enabled
+    """
     test_dir = "./temp_test_python3_streaming"
     os.makedirs(f"{test_dir}", exist_ok=True)
     test_script_path = f"{test_dir}/test_script.py"
@@ -87,15 +94,34 @@ with open("./output/output.txt", "w") as f:
             """
         test_script_file.write(script)
 
+    # Run with captured stdout
+    captured_stdout = io.StringIO()
+    sys.stdout = captured_stdout
     toolchest.python3(
         script=test_script_path,
         output_path=f"{test_dir}/",
         instance_type=InstanceType.COMPUTE_2,
         streaming_enabled=True,
     )
+    # Reset stdout capture
+    sys.stdout = sys.__stdout__
 
-    # test -- commented out for now
+    # Verify toolchest.python3() output files
     with open(f"{test_dir}/output.txt", "r") as output_file:
         assert output_file.readline() == "Success"
 
-    # TODO: add asserts on streamed output
+    # Check printed stdout
+    number_of_expected_following_timestamps = 0
+    last_timestamp = None
+    for line in captured_stdout.getvalue().splitlines():
+        if line == "attempting to print timestamps every second":
+            number_of_expected_following_timestamps = 5
+        elif number_of_expected_following_timestamps > 0:
+            timestamp = datetime.datetime.fromisoformat(line.rstrip("Z"))
+            print(timestamp)
+            # Assert that each pair of timestamps occurred within 2 seconds
+            if last_timestamp:
+                time_diff = timestamp - last_timestamp
+                assert time_diff < datetime.timedelta(seconds=2)
+            last_timestamp = timestamp
+            number_of_expected_following_timestamps -= 1
