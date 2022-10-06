@@ -67,6 +67,7 @@ def test_python3_with_docker():
     output_file.close()
 
 
+@pytest.mark.integration
 def test_python3_streaming():
     test_dir = "./temp_test_python3_streaming"
     os.makedirs(f"{test_dir}", exist_ok=True)
