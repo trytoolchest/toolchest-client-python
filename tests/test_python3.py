@@ -87,7 +87,6 @@ with open("./output/output.txt", "w") as f:
         test_script_file.write(script)
 
     toolchest.python3(
-        tool_args="./input/example.fastq",
         script=test_script_path,
         output_path=f"{test_dir}/",
         instance_type=InstanceType.COMPUTE_2,
