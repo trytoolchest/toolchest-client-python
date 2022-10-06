@@ -39,6 +39,9 @@ class StreamingClient:
         self.params_initialized = True
 
     async def receive_stream(self):
+        # test
+        # print("about to hit exception")
+        # raise Exception("testing error after initialization but before connect")
         uri = f"wss://{self.username}:{self.streaming_token}@{self.streaming_ip_address}:8765"
         async with websockets.connect(uri, ssl=self.ssl_context) as websocket:
             stream_is_open = True

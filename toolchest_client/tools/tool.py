@@ -86,7 +86,8 @@ class Tool:
         self.custom_docker_image_id = custom_docker_image_id
         self.instance_type = instance_type
         self.volume_size = volume_size
-        self.streaming_enabled = streaming_enabled
+        # auto-disable streaming if job is async
+        self.streaming_enabled = streaming_enabled if not self.is_async else False
         self.streaming_client = None
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -315,7 +316,7 @@ class Tool:
                 self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
 
         # TODO: handle stream kill on interruption
-        asyncio.run(self._wait_for_threads_to_finish(check_health=False, wait_for_upload=False))
+        self._wait_for_threads_to_finish(check_health=False, wait_for_upload=False)
 
     def _check_thread_health(self):
         """Checks for any thread that has ended without reaching a "success" state, and propagates errors"""
@@ -327,6 +328,7 @@ class Tool:
                 self._kill_query_threads()
                 raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
+    # def _wait_for_threads_to_finish(self, check_health=True, wait_for_upload=True): # test, switch to this
     async def _wait_for_threads_to_finish(self, check_health=True, wait_for_upload=True):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses
         or streaming thread output, if enabled."""
@@ -335,6 +337,7 @@ class Tool:
         if wait_for_upload:
             self._wait_for_threads_to_upload()
 
+        # TODO: convert timer check to an async task, run alongside receive_stream
         streaming_task = None
         for thread in self.query_threads:
             increment_seconds = 5
@@ -506,6 +509,7 @@ class Tool:
             new_thread.start()
 
         asyncio.run(self._wait_for_threads_to_finish())
+        # self._wait_for_threads_to_finish()  # test, switch to this
 
         # Check for interrupted or failed threads
         # Note: if async, then the query exits at thread status "executing"
