@@ -87,7 +87,7 @@ class Tool:
         self.instance_type = instance_type
         self.volume_size = volume_size
         # auto-disable streaming if job is async
-        self.streaming_enabled = streaming_enabled if not self.is_async else False
+        self.streaming_enabled = False if self.is_async else streaming_enabled
         self.streaming_client = None
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
