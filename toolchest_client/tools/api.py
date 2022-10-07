@@ -506,7 +506,7 @@ provided.
 
 
 def jupyter(notebook, inputs=None, output_path=None, requirements=None,
-            docker_tag="latest", grace_period_seconds=None, port=None,  **kwargs):
+            docker_tag="latest", grace_period_seconds=None, port=None, **kwargs):
     """Get a spawn token for a Jamsocket Jupyter notebook environment via toolchest.
 
     :param notebook: path to the Jupyter Notebook to run on environment start.
@@ -515,7 +515,8 @@ def jupyter(notebook, inputs=None, output_path=None, requirements=None,
     :param requirements: (optional) path to a pip requirements.txt file to install dependencies for the notebook
     environement.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
-    :param docker_tag: (optional) additional arguments to be passed to your script as command line arguements.
+    :param docker_tag: (optional) the docker tag used to version the notebook env. "latest" will be used if a tag is
+    not provided.
     :param grace_period_seconds: (optional) grace period (in seconds) to wait after last connection is closed before
     shutting down the notebook
     :param port: (optional) a port that will be open on the notebook
