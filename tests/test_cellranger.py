@@ -15,9 +15,9 @@ def test_cellranger_count_s3_inputs():
     test_dir = "temp_test_cellranger_count_s3_inputs"
     output_dir_path = f"./{test_dir}/output/"
 
-    # Test using a compressed archive in S3
+    # Test using an S3 prefix containing 3 FASTQs
     output = toolchest.cellranger_count(
-        inputs="s3://toolchest-integration-tests/cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
+        inputs="s3://toolchest-integration-tests/cellranger/count/pbmc_1k_v3_fastqs_trimmed",
         database_name="GRCh38",
         output_path=output_dir_path,
         skip_decompression=True,
@@ -33,12 +33,16 @@ def test_cellranger_count_local_inputs():
     os.makedirs(input_dir_path, exist_ok=True)
 
     # Test from a directory of local inputs
-    packed_inputs_path = f"./{test_dir}/inputs.tar.gz"
-    s3.download_integration_test_input(
-        s3_file_key="cellranger/count/pbmc_1k_v3_fastqs_trimmed.tar.gz",
-        output_file_path=packed_inputs_path,
-    )
-    shutil.unpack_archive(packed_inputs_path, input_dir_path)
+    input_file_names = [
+        "pbmc_1k_v3_trimmed_S1_L001_I1_001.fastq",
+        "pbmc_1k_v3_trimmed_S1_L001_R1_001.fastq",
+        "pbmc_1k_v3_trimmed_S1_L001_R2_001.fastq",
+    ]
+    for input_file_name in input_file_names:
+        s3.download_integration_test_input(
+            s3_file_key=f"cellranger/count/pbmc_1k_v3_fastqs_trimmed/{input_file_name}",
+            output_file_path=f"{input_dir_path}/{input_file_name}",
+        )
     output = toolchest.cellranger_count(
         inputs=input_dir_path,
         database_name="GRCh38",
