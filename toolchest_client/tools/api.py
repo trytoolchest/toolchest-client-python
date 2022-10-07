@@ -681,7 +681,7 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
 
 
 def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=None, tool_args="",
-        instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=False, **kwargs):
+        instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True, **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
