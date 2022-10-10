@@ -22,7 +22,7 @@ import toolchest-client as tc
 tc.set_key("YOUR_KEY")
 
 tc.STAR(
-    inputs="s3://toolchest-demo-data/SRR2557119_small.fastq",
+    read_one="s3://toolchest-demo-data/SRR2557119_small.fastq",
     output_path="./output_path/",
     database_name="GRCh38",
 )
@@ -30,7 +30,7 @@ tc.STAR(
 
 and it runs in the cloud! Breaking down the arguments:
 
-- `inputs` are your input files. They can be on your computer, or somewhere else like S3.
+- `read_one` is for input files. They can be on your computer, or somewhere else like S3.
 - `output_path` is where your output files are written. This can also be your computer, or somewhere else like S3.
 - `database_name` is the name of the Toolchest-hosted database.
 
@@ -42,7 +42,7 @@ import toolchest-client as tc
 tc.set_key("YOUR_KEY")
 
 tc.STAR(
-    inputs="s3://toolchest-demo-data/SRR2557119_small.fastq",
+    read_one="s3://toolchest-demo-data/SRR2557119_small.fastq",
     output_path="./output/",
     database_name="GRCh38",
     database_version="1",
