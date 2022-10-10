@@ -22,7 +22,7 @@ import toolchest-client as tc
 tc.set_key("YOUR_KEY")
 
 tc.STAR(
-    inputs="s3://toolchest-integration-tests/salmon/SRR2557119_500k.fastq",
+    inputs="s3://toolchest-demo-data/SRR2557119_small.fastq",
     output_path="./output_path/",
     database_name="GRCh38",
 )
@@ -42,7 +42,7 @@ import toolchest-client as tc
 tc.set_key("YOUR_KEY")
 
 tc.STAR(
-    inputs="s3://toolchest-integration-tests/salmon/SRR2557119_500k.fastq",
+    inputs="s3://toolchest-demo-data/SRR2557119_small.fastq",
     output_path="./output/",
     database_name="GRCh38",
     database_version="1",
