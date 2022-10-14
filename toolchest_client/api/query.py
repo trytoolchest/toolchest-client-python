@@ -16,7 +16,7 @@ import boto3
 import requests
 import docker
 from requests.exceptions import HTTPError
-from docker.errors import ImageNotFound, DockerException, APIError, NotFound
+from docker.errors import ImageNotFound, DockerException, APIError
 
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
