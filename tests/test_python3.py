@@ -78,21 +78,8 @@ def test_python3_streaming():
     """
     test_dir = "./temp_test_python3_streaming"
     os.makedirs(f"{test_dir}", exist_ok=True)
-    test_script_path = f"{test_dir}/test_script.py"
-
-    with open(test_script_path, "w") as test_script_file:
-        script = """
-import datetime
-import time
-print("attempting to print timestamps every second")
-for _ in range(5):
-    message = datetime.datetime.utcnow().isoformat() + "Z"
-    print(message)
-    time.sleep(1)
-with open("./output/output.txt", "w") as f:
-    f.write("Success")
-            """
-        test_script_file.write(script)
+    test_script_path = "tests/util/test_streaming_script.py"
+    # TODO: verify pathing
 
     # Run with captured stdout
     captured_stdout = io.StringIO()
