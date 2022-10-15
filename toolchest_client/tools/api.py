@@ -680,14 +680,16 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
     return output
 
 
-def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=None, tool_args="",
-        instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
+def lug(script, tool_version, custom_docker_image_id, container_name, docker_shell_location, inputs=None,
+        output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
     :param tool_version: the python version you want to use in major.minor format.
     :param custom_docker_image_id: a tagged docker image to be used as an execution environment where any calls to the
     system (via os.system(), subprocess.run(), or subprocess.Popen()) will be executed.
+    :param container_name: name of docker container where lug-patched calls will be executed. Used internally.
+    :param docker_shell_location: location of shell in user-specified docker container. Used internally.
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
@@ -712,7 +714,7 @@ def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=N
     if type(inputs) is str:
         inputs = [inputs]
     inputs.append(script)
-    tool_args = f'./input/{os.path.basename(script)};{tool_args}'
+    tool_args = f'./input/{os.path.basename(script)};{container_name};{docker_shell_location};{tool_args}'
     instance = Lug(
         tool_args=tool_args,
         tool_version=tool_version,
