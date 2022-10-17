@@ -342,8 +342,9 @@ class Query:
         except ImageNotFound:
             return custom_docker_image_id
         except (APIError, DockerException):
-            raise EnvironmentError('Unable to connect to Docker. Make sure you have docker installed and that it is '
-                                   'currently running.')
+            print('Unable to connect to Docker. Assuming image is accessible in a registry. If the image is hosted '
+                  'locally start Docker and retry.')
+            return custom_docker_image_id
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'docker-image'
