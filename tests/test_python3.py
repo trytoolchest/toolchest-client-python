@@ -74,13 +74,14 @@ def test_python3_with_public_docker():
     test_dir = "./temp_test_python3/with_public_docker"
     os.makedirs(f"{test_dir}", exist_ok=True)
     toolchest.python3(
-        tool_args="./input/example.fastq",
-        script="s3://toolchest-integration-tests/write_test.py",
-        inputs="s3://toolchest-integration-tests/example.fastq",
+        tool_args="",
+        script="s3://toolchest-integration-tests/write_path.py",
         output_path=f"{test_dir}/",
         custom_docker_image_id="python:alpine3.16",
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
-    assert output_file.readline() == "Success"
+    assert output_file.readline() == "['/data/home/ec2-user/input', '/usr/local/lib/python310.zip', " \
+                                     "'/usr/local/lib/python3.10', '/usr/local/lib/python3.10/lib-dynload', " \
+                                     "'/usr/local/lib/python3.10/site-packages']"
     output_file.close()
