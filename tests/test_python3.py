@@ -63,3 +63,24 @@ def test_python3_with_docker():
     assert output_file.readline() == "[[ 58  64]\n"
     assert output_file.readline() == " [139 154]]"
     output_file.close()
+
+
+@pytest.mark.integration
+def test_python3_with_public_docker():
+    """
+    Tests using a public docker image with the write test script
+    """
+
+    test_dir = "./temp_test_python3/with_public_docker"
+    os.makedirs(f"{test_dir}", exist_ok=True)
+    toolchest.python3(
+        tool_args="./input/example.fastq",
+        script="s3://toolchest-integration-tests/write_test.py",
+        inputs="s3://toolchest-integration-tests/example.fastq",
+        output_path=f"{test_dir}/",
+        custom_docker_image_id="python:alpine3.16",
+    )
+
+    output_file = open(f"{test_dir}/output.txt", "r")
+    assert output_file.readline() == "Success"
+    output_file.close()
