@@ -74,7 +74,6 @@ def test_python3_with_public_docker():
     test_dir = "./temp_test_python3/with_public_docker"
     os.makedirs(f"{test_dir}", exist_ok=True)
     toolchest.python3(
-        tool_args="",
         script="s3://toolchest-integration-tests/write_path.py",
         output_path=f"{test_dir}/",
         custom_docker_image_id="python:alpine3.16",
