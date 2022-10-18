@@ -1,0 +1,1 @@
+Some tools can check data integrity or transform data before use in another tool. We call that a pre-processing tool.
