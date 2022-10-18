@@ -108,7 +108,6 @@ class Query:
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
-        docker_image_id = self._upload_docker_image(custom_docker_image_id)
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
@@ -117,7 +116,7 @@ class Query:
             database_version=database_version,
             remote_database_path=remote_database_path,
             remote_database_primary_name=remote_database_primary_name,
-            custom_docker_image_id=docker_image_id,
+            custom_docker_image_id=custom_docker_image_id,
             is_database_update=is_database_update,
             database_primary_name=database_primary_name,
             tool_name=tool_name,
@@ -156,6 +155,7 @@ class Query:
         self._check_if_should_terminate()
         self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping, input_is_compressed)
+        self._upload_docker_image(custom_docker_image_id)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -335,16 +335,16 @@ class Query:
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
-            return None
+            return
         try:  # Try to get the image before creating a repository.
             client = docker.from_env()
             image = client.images.get(custom_docker_image_id)
         except ImageNotFound:
-            return custom_docker_image_id
+            return
         except (APIError, DockerException):
             print('Unable to connect to Docker. Assuming image is accessible in a registry. If the image is hosted '
                   'locally start Docker and retry.')
-            return custom_docker_image_id
+            return
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'docker-image'
@@ -402,7 +402,6 @@ class Query:
         except APIError:
             raise EnvironmentError('Unable to access ECR at this time. '
                                    'Contact Toolchest support if this error persists')
-        return image_id
 
     def _update_thread_status(self, new_status):
         """
