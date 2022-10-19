@@ -4,6 +4,7 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+import json
 import os.path
 from datetime import date
 
@@ -11,8 +12,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, \
-    Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Jupyter, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, \
+    Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -498,6 +499,73 @@ provided.
         output_primary_name=output_primary_name,
         output_path=output_path,
         tool_args=tool_args,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def jupyter(notebook, inputs=None, output_path=None, requirements=None,
+            docker_tag="latest", grace_period_seconds=None, port=None, **kwargs):
+    """Get a spawn token for a Jamsocket Jupyter notebook environment via toolchest.
+
+    :param notebook: path to the Jupyter Notebook to run on environment start.
+    :param inputs: (optional) path(s) to the files that will be accessible in the spawned environment. Additional
+    Jupyter Notebooks can be provided here.
+    :param requirements: (optional) path to a pip requirements.txt file to install dependencies for the notebook
+    environement.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param docker_tag: (optional) the docker tag used to version the notebook env. "latest" will be used if a tag is
+    not provided.
+    :param grace_period_seconds: (optional) grace period (in seconds) to wait after last connection is closed before
+    shutting down the notebook
+    :param port: (optional) a port that will be open on the notebook
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.jupyter(
+        ...     notebook="./path/to/notebook.ipynb",
+        ...     inputs=["./path/to/file.txt", "./path/to/other_notebook.ipynb"],
+        ...     requirements="./path/to/requirements.txt",
+        ...     output_path="./path/to/local/output/",
+        ...     docker_tag="v1",
+        ...     grace_period_seconds="300",
+        ...     port="8080",
+        ... )
+    """
+    tool_args = {
+        "docker-tag": docker_tag,
+        "jamsocket-args": {
+            "tag": docker_tag,
+        }
+    }
+    if grace_period_seconds is not None:
+        tool_args["jamsocket-args"]["grace_period_seconds"] = grace_period_seconds
+    if port is not None:
+        tool_args["jamsocket-args"]["port"] = port
+    if inputs is None:
+        inputs = []
+    if type(inputs) is str:
+        inputs = [inputs]
+    input_prefix_mapping = {
+        notebook: {
+            "prefix": "notebook",
+        }
+    }
+    for i in inputs:
+        input_prefix_mapping[i] = {
+            "prefix": "",
+        }
+    inputs.append(notebook)
+    if requirements is not None:
+        input_prefix_mapping[requirements] = {
+            "prefix": "requirements",
+        }
+        inputs.append(requirements)
+    instance = Jupyter(
+        tool_args=json.dumps(tool_args),
+        inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_path=output_path,
         **kwargs,
     )
     output = instance.run()
