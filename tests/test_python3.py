@@ -119,17 +119,5 @@ def test_python3_streaming():
         assert output_file.readline() == "Success"
 
     # Check printed stdout
-    number_of_expected_following_timestamps = 0
-    last_timestamp = None
-    for line in captured_stdout.getvalue().splitlines():
-        if line == "attempting to print timestamps every second":
-            number_of_expected_following_timestamps = 5
-        elif number_of_expected_following_timestamps > 0:
-            timestamp = datetime.datetime.fromisoformat(line.rstrip("Z"))
-            print(timestamp)
-            # Assert that each pair of timestamps occurred within 2 seconds
-            if last_timestamp:
-                time_diff = timestamp - last_timestamp
-                assert time_diff < datetime.timedelta(seconds=2)
-            last_timestamp = timestamp
-            number_of_expected_following_timestamps -= 1
+    streamed_lines = captured_stdout.getvalue().splitlines()
+    assert streamed_lines == ["0", "1", "2", "3", "4"]
