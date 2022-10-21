@@ -49,6 +49,7 @@ class StreamingClient:
                     print(stream_lines, end="")
                 except ConnectionClosed:
                     stream_is_open = False
+                    print("==> End of stream, connection closed by server <==")
 
     def run_receive_stream(self):
         asyncio.run(self.receive_stream())
