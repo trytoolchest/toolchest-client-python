@@ -581,12 +581,8 @@ class Query:
             server_setup_complete = streaming_attributes.get("server_setup_complete")
 
             if server_setup_complete:
-                streaming_token = streaming_attributes.get("streaming_token")
-                streaming_ip_address = streaming_attributes.get("streaming_ip_address")
-                streaming_tls_cert = streaming_attributes.get("streaming_tls_cert")
-
                 self.streaming_client.initialize_params(
-                    streaming_token=streaming_token,
-                    streaming_ip_address=streaming_ip_address,
-                    streaming_tls_cert=streaming_tls_cert,
+                    streaming_token=streaming_attributes["streaming_token"],
+                    streaming_ip_address=streaming_attributes["streaming_ip_address"],
+                    streaming_tls_cert=streaming_attributes["streaming_tls_cert"],
                 )
