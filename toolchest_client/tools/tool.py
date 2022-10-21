@@ -350,7 +350,7 @@ class Tool:
             while thread.is_alive():
                 self._check_thread_health()
 
-                if self.streaming_enabled and self.streaming_client.params_initialized:
+                if self.streaming_enabled and self.streaming_client.initialized:
                     # Initialize and start streaming (in place of regular status updates).
                     if not self.streaming_task:
                         # Clear the last status line before streaming begins

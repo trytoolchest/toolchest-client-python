@@ -24,7 +24,7 @@ class StreamingClient:
         self.streaming_token = None
         self.streaming_ip_address = None
         self.streaming_tls_cert = None
-        self.params_initialized = False
+        self.initialized = False
 
     def initialize_params(self, streaming_token, streaming_ip_address, streaming_tls_cert):
         self.streaming_token = streaming_token
@@ -35,7 +35,7 @@ class StreamingClient:
         ssl_context.load_verify_locations(cadata=self.streaming_tls_cert)
         self.ssl_context = ssl_context
 
-        self.params_initialized = True
+        self.initialized = True
 
     async def receive_stream(self):
         streaming_username = "toolchest"
