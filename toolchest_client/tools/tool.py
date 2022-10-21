@@ -89,7 +89,7 @@ class Tool:
         # auto-disable streaming if job is async
         self.streaming_enabled = False if self.is_async else streaming_enabled
         self.streaming_client = None
-        self.streaming_task = None
+        self.streaming_asyncio_task = None
         self.elapsed_seconds = 0
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
@@ -302,8 +302,8 @@ class Tool:
         if self.terminating:
             raise InterruptedError("Toolchest client force killed")
         self.terminating = True
-        if self.streaming_task and not self.streaming_task.done():
-            self.streaming_task.cancel()
+        if self.streaming_asyncio_task and not self.streaming_asyncio_task.done():
+            self.streaming_asyncio_task.cancel()
         self._kill_query_threads()
         raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
 
@@ -352,20 +352,20 @@ class Tool:
 
                 if self.streaming_enabled and self.streaming_client.initialized:
                     # Initialize and start streaming (in place of regular status updates).
-                    if not self.streaming_task:
+                    if not self.streaming_asyncio_task:
                         # Clear the last status line before streaming begins
                         print("Printed lines:".ljust(120))
-                        self.streaming_task = asyncio.create_task(self.streaming_client.receive_stream())
+                        self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
                     # Check if an exception was raised in the streaming task
-                    elif self.streaming_task.done():
-                        if self.streaming_task.exception():
+                    elif self.streaming_asyncio_task.done():
+                        if self.streaming_asyncio_task.exception():
                             self._kill_query_threads()
                             error_message = (
                                 "A streaming error was encountered. See logs above for details.\n"
                                 "Try re-running the same Toolchest command with this argument:\n"
                                 "\tstreaming_enabled=False"
                             )
-                            raise ToolchestException(error_message) from self.streaming_task.exception()
+                            raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
                 else:
                     self._pretty_print_pipeline_segment_status()
 
@@ -373,8 +373,8 @@ class Tool:
                 await asyncio.sleep(increment_seconds)
 
             # Wait for the stream to complete before printing final status line
-            if self.streaming_task:
-                await self.streaming_task
+            if self.streaming_asyncio_task:
+                await self.streaming_asyncio_task
 
             thread_name = thread.getName()
             thread_final_status = self.query_thread_statuses.get(thread_name)
