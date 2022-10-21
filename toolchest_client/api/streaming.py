@@ -24,7 +24,6 @@ class StreamingClient:
         self.streaming_token = None
         self.streaming_ip_address = None
         self.streaming_tls_cert = None
-        self.username = "toolchest"
         self.params_initialized = False
 
     def initialize_params(self, streaming_token, streaming_ip_address, streaming_tls_cert):
@@ -39,7 +38,9 @@ class StreamingClient:
         self.params_initialized = True
 
     async def receive_stream(self):
-        uri = f"wss://{self.username}:{self.streaming_token}@{self.streaming_ip_address}:8765"
+        streaming_username = "toolchest"
+        streaming_port = "8765"
+        uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
         async with websockets.connect(uri, ssl=self.ssl_context) as websocket:
             stream_is_open = True
             while stream_is_open:
