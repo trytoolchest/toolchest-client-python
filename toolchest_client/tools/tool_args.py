@@ -468,6 +468,12 @@ TOOL_ARG_LISTS = {
             "--input-genes"
         ]
     },
+    "jupyter": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+    },
     "kallisto": {
         "whitelist": {
             # This allows all args that are not in the blacklist if this is the only whitelisted arg

@@ -117,7 +117,6 @@ class Query:
         self.thread_name = threading.current_thread().getName()
         self.thread_statuses = thread_statuses
         self._check_if_should_terminate()
-
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
@@ -356,10 +355,11 @@ class Query:
             client = docker.from_env()
             image = client.images.get(custom_docker_image_id)
         except ImageNotFound:
-            raise ToolchestException(f"Unable to find image {custom_docker_image_id}.")
+            return
         except (APIError, DockerException):
-            raise EnvironmentError('Unable to connect to Docker. Make sure you have docker installed and that it is '
-                                   'currently running.')
+            print('Unable to connect to Docker. Assuming image is accessible in a registry. If the image is hosted '
+                  'locally start Docker and retry.')
+            return
         register_input_file_url = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             'docker-image'
@@ -395,9 +395,10 @@ class Query:
             )
             docker_image_name_and_tag = custom_docker_image_id.split(':')
             docker_tag = docker_image_name_and_tag[1] if len(docker_image_name_and_tag) > 1 else 'latest'
-            image.tag(f"{registry}/{aws_info['repository_name']}:{docker_tag}", docker_tag)
+            image_id = f"{registry}/{aws_info['repository_name']}:{docker_tag}"
+            image.tag(image_id, docker_tag)
             push_output = client.api.push(
-                f"{registry}/{aws_info['repository_name']}:{docker_tag}",
+                image_id,
                 tag=docker_tag,
                 stream=True,
                 decode=True,

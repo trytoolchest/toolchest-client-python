@@ -9,6 +9,7 @@ from .demucs import Demucs
 from .diamond import DiamondBlastp, DiamondBlastx
 from .fastqc import FastQC
 from .humann import HUMAnN3
+from .jupyter import Jupyter
 from .kallisto import Kallisto
 from .kraken2 import Kraken2
 from .last import Lastal5

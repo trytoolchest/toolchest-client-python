@@ -4,6 +4,7 @@ toolchest_client.tools.api
 
 This module contains the API for using Toolchest tools.
 """
+import json
 import os.path
 from datetime import date
 
@@ -11,8 +12,8 @@ from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
 from toolchest_client.files import path_is_s3_uri
 from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
-    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, Python3, \
-    Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
+    DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Jupyter, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, \
+    Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
 
 
@@ -504,6 +505,73 @@ provided.
     return output
 
 
+def jupyter(notebook, inputs=None, output_path=None, requirements=None,
+            docker_tag="latest", grace_period_seconds=None, port=None, **kwargs):
+    """Get a spawn token for a Jamsocket Jupyter notebook environment via toolchest.
+
+    :param notebook: path to the Jupyter Notebook to run on environment start.
+    :param inputs: (optional) path(s) to the files that will be accessible in the spawned environment. Additional
+    Jupyter Notebooks can be provided here.
+    :param requirements: (optional) path to a pip requirements.txt file to install dependencies for the notebook
+    environement.
+    :param output_path: (optional) local path to where the output file(s) will be downloaded.
+    :param docker_tag: (optional) the docker tag used to version the notebook env. "latest" will be used if a tag is
+    not provided.
+    :param grace_period_seconds: (optional) grace period (in seconds) to wait after last connection is closed before
+    shutting down the notebook
+    :param port: (optional) a port that will be open on the notebook
+    usage::
+        >>> import toolchest_client as toolchest
+        >>> toolchest.jupyter(
+        ...     notebook="./path/to/notebook.ipynb",
+        ...     inputs=["./path/to/file.txt", "./path/to/other_notebook.ipynb"],
+        ...     requirements="./path/to/requirements.txt",
+        ...     output_path="./path/to/local/output/",
+        ...     docker_tag="v1",
+        ...     grace_period_seconds="300",
+        ...     port="8080",
+        ... )
+    """
+    tool_args = {
+        "docker-tag": docker_tag,
+        "jamsocket-args": {
+            "tag": docker_tag,
+        }
+    }
+    if grace_period_seconds is not None:
+        tool_args["jamsocket-args"]["grace_period_seconds"] = grace_period_seconds
+    if port is not None:
+        tool_args["jamsocket-args"]["port"] = port
+    if inputs is None:
+        inputs = []
+    if type(inputs) is str:
+        inputs = [inputs]
+    input_prefix_mapping = {
+        notebook: {
+            "prefix": "notebook",
+        }
+    }
+    for i in inputs:
+        input_prefix_mapping[i] = {
+            "prefix": "",
+        }
+    inputs.append(notebook)
+    if requirements is not None:
+        input_prefix_mapping[requirements] = {
+            "prefix": "requirements",
+        }
+        inputs.append(requirements)
+    instance = Jupyter(
+        tool_args=json.dumps(tool_args),
+        inputs=inputs,
+        input_prefix_mapping=input_prefix_mapping,
+        output_path=output_path,
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
 def kallisto(output_path=None, inputs=[], database_name="kallisto_homo_sapiens", database_version="1",
              tool_args="", gtf=None, chromosomes=None, **kwargs):
     """Runs Kallisto quant via Toolchest.
@@ -680,14 +748,17 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
     return output
 
 
-def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=None, tool_args="",
-        instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True, **kwargs):
+def lug(script, tool_version, custom_docker_image_id, container_name, docker_shell_location, inputs=None,
+        output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True,
+        **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
     :param tool_version: the python version you want to use in major.minor format.
     :param custom_docker_image_id: a tagged docker image to be used as an execution environment where any calls to the
     system (via os.system(), subprocess.run(), or subprocess.Popen()) will be executed.
+    :param container_name: name of docker container where lug-patched calls will be executed. Used internally.
+    :param docker_shell_location: location of shell in user-specified docker container. Used internally.
     :param inputs: (optional) path(s) to the input files that will be accessible by your script at './input/'.
     :param output_path: (optional) local path to where the output file(s) will be downloaded.
     :param tool_args: (optional) additional arguments to be passed to your script as command line arguements.
@@ -713,7 +784,7 @@ def lug(script, tool_version, custom_docker_image_id, inputs=None, output_path=N
     if type(inputs) is str:
         inputs = [inputs]
     inputs.append(script)
-    tool_args = f'./input/{os.path.basename(script)};{tool_args}'
+    tool_args = f'./input/{os.path.basename(script)};{container_name};{docker_shell_location};{tool_args}'
     instance = Lug(
         tool_args=tool_args,
         tool_version=tool_version,
