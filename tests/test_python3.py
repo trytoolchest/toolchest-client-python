@@ -118,5 +118,8 @@ def test_python3_streaming():
         assert output_file.readline() == "Success"
 
     # Check printed stdout
-    streamed_lines = captured_stdout.getvalue().splitlines()
-    assert streamed_lines == ["0", "1", "2", "3", "4"]
+    stdout_lines = captured_stdout.getvalue().splitlines()
+    stream_start = stdout_lines.index("==> Begin streamed lines <==")
+    stream_end = stdout_lines.index("==> End streamed lines <==")
+    streamed_lines = stdout_lines[stream_start:stream_end+1]
+    assert streamed_lines == ["==> Begin streamed lines <==", "0", "1", "2", "3", "4", "==> End streamed lines <=="]
