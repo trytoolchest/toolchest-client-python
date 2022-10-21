@@ -339,6 +339,23 @@ class Tool:
                 self._kill_query_threads()
                 raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
+    def _start_or_check_stream(self):
+        # Start streaming (in place of regular status updates).
+        if not self.streaming_asyncio_task:
+            # Clear the last status line before streaming begins
+            print("Printed lines:".ljust(120))
+            self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
+        # Check if an exception was raised in the streaming task
+        elif self.streaming_asyncio_task.done():
+            if self.streaming_asyncio_task.exception():
+                self._kill_query_threads()
+                error_message = (
+                    "A streaming error was encountered. See logs above for details.\n"
+                    "Try re-running the same Toolchest command with this argument:\n"
+                    "\tstreaming_enabled=False"
+                )
+                raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
+
     async def _wait_for_threads_to_finish(self):
         """Waits for all jobs and their corresponding threads to finish while printing their statuses
         or streaming thread output, if enabled."""
@@ -351,21 +368,7 @@ class Tool:
                 self._check_thread_health()
 
                 if self.streaming_enabled and self.streaming_client.initialized:
-                    # Initialize and start streaming (in place of regular status updates).
-                    if not self.streaming_asyncio_task:
-                        # Clear the last status line before streaming begins
-                        print("Printed lines:".ljust(120))
-                        self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
-                    # Check if an exception was raised in the streaming task
-                    elif self.streaming_asyncio_task.done():
-                        if self.streaming_asyncio_task.exception():
-                            self._kill_query_threads()
-                            error_message = (
-                                "A streaming error was encountered. See logs above for details.\n"
-                                "Try re-running the same Toolchest command with this argument:\n"
-                                "\tstreaming_enabled=False"
-                            )
-                            raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
+                    self._start_or_check_stream()
                 else:
                     self._pretty_print_pipeline_segment_status()
 
