@@ -99,7 +99,7 @@ def test_python3_streaming():
     """
     test_dir = "./temp_test_python3_streaming"
     os.makedirs(f"{test_dir}", exist_ok=True)
-    test_script_path = "tests/util/test_streaming_script.py"
+    test_script_path = "tests/util/streaming_script.py"
     # TODO: verify pathing
 
     # Run with captured stdout
