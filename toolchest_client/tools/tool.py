@@ -490,7 +490,7 @@ class Tool:
                 stored_output=self.thread_outputs[thread_index],
                 is_async=self.is_async,
                 streaming_enabled=self.streaming_enabled,
-                stored_streaming_client=self.streaming_client,
+                streaming_client=self.streaming_client,
             )
 
             # Deep copy to make thread safe

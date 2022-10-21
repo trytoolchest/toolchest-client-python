@@ -45,7 +45,7 @@ class Query:
     RETRY_STATUS_CHECK_LIMIT = 5
 
     def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None,
-                 streaming_enabled=False, stored_streaming_client=None):
+                 streaming_enabled=False, streaming_client=None):
         # Configure Toolchest API authorization.
         self.HEADERS = get_headers()
 
@@ -80,7 +80,7 @@ class Query:
         self.output = stored_output if stored_output else Output()
 
         self.streaming_enabled = streaming_enabled
-        self.streaming_client = stored_streaming_client
+        self.streaming_client = streaming_client
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
