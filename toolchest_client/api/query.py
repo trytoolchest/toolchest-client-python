@@ -170,6 +170,7 @@ class Query:
         self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping, input_is_compressed)
         self._upload_docker_image(custom_docker_image_id)
+        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -345,8 +346,6 @@ class Query:
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
                     )
-
-        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
