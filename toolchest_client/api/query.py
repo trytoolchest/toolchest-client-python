@@ -172,6 +172,7 @@ class Query:
         self._upload_docker_image(custom_docker_image_id)
         self._check_if_should_terminate()
 
+        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
         self._update_thread_status(ThreadStatus.EXECUTING)
 
         if self.is_async:
@@ -345,8 +346,6 @@ class Query:
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
                     )
-
-        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
