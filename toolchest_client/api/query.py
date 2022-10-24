@@ -170,9 +170,9 @@ class Query:
         self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping, input_is_compressed)
         self._upload_docker_image(custom_docker_image_id)
+        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
         self._check_if_should_terminate()
 
-        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
         self._update_thread_status(ThreadStatus.EXECUTING)
 
         if self.is_async:
