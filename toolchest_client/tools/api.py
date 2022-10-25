@@ -749,8 +749,7 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
 
 
 def lug(script, tool_version, custom_docker_image_id, container_name, docker_shell_location, inputs=None,
-        output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True,
-        **kwargs):
+        output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
@@ -765,7 +764,6 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
     :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
     script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
     :param volume_size: (optional) allows you to set the amount of storage needed for your script.
-    :param streaming_enabled: (optional) whether to enable live output streaming.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.lug(
@@ -793,7 +791,6 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
         output_path=output_path,
         instance_type=instance_type,
         volume_size=volume_size,
-        streaming_enabled=streaming_enabled,
         **kwargs,
     )
     output = instance.run()
@@ -909,7 +906,7 @@ def metaphlan(inputs, output_path=None, output_primary_name='out.txt', tool_args
 
 
 def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_image_id=None,
-            instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True, **kwargs):
+            instance_type=InstanceType.COMPUTE_2, volume_size=8, **kwargs):
     """Runs Python via Toolchest. This a restricted tool, running it requires you to request access.
 
     Within your Python3 script, input files are available at `./input/`.
@@ -927,7 +924,6 @@ def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_i
     :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
     script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
     :param volume_size: (optional) allows you to set the amount of storage needed for your script.
-    :param streaming_enabled: (optional) whether to enable live output streaming.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.python3(
@@ -950,7 +946,6 @@ def python3(script, inputs=None, output_path=None, tool_args="", custom_docker_i
         custom_docker_image_id=custom_docker_image_id,
         instance_type=instance_type,
         volume_size=volume_size,
-        streaming_enabled=streaming_enabled,
         **kwargs,
     )
     output = instance.run()
