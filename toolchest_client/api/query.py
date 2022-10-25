@@ -44,8 +44,7 @@ class Query:
     # Max number of retries on status check timeouts.
     RETRY_STATUS_CHECK_LIMIT = 5
 
-    def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None,
-                 streaming_enabled=False, streaming_client=None):
+    def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None):
         # Configure Toolchest API authorization.
         self.HEADERS = get_headers()
 
@@ -59,15 +58,10 @@ class Query:
                 self.PIPELINE_SEGMENT_INSTANCE_URL,
                 "status",
             ])
-            self.STREAMING_ATTRIBUTES_URL = "/".join([
-                self.PIPELINE_SEGMENT_INSTANCE_URL,
-                "output-stream",
-            ])
         else:
             self.PIPELINE_SEGMENT_INSTANCE_ID = None
             self.PIPELINE_SEGMENT_INSTANCE_URL = None
             self.STATUS_URL = None
-            self.STREAMING_ATTRIBUTES_URL = None
 
         self.mark_as_failed = False
         self.thread_name = ''
@@ -78,9 +72,6 @@ class Query:
 
         self.unpacked_output_file_paths = None
         self.output = stored_output if stored_output else Output()
-
-        self.streaming_enabled = streaming_enabled
-        self.streaming_client = streaming_client
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
@@ -135,7 +126,6 @@ class Query:
             output_primary_name=output_primary_name,
             instance_type=instance_type,
             volume_size=volume_size,
-            streaming_enabled=self.streaming_enabled,
         )
         create_content = create_response.json()
 
@@ -150,10 +140,6 @@ class Query:
         self.STATUS_URL = "/".join([
             self.PIPELINE_SEGMENT_INSTANCE_URL,
             "status",
-        ])
-        self.STREAMING_ATTRIBUTES_URL = "/".join([
-            self.PIPELINE_SEGMENT_INSTANCE_URL,
-            "output-stream",
         ])
 
         self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
@@ -170,7 +156,6 @@ class Query:
         self._update_thread_status(ThreadStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping, input_is_compressed)
         self._upload_docker_image(custom_docker_image_id)
-        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
         self._check_if_should_terminate()
 
         self._update_thread_status(ThreadStatus.EXECUTING)
@@ -193,7 +178,7 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
                               remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
                               compress_output, is_database_update, database_primary_name, custom_docker_image_id,
-                              instance_type, volume_size, streaming_enabled):
+                              instance_type, volume_size):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -219,7 +204,6 @@ class Query:
             "custom_docker_image_id": custom_docker_image_id,
             "instance_type": validated_instance_type,
             "volume_size": volume_size,  # API tool definitions provide a default if not set here
-            "streaming_enabled": streaming_enabled,
         }
 
         create_response = requests.post(
@@ -346,6 +330,8 @@ class Query:
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
                     )
+
+        self._update_status(Status.TRANSFERRED_FROM_CLIENT)
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
@@ -493,10 +479,6 @@ class Query:
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
-
-            if not self.streaming_client.initialized:
-                self._setup_streaming()
-
             try:
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
@@ -569,19 +551,3 @@ class Query:
         if return_error:
             return response.json()
         return response.json()["status"]
-
-    def _setup_streaming(self):
-        get_attrs_response = requests.get(
-            self.STREAMING_ATTRIBUTES_URL,
-            headers=self.HEADERS,
-        )
-        if get_attrs_response.ok:
-            streaming_attributes = get_attrs_response.json()
-            server_setup_complete = streaming_attributes.get("server_setup_complete")
-
-            if server_setup_complete:
-                self.streaming_client.initialize_params(
-                    streaming_token=streaming_attributes["streaming_token"],
-                    streaming_ip_address=streaming_attributes["streaming_ip_address"],
-                    streaming_tls_cert=streaming_attributes["streaming_tls_cert"],
-                )

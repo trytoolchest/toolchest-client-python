@@ -5,7 +5,6 @@ toolchest_client.tools.tool
 This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
-import asyncio
 import copy
 import datetime
 import os
@@ -19,7 +18,6 @@ from toolchest_client.api.auth import validate_key
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.output import Output
 from toolchest_client.api.status import ThreadStatus
-from toolchest_client.api.streaming import StreamingClient
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size, \
     split_paired_files_by_lines, compress_files_in_path, OutputType
@@ -41,7 +39,7 @@ class Tool:
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
                  is_async=False, is_database_update=False, database_primary_name=None,
                  skip_decompression=False, custom_docker_image_id=None,
-                 instance_type=None, volume_size=None, streaming_enabled=False):
+                 instance_type=None, volume_size=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -86,11 +84,6 @@ class Tool:
         self.custom_docker_image_id = custom_docker_image_id
         self.instance_type = instance_type
         self.volume_size = volume_size
-        # auto-disable streaming if job is async
-        self.streaming_enabled = False if self.is_async else streaming_enabled
-        self.streaming_client = None
-        self.streaming_asyncio_task = None
-        self.elapsed_seconds = 0
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -268,7 +261,7 @@ class Tool:
             raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
         return True
 
-    def _pretty_print_pipeline_segment_status(self):
+    def _pretty_print_pipeline_segment_status(self, elapsed_seconds):
         """Prints output of each job, supporting multiple simultaneous jobs.
 
         Looks like: Running 2 jobs | Duration: 0:03:15 | 1 jobs complete | 1 jobs downloading
@@ -286,7 +279,7 @@ class Tool:
             status_count += f"| {status_counts[status_name]} {job_or_jobs} {status_name} "
 
         job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
-        jobs_duration = f"Duration: {str(datetime.timedelta(seconds=self.elapsed_seconds))}"
+        jobs_duration = f"Duration: {str(datetime.timedelta(seconds=elapsed_seconds))}"
 
         # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
         max_length = 120
@@ -295,15 +288,13 @@ class Tool:
 
     def _handle_termination(self, signal_number, *_):
         """
-        Handles termination by killing threads and stopping the output stream.
+        Handles termination by killing threads.
 
         If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
         """
         if self.terminating:
             raise InterruptedError("Toolchest client force killed")
         self.terminating = True
-        if self.streaming_asyncio_task and not self.streaming_asyncio_task.done():
-            self.streaming_asyncio_task.cancel()
         self._kill_query_threads()
         raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
 
@@ -319,15 +310,7 @@ class Tool:
             if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
                 self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
 
-        # Wait for remaining threads to finish terminating
-        increment_seconds = 5
-        for thread in self.query_threads:
-            while thread.is_alive():
-                self._pretty_print_pipeline_segment_status()
-                self.elapsed_seconds += increment_seconds
-                time.sleep(increment_seconds)
-        for thread in self.query_threads:
-            thread.join()
+        self._wait_for_threads_to_finish(check_health=False, wait_for_upload=False)
 
     def _check_thread_health(self):
         """Checks for any thread that has ended without reaching a "success" state, and propagates errors"""
@@ -339,47 +322,25 @@ class Tool:
                 self._kill_query_threads()
                 raise ToolchestException("A job irrecoverably failed. See logs above for details.")
 
-    def _start_or_check_stream(self):
-        # Start streaming (in place of regular status updates).
-        if not self.streaming_asyncio_task:
-            # Clear the last status line before streaming begins
-            print("".ljust(120), end="\r")
-            self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
-        # Check if an exception was raised in the streaming task
-        elif self.streaming_asyncio_task.done() and self.streaming_asyncio_task.exception():
-            self._kill_query_threads()
-            error_message = (
-                "An error was encountered during output streaming. See logs above for details."
-            )
-            raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
-
-    async def _wait_for_threads_to_finish(self):
-        """Waits for all jobs and their corresponding threads to finish while printing their statuses
-        or streaming thread output, if enabled."""
+    def _wait_for_threads_to_finish(self, check_health=True, wait_for_upload=True):
+        """Waits for all jobs and their corresponding threads to finish while printing their statuses."""
+        elapsed_seconds = 0
         # Wait for all threads to finish uploading
-        self._wait_for_threads_to_upload()
+        if wait_for_upload:
+            self._wait_for_threads_to_upload()
 
         for thread in self.query_threads:
             increment_seconds = 5
             while thread.is_alive():
-                self._check_thread_health()
-
-                if self.streaming_enabled and self.streaming_client.initialized:
-                    self._start_or_check_stream()
-                else:
-                    self._pretty_print_pipeline_segment_status()
-
-                self.elapsed_seconds += increment_seconds
-                await asyncio.sleep(increment_seconds)
-
-            # Wait for the stream to complete before printing final status line
-            if self.streaming_asyncio_task:
-                await self.streaming_asyncio_task
-
+                if check_health:
+                    self._check_thread_health()
+                self._pretty_print_pipeline_segment_status(elapsed_seconds)
+                elapsed_seconds += increment_seconds
+                time.sleep(increment_seconds)
             thread_name = thread.getName()
             thread_final_status = self.query_thread_statuses.get(thread_name)
             if thread_final_status == ThreadStatus.COMPLETE:
-                self._pretty_print_pipeline_segment_status()
+                self._pretty_print_pipeline_segment_status(elapsed_seconds)
         print("")
 
         # Double check all threads are complete for safety
@@ -457,9 +418,6 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
-        if self.streaming_enabled:
-            self.streaming_client = StreamingClient()
-
         should_run_in_parallel = self.parallel_enabled \
             and not any(inputs_are_in_s3(self.input_files)) \
             and (self.group_paired_ends or self.num_input_files == 1) \
@@ -489,8 +447,6 @@ class Tool:
             q = Query(
                 stored_output=self.thread_outputs[thread_index],
                 is_async=self.is_async,
-                streaming_enabled=self.streaming_enabled,
-                streaming_client=self.streaming_client,
             )
 
             # Deep copy to make thread safe
@@ -526,7 +482,7 @@ class Tool:
 
             new_thread.start()
 
-        asyncio.run(self._wait_for_threads_to_finish())
+        self._wait_for_threads_to_finish()
 
         # Check for interrupted or failed threads
         # Note: if async, then the query exits at thread status "executing"
