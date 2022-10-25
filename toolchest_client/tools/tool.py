@@ -343,15 +343,13 @@ class Tool:
         # Start streaming (in place of regular status updates).
         if not self.streaming_asyncio_task:
             # Clear the last status line before streaming begins
-            print("Printed lines:".ljust(120))
+            print("".ljust(120), end="\r")
             self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
         # Check if an exception was raised in the streaming task
         elif self.streaming_asyncio_task.done() and self.streaming_asyncio_task.exception():
             self._kill_query_threads()
             error_message = (
-                "A streaming error was encountered. See logs above for details.\n"
-                "Try re-running the same Toolchest command with this argument:\n"
-                "\tstreaming_enabled=False"
+                "An error was encountered during output streaming. See logs above for details."
             )
             raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
 
@@ -543,12 +541,6 @@ class Tool:
                 "For support, contact Toolchest with the error log (above) and the following details:\n\n"
                 f"run_id: {pretty_print_run_ids}\n"
             )
-            if self.streaming_enabled:
-                print(
-                    "The error may have occurred during output streaming. "
-                    "Try re-running the same Toolchest command with this argument:\n"
-                    "\tstreaming_enabled=False"
-                )
             if not should_run_in_parallel:
                 return self.thread_outputs[0]
             return
