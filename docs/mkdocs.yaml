@@ -78,6 +78,7 @@ nav:
       - Adding and Updating Custom Databases: "feature-reference/adding-and-updating-custom-databases.md"
       - Asynchronous Runs: "feature-reference/async-runs.md"
       - Authentication: "feature-reference/authentication.md"
+      - Live-Streaming Tool Output: "feature-reference/output-streaming.md"
       - The Toolchest Output Object: "feature-reference/output-objects.md"
       - Using AWS with Toolchest: "feature-reference/using-aws-with-toolchest.md"
   - Toolchest Hosted Cloud:

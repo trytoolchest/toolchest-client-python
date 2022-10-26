@@ -60,6 +60,7 @@ tc.python3(
   	output_path=None,
   	tool_args="",
   	is_async=False,
+  	streaming_enabled=True,
 )
 ```
 ```r
