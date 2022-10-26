@@ -494,7 +494,7 @@ class Query:
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             self._check_if_should_terminate()
 
-            if not self.streaming_client.initialized:
+            if self.streaming_client and not self.streaming_client.initialized:
                 self._setup_streaming()
 
             try:
