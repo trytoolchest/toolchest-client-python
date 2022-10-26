@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "toolchest-client"
-version = "0.11.0"
+version = "0.11.1"
 description = "Python client for Toolchest"
 authors = [
     "Bryce Cai <bryce@trytoolchest.com>",
@@ -31,6 +31,7 @@ docker = "^6.0.0"
 importlib-metadata = "~=4.2"
 python-dotenv = "^0.20.0"
 typer = "^0.4.1"
+websockets = "^10.3"
 
 [tool.poetry.dev-dependencies]
 flake8 =  { version = "^5.0.4", python = ">=3.8" } # version restriction required for mkdocs-material compatibility
