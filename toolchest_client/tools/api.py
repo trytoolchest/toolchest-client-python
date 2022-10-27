@@ -10,8 +10,8 @@ from datetime import date
 
 from toolchest_client.api.exceptions import ToolchestException
 from toolchest_client.api.instance_type import InstanceType
-from toolchest_client.files import path_is_s3_uri
-from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, ClustalO, Demucs, \
+from toolchest_client.files import path_is_s3_uri, convert_input_params_to_prefix_mapping
+from toolchest_client.tools import AlphaFold, BLASTN, Bowtie2, Bracken, CellRangerCount, Centrifuge, ClustalO, Demucs, \
     DiamondBlastp, DiamondBlastx, FastQC, HUMAnN3, Jupyter, Kallisto, Kraken2, Lastal5, Lug, MetaPhlAn, Megahit, \
     Python3, Rapsearch2, Salmon, Shi7, ShogunAlign, ShogunFilter, STARInstance, Transfer, Test, Unicycler
 from toolchest_client.tools.humann import HUMAnN3Mode
@@ -203,6 +203,50 @@ def cellranger_count(inputs, database_name="GRCh38", output_path=None, tool_args
         output_path=output_path,
         database_name=database_name,
         database_version="2020",
+        **kwargs,
+    )
+    output = instance.run()
+    return output
+
+
+def centrifuge(output_path=None, tool_args="", read_one=None, read_two=None, unpaired=None, **kwargs):
+    """Runs Centrigue via Toolchest.
+
+    :param output_path: (optional) Path (client-side) to a directory where the output files will be downloaded.
+    :param tool_args: (optional) Additional arguments to be passed to Centrifuge.
+    :param read_one: (optional) `-1` inputs. Path or list of paths for read 1 of paired-read input files.
+    :param read_two: (optional) `-2` inputs. Path or list of paths for read 2 of paired-read input files.
+    :param unpaired: (optional) `-U` inputs. Path or list of paths for unpaired input files.
+
+    .. note:: Each read in `read_one` should match with a read in `read_two`, and vice
+    versa. In other words, the nth read in `read_one` should be paired with the nth read
+    in `read_two`.
+
+    Usage::
+
+        >>> import toolchest_client as toolchest
+        >>> toolchest.megahit(
+        ...     tool_args="",
+        ...     read_one=["./pair_1/r1.fa", "./pair_2/r1.fa"],
+        ...     read_two=["./pair_1/r2.fa", "./pair_2/r2.fa"],
+        ...     output_path="./path/to/output",
+        ... )
+
+    """
+
+    # If input parameters are lists, parse these for input_prefix_mapping.
+    tag_to_param_map = {
+        "-1": read_one,
+        "-2": read_two,
+        "-U": unpaired,
+    }
+    input_list, input_prefix_mapping = convert_input_params_to_prefix_mapping(tag_to_param_map)
+
+    instance = Centrifuge(
+        tool_args=tool_args,
+        input_prefix_mapping=input_prefix_mapping,
+        inputs=input_list,
+        output_path=output_path,
         **kwargs,
     )
     output = instance.run()
@@ -834,22 +878,7 @@ def megahit(output_path=None, tool_args="", read_one=None, read_two=None, interl
         "--12": interleaved,
         "-r": single_end,
     }
-    input_list = []  # list of all inputs
-    input_prefix_mapping = {}  # map of each input to its respective tag
-    for tag, param in tag_to_param_map.items():
-        if isinstance(param, list):
-            for index, input_file in enumerate(param):
-                input_list.append(input_file)
-                input_prefix_mapping[input_file] = {
-                    "prefix": tag,
-                    "order": index,
-                }
-        elif isinstance(param, str):
-            input_list.append(param)
-            input_prefix_mapping[param] = {
-                "prefix": tag,
-                "order": 0,
-            }
+    input_list, input_prefix_mapping = convert_input_params_to_prefix_mapping(tag_to_param_map)
 
     instance = Megahit(
         tool_args=tool_args,
