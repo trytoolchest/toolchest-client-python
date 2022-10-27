@@ -56,5 +56,3 @@ def convert_input_params_to_prefix_mapping(tag_to_param_map):
                 "order": 0,
             }
     return input_list, input_prefix_mapping
-
-
