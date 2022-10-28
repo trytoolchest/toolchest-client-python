@@ -53,6 +53,6 @@ def get_ftp_url_file_size(url):
     :param url: An input URL.
     """
     parsed_url = urlparse(url)
-    ftp = FTP(parsed_url.netloc)
-    ftp.login()
-    return ftp.size(parsed_url.path)
+    with FTP(parsed_url.netloc) as ftp:
+        ftp.login()
+        return ftp.size(parsed_url.path)
