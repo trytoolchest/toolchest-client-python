@@ -12,7 +12,7 @@ class Centrifuge(Tool):
     """
     The centrifuge implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, input_prefix_mapping,
+    def __init__(self, tool_args, inputs, input_prefix_mapping, database_name, database_version,
                  output_path, **kwargs):
         super().__init__(
             tool_name="centrifuge",
@@ -21,6 +21,8 @@ class Centrifuge(Tool):
             output_path=output_path,
             inputs=inputs,
             input_prefix_mapping=input_prefix_mapping,
+            database_name=database_name,
+            database_version=database_version,
             max_inputs=None,
             parallel_enabled=False,
             output_type=OutputType.GZ_TAR,
