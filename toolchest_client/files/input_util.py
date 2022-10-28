@@ -6,7 +6,6 @@ Utilities for handling input files/paths.
 """
 
 
-# TODO: add unit test
 def convert_input_params_to_prefix_mapping(tag_to_param_map):
     """
     Parses input parameters in a Toolchest call into:
@@ -15,9 +14,9 @@ def convert_input_params_to_prefix_mapping(tag_to_param_map):
 
     Example input params map:
     {
-        "-1": [example_R1.fastq],
-        "-2": [example_R2.fastq],
-        "-U": [example_U.fastq],
+        "-1": ["example_R1.fastq"],
+        "-2": ["example_R2.fastq"],
+        "-U": ["example_U.fastq"],
     }
 
     Example output list:
