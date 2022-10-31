@@ -29,7 +29,7 @@ toolchest.kraken2(
 )
 ```
 
-For a list of available tools, see the [documentation](https://docs.trytoolchest.com/docs#-tools).
+For a list of available tools, see the [documentation](https://docs.trytoolchest.com/tool-reference/about/).
 
 ## Configuration
 
