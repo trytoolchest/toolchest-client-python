@@ -52,4 +52,4 @@ Toolchest supports the following arguments for AlphaFold:
 - `--max_template_date`
 - `--model_preset`
 
-However, these should be specified via specific argument values in the function call, rather than through a generic `tool_args` argument (like other Toolchest tools). See [Function Arguments](https://docs.trytoolchest.com/docs/alphafold#function-arguments) for more details.
+However, these should be specified via specific argument values in the function call, rather than through a generic `tool_args` argument (like other Toolchest tools). See [Function Arguments](#function-arguments) for more details.

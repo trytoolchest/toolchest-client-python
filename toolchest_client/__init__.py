@@ -3,7 +3,6 @@
 import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
-import os
 
 # set __version__ module
 try:
@@ -29,7 +28,7 @@ from toolchest_client.api.exceptions import ToolchestException, DataLimitError, 
 from toolchest_client.api.query import Query
 from toolchest_client.api.status import Status, get_status
 from toolchest_client.api.urls import get_api_url, set_api_url
-from .tools.api import add_database, alphafold, blastn, bowtie2, bracken, cellranger_count, clustalo, demucs,\
-    diamond_blastp, diamond_blastx, fastqc, humann3, jupyter, kallisto, kraken2, lastal5, lug, megahit, metaphlan, \
-    python3, rapsearch, rapsearch2, salmon, shi7, shogun_align, shogun_filter, STAR, test, transfer, unicycler, \
-    update_database
+from .tools.api import add_database, alphafold, blastn, bowtie2, bracken, cellranger_count, centrifuge, clustalo, \
+    demucs, diamond_blastp, diamond_blastx, fastqc, humann3, jupyter, kallisto, kraken2, lastal5, lug, megahit, \
+    metaphlan, python3, rapsearch, rapsearch2, salmon, shi7, shogun_align, shogun_filter, STAR, test, transfer, \
+    unicycler, update_database

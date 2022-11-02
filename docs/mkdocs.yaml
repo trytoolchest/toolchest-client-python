@@ -59,6 +59,7 @@ nav:
           - AlphaFold: "tool-reference/structure-prediction/alphafold.md"
       - Taxonomic Classifiers:
           - About Taxanomic Classifiers: "tool-reference/taxonomic-classifiers.md"
+          - Centrifuge: "tool-reference/taxonomic-classifiers/centrifuge.md"
           - Kraken 2: "tool-reference/taxonomic-classifiers/kraken-2.md"
           - MetaPhlAn: "tool-reference/taxonomic-classifiers/metaphlan.md"
       - Workflows / Meta-Tools:
