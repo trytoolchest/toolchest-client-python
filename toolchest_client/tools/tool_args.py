@@ -206,6 +206,29 @@ TOOL_ARG_LISTS = {
             "--chemistry": 1,
         },
     },
+    "centrifuge": {
+        "whitelist": {
+            # This allows all args that are not in the blacklist if this is the only whitelisted arg
+            "*": 0
+        },
+        "blacklist": [
+            "-S",
+            "-p",
+            "--threads",
+            "--un",
+            "--al",
+            "--un-conc",
+            "--al-conc",
+            "--un-gz",
+            "--un-bz2",
+            "--al-gz",
+            "--al-bz2",
+            "--un-conc-gz",
+            "--un-conc-bz2",
+            "--al-conc-gz",
+            "--al-conc-bz2",
+        ]
+    },
     "clustalo": {
         "blacklist": [
             "-i",  # Input args (most disabled)

@@ -4,6 +4,7 @@ from .blastn import BLASTN
 from .bowtie2 import Bowtie2
 from .bracken import Bracken
 from .cellranger import CellRangerCount
+from .centrifuge import Centrifuge
 from .clustalo import ClustalO
 from .demucs import Demucs
 from .diamond import DiamondBlastp, DiamondBlastx

@@ -24,7 +24,7 @@ Function Arguments
 | `read_two`    | `-2`                | (optional) Path to R2 of paired-end short read input files. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                                                            |
 | `long_reads`  | `-l`                | (optional) Path to the file containing long reads. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                                                                     |
 | `output_path` | `-o`                | (optional) Path (directory) to where the output files will be downloaded. If omitted, skips download. The files can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                 |
-| `tool_args`   | all other arguments | (optional) Additional arguments to be passed to Unicycler. This should be a string of arguments like the command line. See [Supported Additional Arguments](https://docs.trytoolchest.com/docs/unicycler#supported-additional-arguments) for more details. |
+| `tool_args`   | all other arguments | (optional) Additional arguments to be passed to Unicycler. This should be a string of arguments like the command line. See [Supported Additional Arguments](#supported-additional-arguments) for more details. |
 | `is_async`    |                     | Whether to run a job asynchronously.  See [Async Runs](../../feature-reference/async-runs.md) for more.                                                                                                                                                                    |
 
 Notes
