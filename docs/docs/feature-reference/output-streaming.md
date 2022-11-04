@@ -35,7 +35,7 @@ Hello world C
     With streaming enabled, tool execution terminates if the streaming connection is broken. This includes cancelling
     your job by entering Ctrl-C. 
     
-    If a job is cancelled before encountering a bug in your script, it may not be visible in Toolchest logs.
+    If a job is cancelled before encountering a bug in your script, the error may not be visible in Toolchest logs.
 
 ## Supported Tools
 Output streaming is supported for `python3` and `lug`. For both, streaming is enabled by default.
