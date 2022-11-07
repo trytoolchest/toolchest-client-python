@@ -212,6 +212,7 @@ TOOL_ARG_LISTS = {
             "*": 0
         },
         "blacklist": [
+            "-c",
             "-S",
             "-p",
             "--threads",
