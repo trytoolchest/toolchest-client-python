@@ -81,30 +81,30 @@ Supported Additional Arguments
 ==============================
 
 Most additional arguments not related to input, output, or multithreading are supported:
-- \-q
-- \--qseq
-- \-f
-- \-r
-- \-c
-- \-s, \--skip
-- \-u, \--upto
-- \-5, \--trim5
-- \-3, \--trim3
-- \--phred33
-- \--phred64
-- \--int-quals
-- \--ignore-quals
-- \--nofw
-- \--norc
-- \--min-hitlen
-- \-k
-- \--host-taxids
-- \--exclude-taxids
-- \--out-fmt
-- \--tab-fmt-cols
-- \-t, \--time
-- \--qc-filter
-- \--seed
-- \--non-deterministic
 
-Additional arguments can be specified under the `tool_args` argument.
+- `-q`
+- `--qseq`
+- `-f`
+- `-r`
+- `-s`, `--skip`
+- `-u`, `--upto`
+- `-5`, `--trim5`
+- `-3`, `--trim3`
+- `--phred33`
+- `--phred64`
+- `--int-quals`
+- `--ignore-quals`
+- `--nofw`
+- `--norc`
+- `--min-hitlen`
+- `-k`
+- `--host-taxids`
+- `--exclude-taxids`
+- `--out-fmt`
+- `--tab-fmt-cols`
+- `-t`, `--time`
+- `--qc-filter`
+- `--seed`
+- `--non-deterministic`
+
+Set additional arguments with `tool_args`. For example: `tool_args="-f -k 10"`
