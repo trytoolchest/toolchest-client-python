@@ -30,7 +30,7 @@ Hello world C
 ```
 
 
-!!! note "Streaming and cancelling runs"
+!!! warning "Streaming and cancelling runs"
     
     With streaming enabled, tool execution terminates if the streaming connection is broken. This includes cancelling
     your job by entering Ctrl-C. 

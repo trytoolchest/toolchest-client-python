@@ -98,18 +98,18 @@ tc.update_database(
 ```
 
 ## Preserving File Structure
-You can specify a directory as your `database_path`. For both local and S3 paths, using a directory will place all files
+You can use a directory as your `database_path`. For both local and S3 paths, using a directory will place all files
 in their implied subdirectories.
 
-If a list of paths is used instead, file structure will not be preserved. All specified files will be placed into 
+If a list of paths is used instead, file structure will not be preserved. All files will be placed into 
 the same directory.
 
 ## Specifying `database_primary_name`
 Let's say you have a tool that you would run from the command line like this:
 ```commandline
-example_tool --database example_db_directory/my_db --input example_input.fastq --output example_output_dir/
+some_command --database databases/my_db
 ```
-For custom databases, we can't be sure about what `example_db_directory/my_db` actually is. It could either represent a
+For custom databases, we can't be sure about what `databases/my_db` actually is. `my_db` could either represent a
 directory, a file itself, or multiple files -- it depends on the context of the tool. This is where the 
 `database_primary_name` argument comes in, which passes that context to Toolchest.
 
@@ -119,37 +119,46 @@ import toolchest_client as tc
 tc.add_database(
     tool=tc.tools.Bowtie2,
     database_name="example_name_for_my_new_database",
-    database_path="example_db_directory/",
+    database_path="databases/",
     database_primary_name="my_db",
 )
 ```
-Essentially, if your tool takes in a certain file or prefix instead of the whole directory as its command-line database, 
-use `database_primary_name` to specify the name of that file or prefix.
+
+If `--database` refers to something that isn't a directory, use `database_path` for the directory and 
+`database_primary_name` for the file or prefix.
 
 ### Use cases
-In the above example, `my_db` could be:
-1. A directory itself (`example_db_directory/my_db/{various database files}`)
-2. A single database file (`example_db_directory/my_db`)
-3. A prefix, like this:
+1. If your database is a directory itself, such as `databases/my_db/{various database files}`, then use 
+`database_primary_name=None`:
+```python
+tc.add_database(
+    database_path="databases/my_db",
+    database_primary_name=None,
+    ...
+)
+```
+2. If your database is a single database file, such as `databases/my_db`, or a prefix, such as:
 ```text
-example_db_directory/
+databases/
 ├── my_db.file1
 ├── my_db.file2
 └── my_db.file3
 ```
-For each of these cases, do the following:
-1. `my_db` is a directory: Specify `database_primary_name=None`.
-2. `my_db` is a single directory file: Specify `database_primary_name=my_db`.
-3. `my_db` is a prefix: Specify `database_primary_name=my_db`.
-
-For cases 2 and 3, `database_path` should still be the path to your database's directory (`example_db_directory`). 
-For case 1, `database_path` can be the path to `my_db` itself.
+then use `database_primary_name=my_db`:
+```python
+tc.add_database(
+    database_path="databases/",
+    database_primary_name="my_db",
+    ...
+)
+```
 
 ### Behavior differences for `update_database`
 For `update_database`, `database_primary_name` is optional. If omitted, it assumes the same value as the 
 previous version of the custom database.
 
-If `database_primary_name` needs to be changed to `None` for a new version, contact Toolchest to correct this. 
+If `database_primary_name` needs to be changed to `None`  for future versions of the database, contact Toolchest to update the primary
+name.
 
 ## Security
 
