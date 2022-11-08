@@ -68,7 +68,7 @@ nav:
       - Pre-Processing:
           - About Pre-Processing: "tool-reference/pre-processing.md"
           - FastQC: "tool-reference/pre-processing/fastqc.md"
-      - Post-processing:
+      - Post-Processing:
           - About Post-Processing: "tool-reference/post-processing.md"
           - Bracken: "tool-reference/post-processing/bracken.md"
       - Python 3: "tool-reference/python3.md"

@@ -104,16 +104,18 @@ in their implied subdirectories.
 If a list of paths is used instead, file structure will not be preserved. All files will be placed into 
 the same directory.
 
-## Specifying `database_primary_name`
+## Using `database_primary_name`
 Let's say you have a tool that you would run from the command line like this:
 ```commandline
 some_command --database databases/my_db
 ```
 For custom databases, we can't be sure about what `databases/my_db` actually is. `my_db` could either represent a
-directory, a file itself, or multiple files -- it depends on the context of the tool. This is where the 
-`database_primary_name` argument comes in, which passes that context to Toolchest.
+directory, a file itself, or multiple files -- it depends on the context of the tool. 
 
-Here's an example call for Bowtie 2, where `my_db` is a prefix for multiple files within `example_db_directory`:
+To pass that context to Toolchest, use `database_primary_name`. If `--database` refers to a path that isn't a directory, 
+use `database_path` for the directory and `database_primary_name` for the filename or prefix.
+
+Here's an example call for Bowtie 2, where `my_db` is a prefix for multiple files within `databases/`:
 ```python
 import toolchest_client as tc
 tc.add_database(
@@ -123,9 +125,6 @@ tc.add_database(
     database_primary_name="my_db",
 )
 ```
-
-If `--database` refers to something that isn't a directory, use `database_path` for the directory and 
-`database_primary_name` for the file or prefix.
 
 ### Use cases
 1. If your database is a directory itself, such as `databases/my_db/{various database files}`, then use 
