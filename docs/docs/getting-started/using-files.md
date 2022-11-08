@@ -41,7 +41,7 @@ tc.test(
 
 !!! note "Make sure Toolchest has access to your S3 bucket"
 
-To grant Toolchest access, see [AWS Integration](../feature-reference/using-aws-with-toolchest.md).
+    To grant Toolchest access, see [AWS Integration](../feature-reference/using-aws-with-toolchest.md).
 
 ### HTTP/HTTPS
 
