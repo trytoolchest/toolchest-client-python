@@ -25,7 +25,7 @@ single path to a directory; see [this section](#preserving-file-structure).
 - `database_name`: Name of the new custom database.
 - `database_primary_name`: If you are uploading multiple database files and your tool takes in a certain file or prefix 
 instead of the whole directory as its command-line argument, use this to specify the name of that file or prefix.
-See [this section](#specifying-database_primary_name) for more details.
+See [this section](#using-database_primary_name) for more details.
 
 The return is a `Toolchest.api.Output` object, containing:
 
@@ -68,7 +68,7 @@ single path to a directory; see [this section](#preserving-file-structure).
 - `database_name`: Name of the _existing_ database.
 - `database_primary_name`: If you are uploading multiple database files and your tool takes in a certain file or prefix 
 instead of the whole directory as its command-line argument, use this to specify the name of that file or prefix.
-See [this section](#specifying-database_primary_name) for more details.
+See [this section](#using-database_primary_name) for more details.
 
 !!! note "`database_primary_name` is optional for `update_database`"
     If omitted, it assumes the same `database_primary_name` as the previous version of the custom database.
