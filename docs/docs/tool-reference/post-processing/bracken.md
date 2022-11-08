@@ -29,7 +29,7 @@ tc.bracken(
 | `remote_database_path` | `-d`                       | (optional) AWS S3 URI to a directory with your custom database that was used with Kraken 2 alignment.                                                                                                                                                   |
 | `is_async`             |                            | Whether to run a job asynchronously.  See [Async Runs](../../feature-reference/async-runs.md) for more.                                                                                                                                                                 |
 
-See the [Databases](doc:kraken-2#databases) section for more details.
+See the [Databases](#databases) section for more details.
 
 ## Output Files
 
@@ -66,7 +66,7 @@ Toolchest supports custom databases hosted in S3, so long as they are accessible
 # Supported Additional Arguments
 
 - `-r` (read length)
-- `-l` (taxaonomic level)
+- `-l` (taxonomic level)
 - `-t` (threshold)
 
 These and any additional arguments are set with the `tool_args` Toolchest argument.

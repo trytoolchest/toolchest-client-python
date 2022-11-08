@@ -39,8 +39,8 @@ nav:
           - About Aligners: "tool-reference/aligners.md"
           - Bowtie 2: "tool-reference/aligners/bowtie-2.md"
           - Clustal Omega: "tool-reference/aligners/clustal-omega.md"
-          - Diamond:
-              - About diamond: "tool-reference/aligners/diamond.md"
+          - DIAMOND:
+              - About DIAMOND: "tool-reference/aligners/diamond.md"
               - DIAMOND BLASTP: "tool-reference/aligners/diamond/diamond-blastp.md"
               - DIAMOND BLASTX: "tool-reference/aligners/diamond/diamond-blastx.md"
           - Kallisto: "tool-reference/aligners/kallisto.md"
@@ -58,7 +58,7 @@ nav:
           - About Structure Prediction: "tool-reference/structure-prediction.md"
           - AlphaFold: "tool-reference/structure-prediction/alphafold.md"
       - Taxonomic Classifiers:
-          - About Taxanomic Classifiers: "tool-reference/taxonomic-classifiers.md"
+          - About Taxonomic Classifiers: "tool-reference/taxonomic-classifiers.md"
           - Centrifuge: "tool-reference/taxonomic-classifiers/centrifuge.md"
           - Kraken 2: "tool-reference/taxonomic-classifiers/kraken-2.md"
           - MetaPhlAn: "tool-reference/taxonomic-classifiers/metaphlan.md"
@@ -68,7 +68,7 @@ nav:
       - Pre-Processing:
           - About Pre-Processing: "tool-reference/pre-processing.md"
           - FastQC: "tool-reference/pre-processing/fastqc.md"
-      - Post-processing:
+      - Post-Processing:
           - About Post-Processing: "tool-reference/post-processing.md"
           - Bracken: "tool-reference/post-processing/bracken.md"
       - Python 3: "tool-reference/python3.md"
@@ -79,6 +79,7 @@ nav:
       - Adding and Updating Custom Databases: "feature-reference/adding-and-updating-custom-databases.md"
       - Asynchronous Runs: "feature-reference/async-runs.md"
       - Authentication: "feature-reference/authentication.md"
+      - Live-Streaming Tool Output: "feature-reference/output-streaming.md"
       - The Toolchest Output Object: "feature-reference/output-objects.md"
       - Using AWS with Toolchest: "feature-reference/using-aws-with-toolchest.md"
   - Toolchest Hosted Cloud:

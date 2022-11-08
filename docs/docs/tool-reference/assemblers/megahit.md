@@ -21,15 +21,15 @@ Function Arguments
 
 See the Notes section below for more details.
 
-| Argument      | Use in place of:    | Description                                                                                                                                                                                                                |
-| :------------ | :------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Argument      | Use in place of:    | Description                                                                                                                                                                                        |
+| :------------ | :------------------ |:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `read_one`    | `-1`                | (optional) Path to R1 of paired-end short read input files. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                            |
 | `read_two`    | `-2`                | (optional) Path to R2 of paired-end short read input files. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                            |
 | `interleaved` | `--12`              | (optional) Path to the file containing interleaved reads. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                              |
 | `single_end`  | `-r`                | (optional) Path to the file containing singled-ended reads. The file can be a local or remote, see [Using Files](../../getting-started/using-files.md).                                            |
 | `output_path` | `-o`                | (optional) Path (directory) to where the output files will be downloaded. If omitted, skips download. The files can be a local or remote, see [Using Files](../../getting-started/using-files.md). |
-| `tool_args`   | all other arguments | (optional) A string containing additional arguments to be passed to MEGAHIT, formatted as if using the command line.                                                                                                       |
-| `is_async`    |                     | Whether to run a job asynchronously. See [Asynchronous Runs](doc:asynchronous-runs) for more.                                                                                                                              |
+| `tool_args`   | all other arguments | (optional) A string containing additional arguments to be passed to MEGAHIT, formatted as if using the command line.                                                                               |
+| `is_async`    |                     | Whether to run a job asynchronously. See [Async Runs](../../feature-reference/async-runs.md) for more.                                                                                             |
 
 Notes
 -----

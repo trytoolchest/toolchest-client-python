@@ -60,6 +60,7 @@ tc.python3(
   	output_path=None,
   	tool_args="",
   	is_async=False,
+  	streaming_enabled=True,
 )
 ```
 ```r
@@ -177,7 +178,7 @@ Some argument names are not allowed due to conflicts with Python itself, includi
 Return value
 ------------
 
-This function call returns a Toolchest output object, which contains the run ID and locations of downloaded output files. See [Output Objects](doc:output-objects).
+This function call returns a Toolchest output object, which contains the run ID and locations of downloaded output files. See [Output Objects](../feature-reference/output-objects.md).
 
 Async runs
 ----------

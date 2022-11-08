@@ -31,7 +31,7 @@ tc.kraken2(
 | `remote_database_path` | `-db`                           | (optional) AWS S3 URI to a directory with your custom database.                                                                                                                                                                                          |
 | `is_async`             |                                 | Whether to run a job asynchronously.  See [Async Runs](../../feature-reference/async-runs.md) for more.                                                                                                                                                                  |
 
-See the [Databases](doc:kraken-2#databases) section for more details.
+See the [Databases](#databases) section for more details.
 
 ## Output Files
 

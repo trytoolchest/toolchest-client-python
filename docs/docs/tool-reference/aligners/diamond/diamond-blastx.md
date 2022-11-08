@@ -1,4 +1,4 @@
-**DIAMOND BLASTX** is [DIAMOND](doc:diamond)'s mode for translated DNA sequence searches. For more information, see the tool's [GitHub repo and wiki](https://github.com/bbuchfink/diamond).
+**DIAMOND BLASTX** is [DIAMOND](../diamond.md)'s mode for translated DNA sequence searches. For more information, see the tool's [GitHub repo and wiki](https://github.com/bbuchfink/diamond).
 
 # Function Call
 
@@ -30,7 +30,7 @@ See the Notes section below for more details.
 | `tool_args`                    | all other arguments | (optional) Additional arguments to be passed to Diamond BLASTX. This should be a string of arguments like the command line.                                                                                                    |
 | `is_async`                     |                     | Whether to run a job asynchronously.  See [Async Runs](../../../feature-reference/async-runs.md) for more.                                                                                                                     |
 
-DIAMOND BLASTX runs are aligned against the SeqScreen database by default. See the [Databases](doc:diamond-blastx#databases) section for more details.
+DIAMOND BLASTX runs are aligned against the SeqScreen database by default. See the [Databases](#databases) section for more details.
 
 # Tool Versions
 
