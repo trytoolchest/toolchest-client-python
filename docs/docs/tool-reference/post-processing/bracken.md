@@ -66,7 +66,7 @@ Toolchest supports custom databases hosted in S3, so long as they are accessible
 # Supported Additional Arguments
 
 - `-r` (read length)
-- `-l` (taxaonomic level)
+- `-l` (taxonomic level)
 - `-t` (threshold)
 
 These and any additional arguments are set with the `tool_args` Toolchest argument.
