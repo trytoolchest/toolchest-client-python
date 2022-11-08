@@ -39,8 +39,8 @@ nav:
           - About Aligners: "tool-reference/aligners.md"
           - Bowtie 2: "tool-reference/aligners/bowtie-2.md"
           - Clustal Omega: "tool-reference/aligners/clustal-omega.md"
-          - Diamond:
-              - About diamond: "tool-reference/aligners/diamond.md"
+          - DIAMOND:
+              - About DIAMOND: "tool-reference/aligners/diamond.md"
               - DIAMOND BLASTP: "tool-reference/aligners/diamond/diamond-blastp.md"
               - DIAMOND BLASTX: "tool-reference/aligners/diamond/diamond-blastx.md"
           - Kallisto: "tool-reference/aligners/kallisto.md"
