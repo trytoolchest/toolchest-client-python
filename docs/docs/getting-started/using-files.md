@@ -17,9 +17,32 @@ Let's take a look at what it looks like to use different types of local and remo
 Local files are the most intuitive: you just pass normal paths directly to Toolchest. In the background, the files are 
 transferred to and from the cloud.
 
-`inputs` takes files or directories. If a directory is passed, all files within the directory are used as input.
+`inputs` takes file or directory path(s).
 
 `output_path` takes a directory. Output files are written in this directory.
+
+### Local directory inputs
+If a directory is passed, all files within the directory are used as input. Directory structure will be destroyed unless
+`compress_inputs=True` is provided as an argument.
+
+For example if you have the following directory structure:
+```text
+/path/to/base/directory/
+    subdirectory_one/
+        input.fastq
+    subdirectory_two/
+        input.fastq
+        info.txt
+```
+and you used the following toolchest call:
+```python
+tc.test(
+    inputs="/path/to/base/directory/",
+    compress_inputs=True
+)
+```
+Then the input files will retain the directory structure without name conflicts. If `compress_inputs` is set to `False`
+or not provided, the 2 `inputs.fastq` would overwrite whichever one was downloaded second. 
 
 ## Remote files
 

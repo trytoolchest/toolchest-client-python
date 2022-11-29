@@ -96,19 +96,23 @@ class Tool:
 
     def _prepare_inputs(self):
         """Prepares the input files."""
-        if self.compress_inputs and isinstance(self.inputs, str):
-            if path_is_s3_uri(self.inputs):
-                # If the given path is in S3, it does not require compression.
-                self.input_files = [self.inputs]
-                self.compress_inputs = False
-            else:
-                # Input files are all .tar.gz'd together, preserving directory structure
-                self.input_files = [compress_files_in_path(os.path.expanduser(self.inputs))]
-            self.num_input_files = 1
+        if self.compress_inputs:
+            self.input_files = []
+            if isinstance(self.inputs, str):
+                self.inputs = [self.inputs]
+            for input_path in self.inputs:
+                if path_is_s3_uri(input_path):
+                    # If the given path is in S3, it does not require compression.
+                    self.input_files += [files_in_path(input_path)]
+                    # self.compress_inputs = False
+                elif os.path.isfile(input_path):
+                    self.input_files += [input_path]
+                else:
+                    # Input files are all .tar.gz'd together, preserving directory structure
+                    self.input_files += [compress_files_in_path(os.path.expanduser(input_path))]
+            self.num_input_files = len(self.input_files)
         else:
-            # TODO: compress inputs in cases where inputs is a list
-            self.compress_inputs = False
-            # Input files are handled individually, destroying directory structure
+            # Non compressed files are handled individually, destroying directory structure
             self.input_files = files_in_path(self.inputs)  # expands ~ in filepath if local
             self.num_input_files = len(self.input_files)
 
