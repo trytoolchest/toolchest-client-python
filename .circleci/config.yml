@@ -42,7 +42,7 @@ jobs:
           name: Skip tests if last commit is a chore commit
           command: |      
             cd ~/repo
-            last_commit="$(git log -1 --pretty=%B | grep chore || true)"
+            last_commit="$(git log -1 --pretty=%s | grep chore: || true)"
             if [ ${#last_commit} -gt 0 ]; then circleci-agent step halt; fi
       - run:
           name: Create AWS credentials manually
