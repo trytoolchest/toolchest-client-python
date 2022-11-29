@@ -17,9 +17,9 @@ Let's take a look at what it looks like to use different types of local and remo
 Local files are the most intuitive: you just pass normal paths directly to Toolchest. In the background, the files are 
 transferred to and from the cloud.
 
-`inputs` takes file or directory path(s).
+`inputs` takes file and/or directory path(s).
 
-`output_path` takes a directory. Output files are written in this directory.
+`output_path` takes a path to a directory. Output files are written in this directory.
 
 ### Local directory inputs
 If a directory is passed, all files within the directory are used as input. Directory structure will be destroyed unless
