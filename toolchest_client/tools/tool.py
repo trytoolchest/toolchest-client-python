@@ -102,9 +102,9 @@ class Tool:
                 self.inputs = [self.inputs]
             for input_path in self.inputs:
                 if path_is_s3_uri(input_path):
-                    self.input_files += [files_in_path(input_path)]
+                    self.input_files += files_in_path(input_path)
                 elif os.path.isfile(input_path):
-                    self.input_files += [files_in_path(input_path)]
+                    self.input_files += files_in_path(input_path)
                 else:
                     # Input files are all .tar.gz'd together, preserving directory structure
                     self.input_files += [compress_files_in_path(os.path.expanduser(input_path))]
