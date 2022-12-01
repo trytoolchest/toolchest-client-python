@@ -108,18 +108,19 @@ def files_in_path(files):
     return more_files
 
 
-def compress_files_in_path(file_path):
+def compress_files_in_path(file_path, retain_base_directory):
     """Returns a tarred and compressed file containing the contents of a directory.
 
     WARNING: this is NOT thread-safe, as shutil.make_archive is not thread safe.
 
     :param file_path: A string to a local directory.
+    :param retain_base_directory: Sets whether the base directory of the path is retained.
     """
     assert_exists(file_path)
     temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"
 
     print(f"Creating an archive of all files in {file_path}...")
-    if os.path.isdir(file_path):
+    if os.path.isdir(file_path) and not retain_base_directory:
         zip_location = shutil.make_archive(
             base_name=f"{temp_directory}/{os.path.basename(file_path)}",
             format="gztar",

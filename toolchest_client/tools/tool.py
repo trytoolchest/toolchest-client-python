@@ -40,8 +40,8 @@ class Tool:
                  group_paired_ends=False, compress_inputs=False,
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
                  is_async=False, is_database_update=False, database_primary_name=None,
-                 skip_decompression=False, custom_docker_image_id=None,
-                 instance_type=None, volume_size=None, streaming_enabled=False):
+                 skip_decompression=False, custom_docker_image_id=None, instance_type=None,
+                 volume_size=None, streaming_enabled=False, retain_base_directory=False):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -91,6 +91,7 @@ class Tool:
         self.streaming_client = None
         self.streaming_asyncio_task = None
         self.elapsed_seconds = 0
+        self.retain_base_directory = retain_base_directory
         signal.signal(signal.SIGTERM, self._handle_termination)
         signal.signal(signal.SIGINT, self._handle_termination)
 
@@ -101,11 +102,13 @@ class Tool:
             if isinstance(self.inputs, str):
                 self.inputs = [self.inputs]
             for input_path in self.inputs:
-                if path_is_s3_uri(input_path):
-                    self.input_files += files_in_path(input_path)
+                if os.path.exists(input_path):
+                    # Local input files are all .tar.gz'd together, preserving directory structure
+                    self.input_files += [
+                        compress_files_in_path(os.path.expanduser(input_path), self.retain_base_directory)
+                    ]
                 else:
-                    # Input files are all .tar.gz'd together, preserving directory structure
-                    self.input_files += [compress_files_in_path(os.path.expanduser(input_path))]
+                    self.input_files += files_in_path(input_path)
             self.num_input_files = len(self.input_files)
         else:
             # Non compressed files are handled individually, destroying directory structure
