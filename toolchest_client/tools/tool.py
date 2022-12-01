@@ -104,7 +104,9 @@ class Tool:
             for input_path in self.inputs:
                 if os.path.exists(input_path):
                     # Local input files are all .tar.gz'd together, preserving directory structure
-                    self.input_files += [compress_files_in_path(os.path.expanduser(input_path), self.retain_base_directory)]
+                    self.input_files += [
+                        compress_files_in_path(os.path.expanduser(input_path), self.retain_base_directory)
+                    ]
                 else:
                     self.input_files += files_in_path(input_path)
             self.num_input_files = len(self.input_files)
