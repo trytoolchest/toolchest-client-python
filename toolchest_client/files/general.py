@@ -115,15 +115,23 @@ def compress_files_in_path(file_path):
 
     :param file_path: A string to a local directory.
     """
-    assert_exists(file_path, must_be_directory=True)
+    assert_exists(file_path)
     temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"
 
     print(f"Creating an archive of all files in {file_path}...")
-    zip_location = shutil.make_archive(
-        base_name=f"{temp_directory}/{os.path.basename(file_path)}",
-        format="gztar",
-        root_dir=file_path,
-    )
+    if os.path.isdir(file_path):
+        zip_location = shutil.make_archive(
+            base_name=f"{temp_directory}/{os.path.basename(file_path)}",
+            format="gztar",
+            root_dir=file_path
+        )
+    else:
+        zip_location = shutil.make_archive(
+            base_name=f"{temp_directory}/{os.path.basename(file_path)}",
+            format="gztar",
+            root_dir=os.path.dirname(file_path),
+            base_dir=os.path.basename(file_path)
+        )
 
     return zip_location
 
