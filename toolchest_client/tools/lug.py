@@ -20,6 +20,7 @@ class Lug(Tool):
             tool_args=tool_args,
             output_path=output_path,
             inputs=inputs,
+            max_input_bytes_per_file=4 * 1024 * 1024 * 1024 * 1024,
             output_type=OutputType.S3 if path_is_s3_uri(output_path) else OutputType.GZ_TAR,
             custom_docker_image_id=custom_docker_image_id,
             **kwargs,
