@@ -5,10 +5,10 @@ toolchest_client.api.query
 This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
-
+import asyncio
+import datetime
 import os
 import sys
-import threading
 import time
 from urllib.parse import urlparse
 
@@ -22,10 +22,11 @@ from toolchest_client.api.auth import get_headers
 from toolchest_client.api.download import download, get_download_details
 from toolchest_client.api.exceptions import ToolchestJobError, ToolchestException, ToolchestDownloadError
 from toolchest_client.api.output import Output
+from toolchest_client.api.streaming import StreamingClient
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url, path_is_accessible_ftp_url
 from .instance_type import InstanceType
-from .status import Status, ThreadStatus
+from .status import Status, PrettyStatus
 from ..files.s3 import UploadTracker
 
 
@@ -38,55 +39,53 @@ class Query:
     """
 
     # Period (in seconds) between requests when waiting for job(s) to finish executing.
-    WAIT_FOR_JOB_DELAY = 1
-    # Multiple of seconds used when pretty printing job status to output.
-    PRINTED_TIME_INTERVAL = 5
+    WAIT_FOR_JOB_DELAY = 5
     # Max number of retries on status check timeouts.
     RETRY_STATUS_CHECK_LIMIT = 5
 
-    def __init__(self, stored_output=None, is_async=False, pipeline_segment_instance_id=None,
-                 streaming_enabled=False, streaming_client=None):
+    def __init__(self, is_async=False, pipeline_segment_instance_id=None,
+                 streaming_enabled=False):
         # Configure Toolchest API authorization.
-        self.HEADERS = get_headers()
+        self.headers = get_headers()
 
         if pipeline_segment_instance_id:
-            self.PIPELINE_SEGMENT_INSTANCE_ID = pipeline_segment_instance_id
-            self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+            self.pipeline_segment_instance_id = pipeline_segment_instance_id
+            self.pipeline_segment_instance_url = "/".join([
                 get_pipeline_segment_instances_url(),
-                self.PIPELINE_SEGMENT_INSTANCE_ID,
+                self.pipeline_segment_instance_id,
             ])
-            self.STATUS_URL = "/".join([
-                self.PIPELINE_SEGMENT_INSTANCE_URL,
+            self.status_url = "/".join([
+                self.pipeline_segment_instance_url,
                 "status",
             ])
-            self.STREAMING_ATTRIBUTES_URL = "/".join([
-                self.PIPELINE_SEGMENT_INSTANCE_URL,
+            self.streaming_attributes_url = "/".join([
+                self.pipeline_segment_instance_url,
                 "output-stream",
             ])
         else:
-            self.PIPELINE_SEGMENT_INSTANCE_ID = None
-            self.PIPELINE_SEGMENT_INSTANCE_URL = None
-            self.STATUS_URL = None
-            self.STREAMING_ATTRIBUTES_URL = None
+            self.pipeline_segment_instance_id = None
+            self.pipeline_segment_instance_url = None
+            self.status_url = None
+            self.streaming_attributes_url = None
 
         self.mark_as_failed = False
-        self.thread_name = ''
-        self.thread_statuses = None
+        self.pretty_status = None
         self.is_async = is_async
 
         self.status_check_retries = 0
 
         self.unpacked_output_file_paths = None
-        self.output = stored_output if stored_output else Output()
+        self.output = Output()
 
         self.streaming_enabled = streaming_enabled
-        self.streaming_client = streaming_client
+        self.streaming_client = StreamingClient()
+        self.streaming_asyncio_task = None
 
     def run_query(self, tool_name, tool_version, input_prefix_mapping,
                   output_type, tool_args=None, database_name=None, database_version=None,
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
-                  output_primary_name=None, skip_decompression=False, thread_statuses=None, custom_docker_image_id=None,
+                  output_primary_name=None, skip_decompression=False, custom_docker_image_id=None,
                   instance_type=None, volume_size=None):
         """Executes a query to the Toolchest API.
 
@@ -110,13 +109,11 @@ class Query:
         :param output_path: Path to directory (client-side) where the output file(s) will be downloaded.
         :param output_type: Type (e.g. GZ_TAR) of the output file.
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
-        :param thread_statuses: Statuses of all threads, shared between threads.
         :param instance_type: instance type that the tool will run on.
         :param volume_size: size of the volume for the instance.
         """
-        self.thread_name = threading.current_thread().getName()
-        self.thread_statuses = thread_statuses
-        self._check_if_should_terminate()
+        self.pretty_status = ''
+
         # Create pipeline segment and task(s).
         # Retrieve query ID and upload URL from initial response.
         create_response = self._send_initial_request(
@@ -139,24 +136,24 @@ class Query:
         )
         create_content = create_response.json()
 
-        self._update_thread_status(ThreadStatus.INITIALIZED)
+        self._update_pretty_status(PrettyStatus.INITIALIZED)
         self.mark_as_failed = True
 
-        self.PIPELINE_SEGMENT_INSTANCE_ID = create_content["id"]
-        self.PIPELINE_SEGMENT_INSTANCE_URL = "/".join([
+        self.pipeline_segment_instance_id = create_content["id"]
+        self.pipeline_segment_instance_url = "/".join([
             get_pipeline_segment_instances_url(),
-            self.PIPELINE_SEGMENT_INSTANCE_ID
+            self.pipeline_segment_instance_id
         ])
-        self.STATUS_URL = "/".join([
-            self.PIPELINE_SEGMENT_INSTANCE_URL,
+        self.status_url = "/".join([
+            self.pipeline_segment_instance_url,
             "status",
         ])
-        self.STREAMING_ATTRIBUTES_URL = "/".join([
-            self.PIPELINE_SEGMENT_INSTANCE_URL,
+        self.streaming_attributes_url = "/".join([
+            self.pipeline_segment_instance_url,
             "output-stream",
         ])
 
-        self.output.set_run_id(self.PIPELINE_SEGMENT_INSTANCE_ID)
+        self.output.set_run_id(self.pipeline_segment_instance_id)
         self.output.set_tool(
             tool_name=tool_name,
             tool_version=tool_version,
@@ -166,14 +163,12 @@ class Query:
             database_version=create_content.get("database_version"),
         )
 
-        self._check_if_should_terminate()
-        self._update_thread_status(ThreadStatus.UPLOADING)
+        self._update_pretty_status(PrettyStatus.UPLOADING)
         self._upload(input_files, input_prefix_mapping, input_is_compressed)
         self._upload_docker_image(custom_docker_image_id)
         self._update_status(Status.TRANSFERRED_FROM_CLIENT)
-        self._check_if_should_terminate()
 
-        self._update_thread_status(ThreadStatus.EXECUTING)
+        self._update_pretty_status(PrettyStatus.EXECUTING)
 
         if self.is_async:
             return self.output
@@ -184,10 +179,11 @@ class Query:
 
         self.mark_as_failed = False
         self._update_status(Status.COMPLETE)
-        self._update_thread_status(ThreadStatus.COMPLETE)
+        self._update_pretty_status(PrettyStatus.COMPLETE)
 
         self.output.set_s3_uri(self.output_s3_uri)
         self.output.set_output_path(output_path, self.unpacked_output_file_paths)
+        self.output.refresh_status()
         return self.output
 
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
@@ -224,7 +220,7 @@ class Query:
 
         create_response = requests.post(
             get_pipeline_segment_instances_url(),
-            headers=self.HEADERS,
+            headers=self.headers,
             json=create_body,
         )
         try:
@@ -245,7 +241,7 @@ class Query:
 
         response = requests.put(
             update_file_size_url,
-            headers=self.HEADERS,
+            headers=self.headers,
         )
         try:
             response.raise_for_status()
@@ -255,7 +251,7 @@ class Query:
 
     def _register_input_file(self, input_file_path, input_prefix, input_order, input_is_compressed):
         register_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_INSTANCE_URL,
+            self.pipeline_segment_instance_url,
             'input-files'
         ])
         file_name = os.path.basename(input_file_path)
@@ -269,7 +265,7 @@ class Query:
             file_name = os.path.basename(input_file_path.rstrip("/"))
         response = requests.post(
             register_input_file_url,
-            headers=self.HEADERS,
+            headers=self.headers,
             json={
                 "file_name": file_name,
                 "tool_prefix": input_prefix,
@@ -360,13 +356,13 @@ class Query:
                   'locally start Docker and retry.')
             return
         register_input_file_url = "/".join([
-            self.PIPELINE_SEGMENT_INSTANCE_URL,
+            self.pipeline_segment_instance_url,
             'docker-image'
         ])
 
         response = requests.post(
             register_input_file_url,
-            headers=self.HEADERS,
+            headers=self.headers,
             json={
                 "custom_docker_image_id": custom_docker_image_id,
             },
@@ -417,14 +413,11 @@ class Query:
             raise EnvironmentError('Unable to access ECR at this time. '
                                    'Contact Toolchest support if this error persists')
 
-    def _update_thread_status(self, new_status):
+    def _update_pretty_status(self, new_status):
         """
-        Updates the shared thread status.
+        Updates the shared pretty status.
         """
-        is_done = new_status == ThreadStatus.FAILED or new_status == ThreadStatus.COMPLETE
-        is_interrupting = self.thread_statuses.get(self.thread_name) == ThreadStatus.INTERRUPTING
-        if not is_interrupting or is_done:
-            self.thread_statuses[self.thread_name] = new_status
+        self.pretty_status = new_status
 
     def _update_status(self, new_status):
         """Updates the internal (API) status of the query's task(s).
@@ -433,8 +426,8 @@ class Query:
         """
 
         response = requests.put(
-            self.STATUS_URL,
-            headers=self.HEADERS,
+            self.status_url,
+            headers=self.headers,
             json={"status": new_status},
         )
         try:
@@ -443,6 +436,7 @@ class Query:
             print("Job status update failed.", file=sys.stderr)
             self._raise_for_failed_response(response)
 
+        self.output.refresh_status()
         return response
 
     def _update_status_to_failed(self, error_message, force_raise=False, print_msg=True):
@@ -451,16 +445,17 @@ class Query:
         Includes options to print an error message or raise a ToolchestException.
         To be called when the job fails.
         """
-        # Mark thread as failed
-        self._update_thread_status(ThreadStatus.FAILED)
+        # Mark query as failed
+        self._update_pretty_status(PrettyStatus.FAILED)
 
         # Mark pipeline segment instance as failed
-        if self.STATUS_URL:
+        if self.status_url:
             requests.put(
-                self.STATUS_URL,
-                headers=self.HEADERS,
+                self.status_url,
+                headers=self.headers,
                 json={"status": Status.FAILED, "error_message": error_message},
             )
+        self.output.refresh_status()
 
         self.mark_as_failed = False
         if force_raise:
@@ -487,17 +482,35 @@ class Query:
                     )
                 raise ToolchestJobError(response_body["error"]) from None
 
+    def _pretty_print_query_status(self, elapsed_time):
+        """Prints output of each job, supporting one query-associated job.
+
+        Looks like: Running job (ID: 13a0f434-a19f-4a52-899a-42c85de9b97e) | Duration: 0:03:15 | Status: downloading
+        """
+
+        job = f"Running job (ID: {self.pipeline_segment_instance_id})"
+        # The below duration is for display only, this is a hacky way to truncate the microseconds
+        truncated_duration = str(datetime.timedelta(seconds=elapsed_time)).split(".")[0]
+        jobs_duration = f"Duration: {truncated_duration}"
+
+        # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
+        max_length = 120
+        status_message = f"\r{job} | {jobs_duration} | Status: {self.pretty_status}"
+        print(f"{status_message}".ljust(max_length), end="\r")
+
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
         status = self.get_job_status()
         start_time = time.time()
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
-            self._check_if_should_terminate()
-
-            if self.streaming_client and not self.streaming_client.initialized:
-                self._setup_streaming()
-
             try:
+                # Set up output streaming upon transition to executing
+                if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.ready_to_stream:
+                    self._setup_streaming()
+                if self.streaming_client.ready_to_stream:
+                    print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
+                    print("".ljust(120), end="\r")
+                    asyncio.run(self.streaming_client.receive_stream())
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
                 if status == Status.FAILED:
@@ -508,6 +521,8 @@ class Query:
                     raise ToolchestJobError("Status check timed out during execution, retry limit exceeded.") from err
 
             elapsed_time = time.time() - start_time
+            if not self.streaming_client or not self.streaming_client.stream_is_open:
+                self._pretty_print_query_status(elapsed_time)
             leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
             time.sleep(leftover_delay)
 
@@ -517,9 +532,9 @@ class Query:
         """
 
         try:
-            self.output_s3_uri, output_file_keys = get_download_details(self.PIPELINE_SEGMENT_INSTANCE_ID)
+            self.output_s3_uri, output_file_keys = get_download_details(self.pipeline_segment_instance_id)
             if output_path and not path_is_s3_uri(output_path):
-                self._update_thread_status(ThreadStatus.DOWNLOADING)
+                self._update_pretty_status(PrettyStatus.DOWNLOADING)
                 self._update_status(Status.TRANSFERRING_TO_CLIENT)
                 self.unpacked_output_file_paths = download(
                     output_path=output_path,
@@ -542,22 +557,12 @@ class Query:
                 "Client exited before job completion.",
             )
 
-    def _check_if_should_terminate(self):
-        """Checks for flag set by parent process to see if it should terminate self."""
-        thread_status = self.thread_statuses.get(self.thread_name)
-        if thread_status == ThreadStatus.INTERRUPTING:
-            self._update_status_to_failed(
-                error_message="Terminating due to failure in sibling thread or parent process",
-                force_raise=False,
-                print_msg=False
-            )
-
     def get_job_status(self, return_error=False):
         """Gets status of current job (tasks)."""
 
         response = requests.get(
-            self.STATUS_URL,
-            headers=self.HEADERS
+            self.status_url,
+            headers=self.headers
         )
         try:
             response.raise_for_status()
@@ -572,8 +577,8 @@ class Query:
 
     def _setup_streaming(self):
         get_attrs_response = requests.get(
-            self.STREAMING_ATTRIBUTES_URL,
-            headers=self.HEADERS,
+            self.streaming_attributes_url,
+            headers=self.headers,
         )
         if get_attrs_response.ok:
             streaming_attributes = get_attrs_response.json()

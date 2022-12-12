@@ -28,7 +28,7 @@ class STARInstance(Tool):
             input_prefix_mapping=input_prefix_mapping,
             database_name=database_name,
             database_version=database_version,
-            parallel_enabled=False,  # True if parallelize else False
+            parallel_enabled=False,
             max_input_bytes_per_file=128 * 1024 * 1024 * 1024,
             max_input_bytes_per_file_parallel=4.5 * 1024 * 1024 * 1024,
             output_type=OutputType.SAM_FILE if parallelize else OutputType.GZ_TAR,
@@ -41,6 +41,3 @@ class STARInstance(Tool):
             ],
             **kwargs,
         )
-
-    def _merge_outputs(self, output_file_paths):
-        merge_sam_files(output_file_paths, self.output_path)
