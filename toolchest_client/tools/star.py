@@ -9,7 +9,7 @@ the STAR function called by the user, which is given in all caps
 to be in line with the command-line argument.
 """
 from . import Tool
-from toolchest_client.files import merge_sam_files, OutputType
+from toolchest_client.files import OutputType
 
 
 class STARInstance(Tool):

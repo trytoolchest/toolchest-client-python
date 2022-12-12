@@ -7,7 +7,6 @@ Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import os
 import re
-import sys
 
 from toolchest_client.api.auth import validate_key
 from toolchest_client.api.status import PrettyStatus
