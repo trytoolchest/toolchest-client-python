@@ -43,7 +43,7 @@ class Status(str, Enum):
     FAILED = "failed"
 
 
-class ThreadStatus(str, Enum):
+class PrettyStatus(str, Enum):
     """Status values for local threads"""
 
     INITIALIZING = "initializing"
