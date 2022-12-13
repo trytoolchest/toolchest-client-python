@@ -11,7 +11,7 @@ tool output files themselves.
 """
 
 from toolchest_client.api.download import download
-from toolchest_client.api.status import get_status
+from toolchest_client.api.status import get_status as get_api_status
 
 
 class Output:
@@ -77,7 +77,7 @@ class Output:
         return self.output_file_paths
 
     def refresh_status(self, **kwargs):
-        self.last_status = get_status(self.run_id, **kwargs)
+        self.last_status = get_api_status(self.run_id, **kwargs)
 
     def get_status(self, **kwargs):
         """
@@ -85,5 +85,5 @@ class Output:
         """
         if not self.run_id:
             raise ValueError("Cannot get status on an output that has no run_id")
-        self._refresh_status(**kwargs)
+        self.refresh_status(**kwargs)
         return self.last_status
