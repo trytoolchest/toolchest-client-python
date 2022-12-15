@@ -507,7 +507,7 @@ class Query:
                 # Set up output streaming upon transition to executing
                 if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.ready_to_stream:
                     self._setup_streaming()
-                if self.streaming_client.ready_to_stream:
+                if self.streaming_client.ready_to_stream and not self.streaming_client.stream_is_open:
                     print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
                     print("".ljust(120), end="\r")
                     try:
@@ -516,9 +516,11 @@ class Query:
                         loop = None
                     if loop and loop.is_running():
                         # Jupyter notebooks already have a running event loop, so we need to use that async event loop
-                        loop.create_task(self.streaming_client.receive_stream())
+                        task = loop.create_task(self.streaming_client.receive_stream())
                     else:
-                        asyncio.run(self.streaming_client.receive_stream())
+                        task = asyncio.run(self.streaming_client.receive_stream())
+                    # Block while waiting for output streaming to complete
+                    await asyncio.wait_for(task, timeout=None)
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
                 if status == Status.FAILED:
