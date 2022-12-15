@@ -8,6 +8,7 @@ receive and print output lines streamed from the Toolchest server.
 import asyncio
 import signal
 import ssl
+import time
 
 import websockets
 from websockets.exceptions import ConnectionClosed
@@ -57,23 +58,23 @@ class StreamingClient:
     def start_streaming(self):
         done_streaming = False
         # Use a hacky while loop to avoid propagating async patterns
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            # Jupyter notebooks already have a running event loop, so we need to use that async event loop
+            task = loop.create_task(self.receive_stream())
+        else:
+            task = asyncio.run(self.receive_stream())
+
+        # Cancel the task (and thus the entire run) on ctrl-c
+        loop.add_signal_handler(signal.SIGINT, task.cancel)
         while not done_streaming:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop and loop.is_running():
-                # Jupyter notebooks already have a running event loop, so we need to use that async event loop
-                task = loop.create_task(self.receive_stream())
-            else:
-                task = asyncio.run(self.receive_stream())
-
-            # Cancel the task (and thus the entire run) on ctrl-c
-            loop.add_signal_handler(signal.SIGINT, task.cancel)
-
             if task.done() and task.exception():
                 exception = task.exception()
                 raise exception
             elif task.done():
                 return
+            time.sleep(0.2)
