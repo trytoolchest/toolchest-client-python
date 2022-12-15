@@ -74,7 +74,6 @@ class StreamingClient:
 
             if task.done() and task.exception():
                 exception = task.exception()
-                task.cancel()
                 raise exception
             elif task.done():
                 return
