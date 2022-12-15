@@ -72,10 +72,9 @@ class StreamingClient:
             # Cancel the task (and thus the entire run) on ctrl-c
             loop.add_signal_handler(signal.SIGINT, task.cancel)
 
-            if task.exception():
+            if task.done() and task.exception():
                 exception = task.exception()
                 task.cancel()
                 raise exception
-
-            if task.done() and task.exception() is None:
+            elif task.done():
                 return
