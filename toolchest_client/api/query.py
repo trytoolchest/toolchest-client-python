@@ -510,7 +510,7 @@ class Query:
                 if self.streaming_client.ready_to_stream and not self.streaming_client.stream_is_open:
                     print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
                     print("".ljust(120), end="\r")
-                    self.streaming_client.start_streaming()
+                    self.streaming_client.stream()
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
                 if status == Status.FAILED:

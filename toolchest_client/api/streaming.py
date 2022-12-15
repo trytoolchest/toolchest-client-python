@@ -44,20 +44,22 @@ class StreamingClient:
         streaming_username = "toolchest"
         streaming_port = "8765"
         uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
+        print("Connecting to remote server for streaming...")
         async with websockets.connect(uri, ssl=self.ssl_context) as websocket:
+            print("Connected!")
             self.stream_is_open = True
             while self.stream_is_open:
                 try:
+                    print("Waiting for next stream...")
                     stream_lines = await websocket.recv()
                     print(stream_lines, end="")
                 except ConnectionClosed:
                     self.stream_is_open = False
                     self.ready_to_stream = False
-                    print("==> End of stream, connection closed by server <==")
+                    print("\nConnection closed by server.")
 
-    def start_streaming(self):
+    def stream(self):
         done_streaming = False
-        # Use a hacky while loop to avoid propagating async patterns
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -71,6 +73,8 @@ class StreamingClient:
 
         # Cancel the task (and thus the entire run) on ctrl-c
         loop.add_signal_handler(signal.SIGINT, task.cancel)
+
+        # Use a hacky while loop to avoid propagating async patterns
         while not done_streaming:
             if task.done() and task.exception():
                 exception = task.exception()
