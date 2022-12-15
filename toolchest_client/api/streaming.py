@@ -5,6 +5,8 @@ toolchest_client.api.streaming
 This module provides a StreamingClient object, used by Toolchest queries to
 receive and print output lines streamed from the Toolchest server.
 """
+import asyncio
+import signal
 import ssl
 
 import websockets
@@ -51,3 +53,29 @@ class StreamingClient:
                     self.stream_is_open = False
                     self.ready_to_stream = False
                     print("==> End of stream, connection closed by server <==")
+
+    def start_streaming(self):
+        done_streaming = False
+        # Use a hacky while loop to avoid propagating async patterns
+        while not done_streaming:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            if loop and loop.is_running():
+                # Jupyter notebooks already have a running event loop, so we need to use that async event loop
+                task = loop.create_task(self.receive_stream())
+            else:
+                task = asyncio.run(self.receive_stream())
+
+            # Cancel the task (and thus the entire run) on ctrl-c
+            loop.add_signal_handler(signal.SIGINT, task.cancel)
+
+            if task.exception():
+                exception = task.exception()
+                task.cancel()
+                raise exception
+
+            if task.done() and task.exception() is None:
+                return
