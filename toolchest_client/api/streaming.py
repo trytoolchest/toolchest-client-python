@@ -26,7 +26,8 @@ class StreamingClient:
         self.streaming_token = None
         self.streaming_ip_address = None
         self.streaming_tls_cert = None
-        self.ready_to_stream = False
+        self.initialized = False
+        self.ready_to_start = False
         self.stream_is_open = False
 
     def initialize_params(self, streaming_token, streaming_ip_address, streaming_tls_cert):
@@ -37,8 +38,8 @@ class StreamingClient:
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ssl_context.load_verify_locations(cadata=self.streaming_tls_cert)
         self.ssl_context = ssl_context
-
-        self.ready_to_stream = True
+        self.ready_to_start = True
+        self.initialized = True
 
     async def receive_stream(self):
         streaming_username = "toolchest"
@@ -55,30 +56,24 @@ class StreamingClient:
                     print(stream_lines, end="")
                 except ConnectionClosed:
                     self.stream_is_open = False
-                    self.ready_to_stream = False
                     print("\nConnection closed by server.")
 
+    def done_streaming(self, task):
+        if task.exception():
+            raise task.exception()
+
     def stream(self):
-        done_streaming = False
+        self.ready_to_start = False
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = None
 
         if loop and loop.is_running():
-            # Jupyter notebooks already have a running event loop, so we need to use that async event loop
+            # Jupyter notebooks already have as running event loop, so we need to use that async event loop
             task = loop.create_task(self.receive_stream())
         else:
             task = asyncio.run(self.receive_stream())
 
         # Cancel the task (and thus the entire run) on ctrl-c
         loop.add_signal_handler(signal.SIGINT, task.cancel)
-
-        # Use a hacky while loop to avoid propagating async patterns
-        while not done_streaming:
-            if task.done() and task.exception():
-                exception = task.exception()
-                raise exception
-            elif task.done():
-                return
-            time.sleep(0.2)

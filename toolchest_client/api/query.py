@@ -505,9 +505,9 @@ class Query:
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             try:
                 # Set up output streaming upon transition to executing
-                if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.ready_to_stream:
+                if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.initialized:
                     self._setup_streaming()
-                if self.streaming_client.ready_to_stream and not self.streaming_client.stream_is_open:
+                if self.streaming_client.ready_to_start and not self.streaming_client.stream_is_open:
                     print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
                     print("".ljust(120), end="\r")
                     self.streaming_client.stream()
