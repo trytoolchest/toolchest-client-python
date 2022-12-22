@@ -62,16 +62,19 @@ class StreamingClient:
                         print("\nConnection closed by server.")
                         return
             except ConnectionRefusedError:
+                print("Connection refused error")
                 if retry_count > 10:
                     raise RuntimeError("Can't connect to server. Try disabling output streaming and re-running.")
                 else:
                     continue
 
     def done_streaming(self, task):
+        print("Done streaming", task.done())
         if task.exception():
             raise task.exception()
 
     def stream(self):
+        print("Setting up streaming")
         self.ready_to_start = False
         try:
             loop = asyncio.get_running_loop()
