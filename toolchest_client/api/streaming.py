@@ -8,6 +8,7 @@ receive and print output lines streamed from the Toolchest server.
 import asyncio
 import signal
 import ssl
+import sys
 import time
 
 import websockets
@@ -46,6 +47,7 @@ class StreamingClient:
         streaming_port = "8765"
         uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
         print("Connecting to remote server for streaming...")
+        sys.stdout.flush()
         retry_count = 0
         while True:
             try:
