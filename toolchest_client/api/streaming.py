@@ -9,7 +9,6 @@ import asyncio
 import signal
 import ssl
 import sys
-import time
 
 import websockets
 from websockets.exceptions import ConnectionClosed
@@ -52,11 +51,10 @@ class StreamingClient:
         while True:
             try:
                 async for websocket in websockets.connect(uri, ssl=self.ssl_context):
+                    print("Connected!")
                     try:
-                        print("Connected!")
                         self.stream_is_open = True
                         while self.stream_is_open:
-                            print("Waiting for next stream...")
                             stream_lines = await websocket.recv()
                             print(stream_lines, end="")
                     except ConnectionClosed:
@@ -64,14 +62,13 @@ class StreamingClient:
                         print("\nConnection closed by server.")
                         return
             except ConnectionRefusedError:
-                print("Connection refused error")
-                if retry_count > 10:
+                retry_count += 1
+                if retry_count > 3:
                     raise RuntimeError("Can't connect to server. Try disabling output streaming and re-running.")
                 else:
                     continue
 
     def done_streaming(self, task):
-        print("Done streaming", task.done())
         if task.exception():
             raise task.exception()
 
@@ -84,11 +81,10 @@ class StreamingClient:
             loop = None
 
         if loop and loop.is_running():
-            # Jupyter notebooks already have as running event loop, so we need to use that async event loop
-            task = loop.create_task(self.receive_stream())
-            task.add_done_callback(self.done_streaming)
+            raise ValueError("Output streaming cannot be enabled within a running asyncio event loop.")
         else:
             task = asyncio.run(self.receive_stream())
+            task.add_done_callback(self.done_streaming)
 
         # Cancel the task (and thus the entire run) on ctrl-c
         loop.add_signal_handler(signal.SIGINT, task.cancel)
