@@ -47,7 +47,7 @@ class StreamingClient:
         uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
         print("Connecting to remote server for streaming...")
         retry_count = 0
-        while self.ready_to_start:
+        while True:
             try:
                 async for websocket in websockets.connect(uri, ssl=self.ssl_context):
                     try:
@@ -84,6 +84,7 @@ class StreamingClient:
         if loop and loop.is_running():
             # Jupyter notebooks already have as running event loop, so we need to use that async event loop
             task = loop.create_task(self.receive_stream())
+            task.add_done_callback(self.done_streaming)
         else:
             task = asyncio.run(self.receive_stream())
 
