@@ -46,17 +46,26 @@ class StreamingClient:
         streaming_port = "8765"
         uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
         print("Connecting to remote server for streaming...")
-        async with websockets.connect(uri, ssl=self.ssl_context) as websocket:
-            print("Connected!")
-            self.stream_is_open = True
-            while self.stream_is_open:
-                try:
-                    print("Waiting for next stream...")
-                    stream_lines = await websocket.recv()
-                    print(stream_lines, end="")
-                except ConnectionClosed:
-                    self.stream_is_open = False
-                    print("\nConnection closed by server.")
+        retry_count = 0
+        while self.ready_to_start:
+            try:
+                async for websocket in websockets.connect(uri, ssl=self.ssl_context):
+                    try:
+                        print("Connected!")
+                        self.stream_is_open = True
+                        while self.stream_is_open:
+                            print("Waiting for next stream...")
+                            stream_lines = await websocket.recv()
+                            print(stream_lines, end="")
+                    except ConnectionClosed:
+                        self.stream_is_open = False
+                        print("\nConnection closed by server.")
+                        return
+            except ConnectionRefusedError:
+                if retry_count > 10:
+                    raise RuntimeError("Can't connect to server. Try disabling output streaming and re-running.")
+                else:
+                    continue
 
     def done_streaming(self, task):
         if task.exception():
