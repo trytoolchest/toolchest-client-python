@@ -352,8 +352,8 @@ class Query:
         except ImageNotFound:
             return
         except (APIError, DockerException):
-            print('Unable to connect to Docker. Assuming image is accessible in a registry. If the image is hosted '
-                  'locally start Docker and retry.')
+            print(f"Unable to find Docker running on this machine, assuming {custom_docker_image_id} is in Dockerhub. "
+                  "If it's on this machine, start Docker and rerun.")
             return
         register_input_file_url = "/".join([
             self.pipeline_segment_instance_url,
