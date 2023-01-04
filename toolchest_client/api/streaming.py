@@ -6,7 +6,6 @@ This module provides a StreamingClient object, used by Toolchest queries to
 receive and print output lines streamed from the Toolchest server.
 """
 import asyncio
-import signal
 import ssl
 import sys
 
@@ -79,7 +78,4 @@ class StreamingClient:
         if loop and loop.is_running():
             raise ValueError("Output streaming cannot be enabled within a running asyncio event loop.")
         else:
-            task = asyncio.run(self.receive_stream())
-
-        # Cancel the task (and thus the entire run) on ctrl-c
-        # loop.add_signal_handler(signal.SIGINT, task.cancel)
+            asyncio.run(self.receive_stream())

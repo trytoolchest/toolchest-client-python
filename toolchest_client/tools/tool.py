@@ -242,7 +242,6 @@ class Tool:
                       "To suppress this message, set `streaming_enabled=False`")
                 self.streaming_enabled = False
 
-
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
         if self._output_path_is_local() and not self.is_async:
