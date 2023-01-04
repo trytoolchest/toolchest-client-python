@@ -68,7 +68,6 @@ class StreamingClient:
                     continue
 
     def stream(self):
-        print("Setting up streaming")
         self.ready_to_start = False
         try:
             loop = asyncio.get_running_loop()
