@@ -68,10 +68,6 @@ class StreamingClient:
                 else:
                     continue
 
-    def done_streaming(self, task):
-        if task.exception():
-            raise task.exception()
-
     def stream(self):
         print("Setting up streaming")
         self.ready_to_start = False
@@ -84,7 +80,6 @@ class StreamingClient:
             raise ValueError("Output streaming cannot be enabled within a running asyncio event loop.")
         else:
             task = asyncio.run(self.receive_stream())
-            task.add_done_callback(self.done_streaming)
 
         # Cancel the task (and thus the entire run) on ctrl-c
-        loop.add_signal_handler(signal.SIGINT, task.cancel)
+        # loop.add_signal_handler(signal.SIGINT, task.cancel)
