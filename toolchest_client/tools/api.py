@@ -804,7 +804,7 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
 
 def lug(script, tool_version, custom_docker_image_id, container_name, docker_shell_location, inputs=None,
         output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True,
-        **kwargs):
+        pip_dependencies=None, **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
@@ -819,6 +819,7 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
     :param instance_type: (optional) allows you to select the instance that best fits the resources required for your
     script. Can accept the InstanceType enum or the underlying string (i.e. InstanceType.GENERAL_2 or "general-2").
     :param volume_size: (optional) allows you to set the amount of storage needed for your script.
+    :param pip_dependencies: (optional) dependencies for the function to pip install.
     :param streaming_enabled: (optional) whether to enable live output streaming.
     usage::
         >>> import toolchest_client as toolchest
@@ -838,7 +839,8 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
     if type(inputs) is str:
         inputs = [inputs]
     inputs.append(script)
-    tool_args = f'./input/{os.path.basename(script)};{container_name};{docker_shell_location};{tool_args}'
+    tool_args = \
+        f'./input/{os.path.basename(script)};{container_name};{docker_shell_location};{tool_args};{pip_dependencies}'
     instance = Lug(
         tool_args=tool_args,
         tool_version=tool_version,
