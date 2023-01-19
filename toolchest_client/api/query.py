@@ -5,7 +5,6 @@ toolchest_client.api.query
 This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
-import asyncio
 import datetime
 import os
 import sys
@@ -352,8 +351,8 @@ class Query:
         except ImageNotFound:
             return
         except (APIError, DockerException):
-            print('Unable to connect to Docker. Assuming image is accessible in a registry. If the image is hosted '
-                  'locally start Docker and retry.')
+            print(f"Unable to find Docker running on this machine, assuming {custom_docker_image_id} is in Dockerhub. "
+                  "If it's on this machine, start Docker and rerun.")
             return
         register_input_file_url = "/".join([
             self.pipeline_segment_instance_url,
@@ -505,12 +504,12 @@ class Query:
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             try:
                 # Set up output streaming upon transition to executing
-                if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.ready_to_stream:
+                if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.initialized:
                     self._setup_streaming()
-                if self.streaming_client.ready_to_stream:
+                if self.streaming_client.ready_to_start and not self.streaming_client.stream_is_open:
                     print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
                     print("".ljust(120), end="\r")
-                    asyncio.run(self.streaming_client.receive_stream())
+                    self.streaming_client.stream()
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
                 if status == Status.FAILED:

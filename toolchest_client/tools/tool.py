@@ -5,6 +5,7 @@ toolchest_client.tools.tool
 This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
+import asyncio
 import os
 import re
 
@@ -229,6 +230,17 @@ class Tool:
             else:
                 os.makedirs(self.output_path, exist_ok=True)
             self._warn_if_outputs_exist()
+
+        # Check if running in a Jupyter notebook and disable output streaming
+        if self.streaming_enabled:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            if loop:
+                print("It looks like you're using a notebook, so we've disabled output streaming. "
+                      "To suppress this message, set `streaming_enabled=False`")
+                self.streaming_enabled = False
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
