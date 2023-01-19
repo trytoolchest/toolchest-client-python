@@ -833,7 +833,7 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
         ... )
     """
     if tool_version not in ['3.8', '3.9', '3.10', '3.11']:
-        raise ToolchestException('Incompatible python version. Must be one of [3.7, 3.8, 3.9, 3.10, 3.11].')
+        raise ToolchestException('Incompatible python version. Must be one of [3.8, 3.9, 3.10, 3.11].')
     if inputs is None:
         inputs = []
     if type(inputs) is str:
