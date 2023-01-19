@@ -6,24 +6,14 @@ This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import asyncio
-import copy
-import datetime
 import os
 import re
-import signal
-import sys
-from threading import Thread
-import time
 
 from toolchest_client.api.auth import validate_key
-from toolchest_client.api.exceptions import ToolchestException
-from toolchest_client.api.output import Output
-from toolchest_client.api.status import ThreadStatus
-from toolchest_client.api.streaming import StreamingClient
+from toolchest_client.api.status import PrettyStatus
 from toolchest_client.api.query import Query
-from toolchest_client.files import files_in_path, split_file_by_lines, sanity_check, check_file_size, \
-    split_paired_files_by_lines, compress_files_in_path, OutputType
-from toolchest_client.files.s3 import inputs_are_in_s3, path_is_s3_uri
+from toolchest_client.files import files_in_path, sanity_check, check_file_size, compress_files_in_path, OutputType
+from toolchest_client.files.s3 import path_is_s3_uri
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
@@ -73,11 +63,8 @@ class Tool:
         self.compress_inputs = compress_inputs
         self.max_input_bytes_per_file = max_input_bytes_per_file
         self.max_input_bytes_per_file_parallel = max_input_bytes_per_file_parallel
-        self.query_threads = []
-        self.query_thread_statuses = dict()
         self.terminating = False
         self.output_type = output_type or OutputType.FLAT_TEXT
-        self.thread_outputs = {}
         self.expected_output_file_names = expected_output_file_names or []
         self.is_async = is_async
         self.is_database_update = is_database_update
@@ -88,12 +75,8 @@ class Tool:
         self.volume_size = volume_size
         # auto-disable streaming if job is async
         self.streaming_enabled = False if self.is_async else streaming_enabled
-        self.streaming_client = None
-        self.streaming_asyncio_task = None
         self.elapsed_seconds = 0
         self.retain_base_directory = retain_base_directory
-        signal.signal(signal.SIGTERM, self._handle_termination)
-        signal.signal(signal.SIGINT, self._handle_termination)
 
     def _prepare_inputs(self):
         """Prepares the input files."""
@@ -224,10 +207,6 @@ class Tool:
         if self.inputs is None:
             raise ValueError("No input provided.")
 
-    def _merge_outputs(self, output_file_paths):
-        """Merges output files for parallel runs."""
-        raise NotImplementedError(f"Merging outputs not enabled for this tool {self.tool_name}")
-
     def _warn_if_outputs_exist(self):
         """Warns if default output files already exist in the output directory"""
         for file_path in self.expected_output_file_names + ["output", "output.tar.gz"]:
@@ -252,6 +231,17 @@ class Tool:
                 os.makedirs(self.output_path, exist_ok=True)
             self._warn_if_outputs_exist()
 
+        # Check if running in a Jupyter notebook and disable output streaming
+        if self.streaming_enabled:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            if loop:
+                print("It looks like you're using a notebook, so we've disabled output streaming. "
+                      "To suppress this message, set `streaming_enabled=False`")
+                self.streaming_enabled = False
+
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
         if self._output_path_is_local() and not self.is_async:
@@ -261,195 +251,10 @@ class Tool:
                     output_file_path = f"{self.output_path}/{output_file_name}"
                     sanity_check(output_file_path)
 
-    def _system_supports_parallel_execution(self):
-        """Checks if parallel execution is supported on the platform.
-
-        Right now, this blindly rejects anything other than Linux or macOS.
-        Windows is not currently supported, because pysam requires htslib
-        """
-        if sys.platform not in {'linux', 'darwin'}:
-            raise NotImplementedError(f"Parallel execution is not yet supported for your OS: {sys.platform}")
-        return True
-
-    def _pretty_print_pipeline_segment_status(self):
-        """Prints output of each job, supporting multiple simultaneous jobs.
-
-        Looks like: Running 2 jobs | Duration: 0:03:15 | 1 jobs complete | 1 jobs downloading
-        """
-        status_counts = {}
-        for thread_name, thread_status in self.query_thread_statuses.items():
-            if status_counts.get(thread_status):
-                status_counts[thread_status] = status_counts[thread_status] + 1
-            else:
-                status_counts[thread_status] = 1
-
-        job_or_jobs = "job" if len(self.query_threads) == 1 else "jobs"
-        status_count = ""
-        for status_name in status_counts:
-            status_count += f"| {status_counts[status_name]} {job_or_jobs} {status_name} "
-
-        job_count = f"Running {len(self.query_threads)} {job_or_jobs}"
-        jobs_duration = f"Duration: {str(datetime.timedelta(seconds=self.elapsed_seconds))}"
-
-        # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
-        max_length = 120
-        status_message = f"\r{job_count} | {jobs_duration} {status_count}"
-        print(f"{status_message}".ljust(max_length), end="\r")
-
-    def _handle_termination(self, signal_number, *_):
-        """
-        Handles termination by killing threads and stopping the output stream.
-
-        If two signals are received in a row (e.g. two ctrl-c's), raises an error without killing threads.
-        """
-        if self.terminating:
-            raise InterruptedError("Toolchest client force killed")
-        self.terminating = True
-        if self.streaming_asyncio_task and not self.streaming_asyncio_task.done():
-            self.streaming_asyncio_task.cancel()
-        self._kill_query_threads()
-        raise InterruptedError(f"Toolchest client interrupted by signal #{signal_number}")
-
-    def _kill_query_threads(self):
-        """
-        Sends a signal to threads to terminate.
-
-        Query threads occasionally check the flag for termination, so they may take a while to terminate.
-        """
-        for thread in self.query_threads:
-            thread_name = thread.getName()
-            thread_status = self.query_thread_statuses.get(thread_name)
-            if thread.is_alive() and thread_status not in {ThreadStatus.COMPLETE, ThreadStatus.FAILED}:
-                self.query_thread_statuses[thread_name] = ThreadStatus.INTERRUPTING
-
-        # Wait for remaining threads to finish terminating
-        increment_seconds = 5
-        for thread in self.query_threads:
-            while thread.is_alive():
-                self._pretty_print_pipeline_segment_status()
-                self.elapsed_seconds += increment_seconds
-                time.sleep(increment_seconds)
-        for thread in self.query_threads:
-            thread.join()
-
-    def _check_thread_health(self):
-        """Checks for any thread that has ended without reaching a "success" state, and propagates errors"""
-        for thread in self.query_threads:
-            thread_name = thread.getName()
-            thread_status = self.query_thread_statuses.get(thread_name)
-            success_status = ThreadStatus.EXECUTING if self.is_async else ThreadStatus.COMPLETE
-            if not thread.is_alive() and thread_status != success_status:
-                self._kill_query_threads()
-                raise ToolchestException("A job irrecoverably failed. See logs above for details.")
-
-    def _start_or_check_stream(self):
-        # Start streaming (in place of regular status updates).
-        if not self.streaming_asyncio_task:
-            # Clear the last status line before streaming begins
-            print("".ljust(120), end="\r")
-            self.streaming_asyncio_task = asyncio.create_task(self.streaming_client.receive_stream())
-        # Check if an exception was raised in the streaming task
-        elif self.streaming_asyncio_task.done() and self.streaming_asyncio_task.exception():
-            self._kill_query_threads()
-            error_message = (
-                "An error was encountered during output streaming. See logs above for details."
-            )
-            raise ToolchestException(error_message) from self.streaming_asyncio_task.exception()
-
-    async def _wait_for_threads_to_finish(self):
-        """Waits for all jobs and their corresponding threads to finish while printing their statuses
-        or streaming thread output, if enabled."""
-        # Wait for all threads to finish uploading
-        self._wait_for_threads_to_upload()
-
-        for thread in self.query_threads:
-            increment_seconds = 5
-            while thread.is_alive():
-                self._check_thread_health()
-
-                if self.streaming_enabled and self.streaming_client.initialized:
-                    self._start_or_check_stream()
-                else:
-                    self._pretty_print_pipeline_segment_status()
-
-                self.elapsed_seconds += increment_seconds
-                await asyncio.sleep(increment_seconds)
-
-            # Wait for the stream to complete before printing final status line
-            if self.streaming_asyncio_task:
-                await self.streaming_asyncio_task
-
-            thread_name = thread.getName()
-            thread_final_status = self.query_thread_statuses.get(thread_name)
-            if thread_final_status == ThreadStatus.COMPLETE:
-                self._pretty_print_pipeline_segment_status()
-        print("")
-
-        # Double check all threads are complete for safety
-        for thread in self.query_threads:
-            thread.join()
-
-    def _wait_for_threads_to_upload(self):
-        """Waits for all jobs to finish uploading. To be used only at the start of a run."""
-        uploading = True
-        while uploading:
-            # Verify that all threads are healthy while uploading
-            self._check_thread_health()
-
-            statuses = []
-            for thread in self.query_threads:
-                thread_name = thread.getName()
-                statuses.append(self.query_thread_statuses.get(thread_name))
-            uploading = any(
-                map(lambda status: status in [ThreadStatus.INITIALIZING, ThreadStatus.INITIALIZED,
-                                              ThreadStatus.UPLOADING], statuses)
-            )
-            if uploading:
-                time.sleep(5)
-
-    def _generate_jobs(self, should_run_in_parallel):
-        """Generates staggered jobs for both parallel and non-parallel runs.
-
-        Each job is simply an array containing the input file paths for the job, as the rest
-        of the context is shared amongst jobs (e.g. tool, database, prefix mapping, etc.).
-
-        Note that this is a generator.
-        """
-
-        if should_run_in_parallel:
-            if not self.group_paired_ends:
-                # Arbitrary parallelization – assume only one input file which is to be split
-                adjusted_input_file_paths = split_file_by_lines(
-                    input_file_path=self.input_files[0],
-                    max_bytes=self.max_input_bytes_per_file_parallel,
-                )
-                for _, file_path in adjusted_input_file_paths:
-                    # This is assuming only one input file per parallel run.
-                    # This will need to be changed once we support multiple input files for parallelization.
-                    yield [file_path]
-            else:
-                # Grouped parallelization. Right now, this only supports grouping by R1/R2 for paired-end inputs
-                input_file_paths_pairs = split_paired_files_by_lines(
-                    input_file_paths=self.input_files,
-                    max_bytes=self.max_input_bytes_per_file_parallel,
-                )
-                for input_file_path_pair in input_file_paths_pairs:
-                    yield input_file_path_pair
-
-        else:
-            # Make sure we're below tool limit for non-splittable files
-            for file_path in self.input_files:
-                check_file_size(file_path, max_size_bytes=self.max_input_bytes_per_file)
-            # Note that for a tool like Unicycler, this would look like:
-            # [["r1.fastq", "r2.fastq", "unassembled.fasta"]]
-            # As there are multiple input files required for the job
-            yield self.input_files
-
     def run(self):
         """Constructs and runs a Toolchest query."""
         print("Beginning Toolchest analysis run.")
 
-        # todo: better propagate and handle errors for parallel runs
         self._validate_args()
 
         # Preflight check should occur after validating args, as validation may affect the preflight check
@@ -460,137 +265,76 @@ class Tool:
 
         print(f"Found {self.num_input_files} files to upload.")
 
-        if self.streaming_enabled:
-            self.streaming_client = StreamingClient()
+        query = Query(
+            is_async=self.is_async,
+            streaming_enabled=self.streaming_enabled,
+        )
 
-        should_run_in_parallel = self.parallel_enabled \
-            and not any(inputs_are_in_s3(self.input_files)) \
-            and (self.group_paired_ends or self.num_input_files == 1) \
-            and self._system_supports_parallel_execution()
+        for file_path in self.input_files:
+            check_file_size(file_path, max_size_bytes=self.max_input_bytes_per_file)
 
-        if should_run_in_parallel and self.is_async:
-            print("WARNING: Disabling async execution for parallel run. This run will be synchronous.")
-            self.is_async = False
+        query_output = query.run_query(
+            remote_database_path=self.remote_database_path,
+            remote_database_primary_name=self.remote_database_primary_name,
+            custom_docker_image_id=self.custom_docker_image_id,
+            database_name=self.database_name,
+            database_version=self.database_version,
+            input_files=self.input_files,
+            input_is_compressed=self.compress_inputs,
+            input_prefix_mapping=self.input_prefix_mapping,
+            instance_type=self.instance_type,
+            is_database_update=self.is_database_update,
+            database_primary_name=self.database_primary_name,
+            output_path=self.output_path,
+            output_primary_name=self.output_primary_name,
+            output_type=self.output_type,
+            skip_decompression=self.skip_decompression,
+            tool_name=self.tool_name,
+            tool_version=self.tool_version,
+            tool_args=self.tool_args,
+            volume_size=self.volume_size,
+        )
 
-        jobs = self._generate_jobs(should_run_in_parallel)
-
-        # Set up the individual queries for parallelization
-        # Note that this is relying on a result from the generator, so these are slightly staggered
-        temp_input_file_paths = []
-        temp_output_file_paths = []
-        non_parallel_output_path = self.output_path
-        for thread_index, input_files in enumerate(jobs):
-            # Add split files for merging and later deletion, if running in parallel
-            # TODO: handle parallel output for s3 uri
-            temp_parallel_output_file_path = f"{self.output_path}_{thread_index}"
-            if should_run_in_parallel:
-                temp_input_file_paths += input_files
-                temp_output_file_paths.append(temp_parallel_output_file_path)
-
-            # Create a new Output for the thread.
-            self.thread_outputs[thread_index] = Output()
-            q = Query(
-                stored_output=self.thread_outputs[thread_index],
-                is_async=self.is_async,
-                streaming_enabled=self.streaming_enabled,
-                streaming_client=self.streaming_client,
-            )
-
-            # Deep copy to make thread safe
-            # Note: multithreaded download may be broken with output_path refactor
-            query_args = copy.deepcopy({
-                "remote_database_path": self.remote_database_path,
-                "remote_database_primary_name": self.remote_database_primary_name,
-                "custom_docker_image_id": self.custom_docker_image_id,
-                "database_name": self.database_name,
-                "database_version": self.database_version,
-                "input_files": input_files,
-                "input_is_compressed": self.compress_inputs,
-                "input_prefix_mapping": self.input_prefix_mapping,
-                "instance_type": self.instance_type,
-                "is_database_update": self.is_database_update,
-                "database_primary_name": self.database_primary_name,
-                "output_path": temp_parallel_output_file_path if should_run_in_parallel else non_parallel_output_path,
-                "output_primary_name": self.output_primary_name,
-                "output_type": self.output_type,
-                "skip_decompression": self.skip_decompression,
-                "tool_name": self.tool_name,
-                "tool_version": self.tool_version,
-                "tool_args": self.tool_args,
-                "volume_size": self.volume_size
-            })
-
-            # Add non-distinct dictionary for status updates
-            query_args["thread_statuses"] = self.query_thread_statuses
-
-            new_thread = Thread(target=q.run_query, kwargs=query_args)
-            self.query_threads.append(new_thread)
-            self.query_thread_statuses[new_thread.getName()] = ThreadStatus.INITIALIZING
-
-            new_thread.start()
-
-        asyncio.run(self._wait_for_threads_to_finish())
-
-        # Check for interrupted or failed threads
-        # Note: if async, then the query exits at thread status "executing"
-        success_status = ThreadStatus.EXECUTING if self.is_async else ThreadStatus.COMPLETE
-        run_failed = not all(status == success_status for status in self.query_thread_statuses.values())
+        # Check for interrupted or failed query
+        # Note: if async, then the query exits at status "executing"
+        success_status = PrettyStatus.EXECUTING if self.is_async else PrettyStatus.COMPLETE
+        run_failed = query_output.last_status != success_status
         if run_failed or self.terminating:
-            run_ids = [thread_output.run_id for thread_output in self.thread_outputs.values()]
-            # Prints each run_id to a new line, surrounded by quotes, prefaced by tab
-            pretty_print_run_ids = '\t\"' + '\"\n\t\"'.join(run_ids) + '\"'
             print(
                 "\nToolchest run failed. "
                 "For support, contact Toolchest with the error log (above) and the following details:\n\n"
-                f"run_id: {pretty_print_run_ids}\n"
+                f"run_id: {query.pipeline_segment_instance_id}\n"
             )
-            if not should_run_in_parallel:
-                return self.thread_outputs[0]
-            return
+            return query_output
 
-        # Do basic check for completion, merge output files, delete temporary files
-        if should_run_in_parallel:
-            for temp_parallel_output_file_path in temp_output_file_paths:
-                sanity_check(temp_parallel_output_file_path)
-            print(f"Merging {len(temp_output_file_paths)} output files...")
-            self._merge_outputs(temp_output_file_paths)
-            print("Merging of files complete.")
-            print("Deleting temporary files...")
-            temporary_file_paths = temp_input_file_paths + temp_output_file_paths
-            for temporary_file_path in temporary_file_paths:
-                print(f"Deleting {temporary_file_path}...")
-                os.remove(temporary_file_path)
-            print("Temporary files deleted.")
+        # Do basic check for completion, merge output files
+        self._postflight(query_output)
+        run_id = query_output.run_id
+        # Print initial completion message
+        if self.is_async:
+            print(
+                f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n"
+                f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
+            )
         else:
-            self._postflight(self.thread_outputs[0])
-            run_id = self.thread_outputs[0].run_id
-            # Print initial completion message
+            conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
+            print(
+                f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
+            )
+        # Print details about new DB or how to download, depending on whether this is a DB update
+        if self.is_database_update:
+            print(
+                f"The parameters of your new database are:\n"
+                f"\tdatabase_name: \"{query_output.database_name}\"\n"
+                f"\tdatabase_version: \"{query_output.database_version}\"\n"
+            )
+        else:
             if self.is_async:
                 print(
-                    f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n"
-                    f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
+                    f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) "
+                    "within 7 days\n"
                 )
             else:
-                conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
-                print(
-                    f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
-                )
-            # Print details about new DB or how to download, depending on whether this is a DB update
-            if self.is_database_update:
-                print(
-                    f"The parameters of your new database are:\n"
-                    f"\tdatabase_name: \"{self.thread_outputs[0].database_name}\"\n"
-                    f"\tdatabase_version: \"{self.thread_outputs[0].database_version}\"\n"
-                )
-            else:
-                if self.is_async:
-                    print(
-                        f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) "
-                        "within 7 days\n"
-                    )
-                else:
-                    print(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
+                print(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
 
-        # Note: output information is only returned if parallelization is disabled
-        if not should_run_in_parallel:
-            return self.thread_outputs[0]
+        return query_output
