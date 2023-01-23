@@ -5,6 +5,7 @@ toolchest_client.tools.api
 This module contains the API for using Toolchest tools.
 """
 import json
+from loguru import logger
 import os.path
 from datetime import date
 
@@ -49,11 +50,11 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     if 'instance_type' in kwargs:
         raise ToolchestException("Argument 'instance_type' is not supported by Alphafold currently.")
     tool_args = (
-        (f"--model_preset={model_preset} " if model_preset is not None else "") +
-        (f"--max_template_date={max_template_date} " if max_template_date is not None
-         else f"--max_template_date={date.today().strftime('%Y-%m-%d')} ") +
-        (f"--is_prokaryote_list={is_prokaryote_list} " if is_prokaryote_list is not None else "") +
-        ("--db_preset=reduced_dbs " if use_reduced_dbs else "")
+            (f"--model_preset={model_preset} " if model_preset is not None else "") +
+            (f"--max_template_date={max_template_date} " if max_template_date is not None
+             else f"--max_template_date={date.today().strftime('%Y-%m-%d')} ") +
+            (f"--is_prokaryote_list={is_prokaryote_list} " if is_prokaryote_list is not None else "") +
+            ("--db_preset=reduced_dbs " if use_reduced_dbs else "")
     )
     instance = AlphaFold(
         inputs=inputs,
@@ -506,18 +507,18 @@ provided.
 
       """
     if isinstance(inputs, list) and len(inputs) > 1:
-        print("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be concatenated "
-              "before being passed in as input.")
-        print("To run the files individually, use a separate humann3 function call for each input.")
+        logger.error("Multiple inputs detected. Following HUMAnN 3 recommendations, paired-end files should be "
+                     "concatenated before being passed in as input.")
+        logger.error("To run the files individually, use a separate humann3 function call for each input.")
         raise ToolchestException("humann3 only supports single input files.")
     elif isinstance(inputs, list):
         inputs = inputs[0]
     if mode.value[1] and output_primary_name is None:
-        print('WARNING: No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
+        logger.warning('No output_primary_name provided to mode that requires one. Using "output.tsv" as a default.')
         output_primary_name = "output.tsv"
     elif not mode.value[1] and output_primary_name is not None:
-        print(f'WARNING: No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
-              'Removing output_primary_name to continue execution.')
+        logger.warning(f'No output_primary_name should be set for mode: {mode.value[0]}, as it outputs to a directory. '
+                       'Removing output_primary_name to continue execution.')
         output_primary_name = None
 
     tool_args = " ".join([mode.value[0], tool_args])
