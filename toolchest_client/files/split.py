@@ -4,7 +4,7 @@ toolchest_client.files.split
 
 Functions for splitting files
 """
-import loguru as logger
+from loguru import logger
 import os
 import pathlib
 import re
