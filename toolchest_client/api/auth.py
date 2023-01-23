@@ -5,7 +5,7 @@ toolchest_client.api.auth
 This module contains functions for configuring the Toolchest API key.
 
 """
-
+from loguru import logger
 import os
 import sys
 
@@ -22,9 +22,9 @@ def get_key():
     try:
         key = os.environ["TOOLCHEST_KEY"]
     except KeyError as e:
-        print("Key not found. Please set environment variable TOOLCHEST_KEY to your Toolchest API key.")
-        print("Function call:")
-        print("    toolchest_client.set_key(YOUR_KEY_HERE)")
+        logger.error("Key not found. Please set environment variable TOOLCHEST_KEY to your Toolchest API key.")
+        logger.error("Function call:")
+        logger.error("    toolchest_client.set_key(YOUR_KEY_HERE)")
         return e
     return key
 
@@ -60,7 +60,7 @@ def validate_key():
         validation_response.raise_for_status()
     except HTTPError:
         error_message = "Invalid Toolchest auth key. Please check the key value or contact Toolchest."
-        print(error_message, file=sys.stderr)
+        logger.error(error_message, file=sys.stderr)
         raise ToolchestKeyError(error_message) from None
 
 

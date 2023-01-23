@@ -6,6 +6,7 @@ This is the base class from which all tools descend.
 Tool must be extended by an implementation (see kraken2.py) to be functional.
 """
 import asyncio
+from loguru import logger
 import os
 import re
 
@@ -14,6 +15,7 @@ from toolchest_client.api.status import PrettyStatus
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, sanity_check, check_file_size, compress_files_in_path, OutputType
 from toolchest_client.files.s3 import path_is_s3_uri
+from toolchest_client.logging import setup_logging
 from toolchest_client.tools.tool_args import TOOL_ARG_LISTS, VARIABLE_ARGS
 
 FOUR_POINT_FIVE_GIGABYTES = int(4.5 * 1024 * 1024 * 1024)
@@ -31,7 +33,7 @@ class Tool:
                  output_type=OutputType.FLAT_TEXT, expected_output_file_names=None,
                  is_async=False, is_database_update=False, database_primary_name=None,
                  skip_decompression=False, custom_docker_image_id=None, instance_type=None,
-                 volume_size=None, streaming_enabled=False, retain_base_directory=False):
+                 volume_size=None, streaming_enabled=False, retain_base_directory=False, log_level=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -77,6 +79,7 @@ class Tool:
         self.streaming_enabled = False if self.is_async else streaming_enabled
         self.elapsed_seconds = 0
         self.retain_base_directory = retain_base_directory
+        setup_logging(log_level)
 
     def _prepare_inputs(self):
         """Prepares the input files."""
@@ -168,12 +171,12 @@ class Tool:
                     unknown_args.append(arg)
 
         if blacklisted_args or (unknown_args and not (len(whitelist.keys()) == 1 and "*" in whitelist.keys())):
-            print("Non-allowed arguments found in tool_args:")
-            print(
+            logger.error("Non-allowed arguments found in tool_args:")
+            logger.error(
                 f"Blacklisted arguments (these are known to cause Toolchest to fail): \
 {blacklisted_args if blacklisted_args else '(none)'}"
             )
-            print(
+            logger.error(
                 f"Unknown arguments (these are not yet validated for use with Toolchest – please contact us!): \
 {unknown_args if unknown_args else '(none)'}"
             )
@@ -184,8 +187,8 @@ class Tool:
             return
 
         if dangerous_args:
-            print("WARNING: dangerous arguments found in tool_args. This disables validation and parallelization!")
-            print(f"Dangerous arguments: {dangerous_args}")
+            logger.warning("Dangerous arguments found in tool_args. This disables validation and parallelization!")
+            logger.warning(f"Dangerous arguments: {dangerous_args}")
             # Disable parallelization, validation, and revert to plain compressed output
             self.output_validation_enabled = False
             self.parallel_enabled = False
@@ -194,9 +197,9 @@ class Tool:
         sanitized_args = " ".join(sanitized_args)
         if sanitized_args != self.tool_args:
             self.tool_args = sanitized_args
-        print("Processing tool_args as:")
+        logger.debug("Processing tool_args as:")
         pretty_print_args = self.tool_args if self.tool_args else "(no tool_args set)"
-        print(f"\t{pretty_print_args}")
+        logger.debug(f"\t{pretty_print_args}")
 
     def _validate_args(self):
         # Perform a deep tool_args validation
@@ -212,7 +215,7 @@ class Tool:
         for file_path in self.expected_output_file_names + ["output", "output.tar.gz"]:
             joined_file_path = os.path.join(self.output_path, file_path)
             if os.path.exists(joined_file_path):
-                print(f"WARNING: {joined_file_path} already exists and will be overwritten")
+                logger.warning(f"{joined_file_path} already exists and will be overwritten")
 
     def _preflight(self):
         """Generic preflight check. Tools can have more specific implementations."""
@@ -238,22 +241,24 @@ class Tool:
             except RuntimeError:
                 loop = None
             if loop:
-                print("It looks like you're using a notebook, so we've disabled output streaming. "
-                      "To suppress this message, set `streaming_enabled=False`")
+                logger.info("It looks like you're using a notebook, so we've disabled output streaming. "
+                            "To suppress this message, set `streaming_enabled=False`")
                 self.streaming_enabled = False
 
     def _postflight(self, output):
         """Generic postflight check. Tools can have more specific implementations."""
         if self._output_path_is_local() and not self.is_async:
             if self.output_validation_enabled:
-                print("Checking output...")
+                # mark: quiet
+                logger.debug("Checking output...")
                 for output_file_name in self.expected_output_file_names:
                     output_file_path = f"{self.output_path}/{output_file_name}"
                     sanity_check(output_file_path)
 
     def run(self):
         """Constructs and runs a Toolchest query."""
-        print("Beginning Toolchest analysis run.")
+        # mark: quiet
+        logger.debug("Beginning Toolchest analysis run.")
 
         self._validate_args()
 
@@ -263,7 +268,9 @@ class Tool:
         # Prepare input files (expand paths, compress, etc)
         self._prepare_inputs()
 
-        print(f"Found {self.num_input_files} files to upload.")
+        logger.debug(f"Found {self.num_input_files} files to upload.")
+        logger.info('Packaging and uploading run now. '
+                    'This might take a while. For progress logs, set log_level="DEBUG"')
 
         query = Query(
             is_async=self.is_async,
@@ -300,7 +307,7 @@ class Tool:
         success_status = PrettyStatus.EXECUTING if self.is_async else PrettyStatus.COMPLETE
         run_failed = query_output.last_status != success_status
         if run_failed or self.terminating:
-            print(
+            logger.error(
                 "\nToolchest run failed. "
                 "For support, contact Toolchest with the error log (above) and the following details:\n\n"
                 f"run_id: {query.pipeline_segment_instance_id}\n"
@@ -312,29 +319,29 @@ class Tool:
         run_id = query_output.run_id
         # Print initial completion message
         if self.is_async:
-            print(
+            logger.info(
                 f"\nAsync Toolchest initiation is complete! Your run ID is included in the returned object.\n"
                 f"To check the status of this run, call toolchest.get_status(run_id=\"{run_id}\").\n"
             )
         else:
             conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
-            print(
+            logger.debug(
                 f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
             )
         # Print details about new DB or how to download, depending on whether this is a DB update
         if self.is_database_update:
-            print(
+            logger.info(
                 f"The parameters of your new database are:\n"
                 f"\tdatabase_name: \"{query_output.database_name}\"\n"
                 f"\tdatabase_version: \"{query_output.database_version}\"\n"
             )
         else:
             if self.is_async:
-                print(
+                logger.info(
                     f"Once it's ready to download, call toolchest.download(run_id=\"{run_id}\", ...) "
                     "within 7 days\n"
                 )
             else:
-                print(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
+                logger.debug(f"To re-download the results, run toolchest.download(run_id=\"{run_id}\") within 7 days\n")
 
         return query_output

@@ -4,6 +4,7 @@ toolchest_client.files.s3
 
 Functions for handling files in AWS S3 buckets.
 """
+from loguru import logger
 import math
 import os.path
 import sys
@@ -15,6 +16,7 @@ from requests.exceptions import HTTPError
 from toolchest_client.api.auth import get_headers
 from toolchest_client.api.exceptions import ToolchestS3AccessError
 from toolchest_client.api.urls import get_s3_metadata_url
+from toolchest_client.logging import get_log_level
 
 
 def assert_accessible_s3(uri):
@@ -44,7 +46,7 @@ def get_s3_file_size(uri):
         response.raise_for_status()
     except HTTPError:
         error_message = "Given S3 input cannot be accessed by Toolchest."
-        print(error_message, file=sys.stderr)
+        logger.error(error_message, file=sys.stderr)
         raise ToolchestS3AccessError(error_message) from None
 
     return response.json()["file_size"]
@@ -114,6 +116,22 @@ def pretty_print_file_size(num_bytes):
     return f"{(num_bytes / (1024 ** abbreviation_index)):.1f}{pretty_abbreviation[abbreviation_index]}"
 
 
+def pretty_status_print(filename, seen_so_far, size, percentage):
+    # This doesn't format well as a progress bar with the logger, but we want to hide unless at DEBUG level
+    print(
+        "\r{}  {} of {} ({:.2f}%)".format(
+            filename,
+            pretty_print_file_size(seen_so_far),
+            pretty_print_file_size(size),
+            percentage
+        ).ljust(100),  # pads right end with spaces to flush carriage return
+        end="",
+        flush=True,
+    )
+    if percentage == 100.00:  # Adds newline at end of upload
+        print(flush=True)
+
+
 class UploadTracker:
     def __init__(self, file_path):
         self._filename = os.path.basename(file_path)
@@ -127,18 +145,8 @@ class UploadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            print(
-                "\r{}  {} of {} ({:.2f}%)".format(
-                    self._filename,
-                    pretty_print_file_size(self._seen_so_far),
-                    pretty_print_file_size(self._size),
-                    percentage
-                ).ljust(100),  # pads right end with spaces to flush carriage return
-                end="",
-                flush=True,
-            )
-            if percentage == 100.00:  # Adds newline at end of upload
-                print(flush=True)
+            if get_log_level() == "DEBUG":
+                pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)
 
 
 class DownloadTracker:
@@ -154,15 +162,5 @@ class DownloadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            print(
-                "\r{}  {} of {} ({:.2f}%)".format(
-                    self._filename,
-                    pretty_print_file_size(self._seen_so_far),
-                    pretty_print_file_size(self._size),
-                    percentage
-                ).ljust(100),  # pads right end with spaces to flush carriage return
-                end="",
-                flush=True,
-            )
-            if percentage == 100.00:  # Adds newline at end of download
-                print(flush=True)
+            if get_log_level() == "DEBUG":
+                pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)

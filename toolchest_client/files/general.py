@@ -4,7 +4,7 @@ toolchest_client.files.general
 
 General file handling functions.
 """
-
+from loguru import logger
 import os
 import shutil
 
@@ -119,7 +119,7 @@ def compress_files_in_path(file_path, retain_base_directory):
     assert_exists(file_path)
     temp_directory = os.environ.get("TOOLCHEST_TEMP_DIR") or "./temp_toolchest"
 
-    print(f"Creating an archive of all files in {file_path}...")
+    logger.debug(f"Creating an archive of all files in {file_path}...")
     if os.path.isdir(file_path) and not retain_base_directory:
         zip_location = shutil.make_archive(
             base_name=f"{temp_directory}/{os.path.basename(file_path)}",
