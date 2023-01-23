@@ -118,20 +118,18 @@ def pretty_print_file_size(num_bytes):
 
 def pretty_status_print(filename, seen_so_far, size, percentage):
     # This doesn't format well as a progress bar with the logger, but we want to hide unless at DEBUG level
-    # print("log level", get_log_level())
-    if get_log_level() == "DEBUG":
-        print(
-            "\r{}  {} of {} ({:.2f}%)".format(
-                filename,
-                pretty_print_file_size(seen_so_far),
-                pretty_print_file_size(size),
-                percentage
-            ).ljust(100),  # pads right end with spaces to flush carriage return
-            end="",
-            flush=True,
-        )
-        if percentage == 100.00:  # Adds newline at end of upload
-            print(flush=True)
+    print(
+        "\r{}  {} of {} ({:.2f}%)".format(
+            filename,
+            pretty_print_file_size(seen_so_far),
+            pretty_print_file_size(size),
+            percentage
+        ).ljust(100),  # pads right end with spaces to flush carriage return
+        end="",
+        flush=True,
+    )
+    if percentage == 100.00:  # Adds newline at end of upload
+        print(flush=True)
 
 
 class UploadTracker:
@@ -147,7 +145,8 @@ class UploadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)
+            if get_log_level() == "DEBUG":
+                pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)
 
 
 class DownloadTracker:
@@ -163,4 +162,5 @@ class DownloadTracker:
         with self._lock:
             self._seen_so_far += bytes_amount
             percentage = round((self._seen_so_far / self._size) * 100, 2)
-            pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)
+            if get_log_level() == "DEBUG":
+                pretty_status_print(self._filename, self._seen_so_far, self._size, percentage)
