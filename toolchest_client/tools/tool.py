@@ -242,7 +242,7 @@ class Tool:
                 loop = None
             if loop:
                 logger.info("It looks like you're using a notebook, so we've disabled output streaming. "
-                      "To suppress this message, set `streaming_enabled=False`")
+                            "To suppress this message, set `streaming_enabled=False`")
                 self.streaming_enabled = False
 
     def _postflight(self, output):

@@ -36,7 +36,7 @@ class DiamondBlastx(Tool):
     """
     The DIAMOND BLASTX implementation of the Tool class.
     """
-    def __init__(self, inputs,  database_name, database_version, output_path, output_primary_name, tool_args,
+    def __init__(self, inputs, database_name, database_version, output_path, output_primary_name, tool_args,
                  remote_database_path, distributed=False, **kwargs):
         super().__init__(
             tool_name="diamond_blastx" if not distributed else "diamond_blastx_parallel",

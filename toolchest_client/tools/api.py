@@ -49,13 +49,13 @@ def alphafold(inputs, output_path=None, model_preset=None, max_template_date=Non
     """
     if 'instance_type' in kwargs:
         raise ToolchestException("Argument 'instance_type' is not supported by Alphafold currently.")
-    tool_args = (
-            (f"--model_preset={model_preset} " if model_preset is not None else "") +
-            (f"--max_template_date={max_template_date} " if max_template_date is not None
-             else f"--max_template_date={date.today().strftime('%Y-%m-%d')} ") +
-            (f"--is_prokaryote_list={is_prokaryote_list} " if is_prokaryote_list is not None else "") +
-            ("--db_preset=reduced_dbs " if use_reduced_dbs else "")
-    )
+    tool_args = (f"--model_preset={model_preset} " if model_preset is not None else "") \
+        + (f"--max_template_date={max_template_date} "
+           if max_template_date is not None
+           else f"--max_template_date={date.today().strftime('%Y-%m-%d')} "
+           ) \
+        + (f"--is_prokaryote_list={is_prokaryote_list} " if is_prokaryote_list is not None else "") \
+        + ("--db_preset=reduced_dbs " if use_reduced_dbs else "")
     instance = AlphaFold(
         inputs=inputs,
         output_path=output_path,
