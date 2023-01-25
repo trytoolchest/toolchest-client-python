@@ -11,7 +11,7 @@ import os
 import re
 
 from toolchest_client.api.auth import validate_key
-from toolchest_client.api.status import PrettyStatus
+from toolchest_client.api.status import Status
 from toolchest_client.api.query import Query
 from toolchest_client.files import files_in_path, sanity_check, check_file_size, compress_files_in_path, OutputType
 from toolchest_client.files.s3 import path_is_s3_uri
@@ -304,8 +304,12 @@ class Tool:
 
         # Check for interrupted or failed query
         # Note: if async, then the query exits at status "executing"
-        success_status = PrettyStatus.EXECUTING if self.is_async else PrettyStatus.COMPLETE
-        run_failed = query_output.last_status != success_status
+        success_statuses = [
+            Status.AWAITING_EXECUTION,
+            Status.BEGINNING_EXECUTION,
+            Status.EXECUTING
+        ] if self.is_async else [Status.COMPLETE]
+        run_failed = query_output.last_status not in success_statuses
         if run_failed or self.terminating:
             logger.error(
                 "\nToolchest run failed. "
@@ -326,7 +330,7 @@ class Tool:
         else:
             conditional_output_msg = "and output locations are" if not self.is_database_update else "is"
             logger.debug(
-                f"\nYour Toolchest run is complete! The run ID {conditional_output_msg} included in the return.\n"
+                f"\nThe run is finished! The run ID {conditional_output_msg} included in the Toolchest return object.\n"
             )
         # Print details about new DB or how to download, depending on whether this is a DB update
         if self.is_database_update:
