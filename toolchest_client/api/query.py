@@ -297,6 +297,7 @@ class Query:
     def _upload(self, input_file_paths, input_prefix_mapping, input_is_compressed):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
+        logger.debug("Starting to upload files")
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
         for file_path in input_file_paths:
@@ -343,6 +344,7 @@ class Query:
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
                     )
+        logger.debug("Done uploading files")
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
@@ -505,6 +507,7 @@ class Query:
         """Waits for query task(s) to finish executing."""
         status = self.get_job_status()
         start_time = time.time()
+        logger.debug("Waiting for job to finish")
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             try:
                 # Set up output streaming upon transition to executing
