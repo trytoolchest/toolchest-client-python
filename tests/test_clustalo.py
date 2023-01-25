@@ -10,7 +10,8 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_clustalo_standard():
+@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+def test_clustalo_standard(run_location):
     """
     Tests Clustal Omega
     """
@@ -24,6 +25,7 @@ def test_clustalo_standard():
         inputs="s3://toolchest-integration-tests/clustalo_input.fasta",
         output_path=output_dir_path,
         output_primary_name=output_file_name,
+        run_location=run_location,
     )
 
     assert hash.unordered(output_file_path) == 1217555147
