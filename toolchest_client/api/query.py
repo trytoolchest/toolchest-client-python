@@ -87,7 +87,7 @@ class Query:
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
                   output_primary_name=None, skip_decompression=False, custom_docker_image_id=None,
-                  instance_type=None, volume_size=None, run_location="AWS"):
+                  instance_type=None, volume_size=None, run_location="aws"):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.

@@ -34,7 +34,7 @@ class Tool:
                  is_async=False, is_database_update=False, database_primary_name=None,
                  skip_decompression=False, custom_docker_image_id=None, instance_type=None,
                  volume_size=None, streaming_enabled=False, retain_base_directory=False,
-                 run_location="AWS", log_level=None):
+                 run_location="aws", log_level=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args

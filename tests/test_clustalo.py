@@ -10,7 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_clustalo_standard(run_location):
     """
     Tests Clustal Omega

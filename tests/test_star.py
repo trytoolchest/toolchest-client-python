@@ -10,7 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_star_grch38(run_location):
     """
     Tests STAR against the grch38 database
@@ -75,7 +75,7 @@ def test_star_grch38_parallel():
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_star_grch38_dangerous_arg(run_location):
     """
     Tests STAR against the grch38 database, with a dangerous arg (changing functionality)
