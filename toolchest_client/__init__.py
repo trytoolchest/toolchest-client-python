@@ -1,8 +1,8 @@
-# TODO: include a docstring here
-
 import builtins
 from dotenv import load_dotenv, find_dotenv
 import functools
+
+from .logging import setup_logging
 
 # set __version__ module
 try:
@@ -20,6 +20,9 @@ load_dotenv(find_dotenv(".env"))
 
 # specifying print flushing is necessary to support loading from R
 builtins.print = functools.partial(print, flush=True)
+
+# configure logger
+setup_logging()
 
 from toolchest_client.api.auth import get_key, set_key
 from toolchest_client.api.download import download

@@ -6,6 +6,7 @@ This module provides a StreamingClient object, used by Toolchest queries to
 receive and print output lines streamed from the Toolchest server.
 """
 import asyncio
+from loguru import logger
 import ssl
 import sys
 
@@ -44,21 +45,22 @@ class StreamingClient:
         streaming_username = "toolchest"
         streaming_port = "8765"
         uri = f"wss://{streaming_username}:{self.streaming_token}@{self.streaming_ip_address}:{streaming_port}"
-        print("Connecting to remote server for streaming...")
+        logger.info("Connecting to remote server for streaming...")
         sys.stdout.flush()
         retry_count = 0
         while True:
             try:
                 async for websocket in websockets.connect(uri, ssl=self.ssl_context):
-                    print("Connected!")
+                    logger.debug("Connected!")
                     try:
                         self.stream_is_open = True
                         while self.stream_is_open:
                             stream_lines = await websocket.recv()
+                            # Not using logger here, because I couldn't get formatting right
                             print(stream_lines, end="")
                     except ConnectionClosed:
                         self.stream_is_open = False
-                        print("\nConnection closed by server.")
+                        logger.debug("\nConnection closed by server.")
                         return
             except ConnectionRefusedError:
                 retry_count += 1

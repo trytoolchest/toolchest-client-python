@@ -10,7 +10,8 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_diamond_blastp_standard():
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
+def test_diamond_blastp_standard(run_location):
     """
     Tests Diamond blastp mode
     """
@@ -24,13 +25,15 @@ def test_diamond_blastp_standard():
         inputs="s3://toolchest-integration-tests/diamond_blastp_input.fa",
         output_path=output_dir_path,
         output_primary_name=output_file_name,
+        run_location=run_location,
     )
 
     assert hash.unordered(output_file_path) == 952562472
 
 
 @pytest.mark.integration
-def test_diamond_blastp_remote_database():
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
+def test_diamond_blastp_remote_database(run_location):
     """
     Tests DIAMOND BLASTP with a remote database, including a primary name
     """
@@ -46,13 +49,15 @@ def test_diamond_blastp_remote_database():
         remote_database_primary_name="custom_diamond_blastp_db",
         output_path=output_dir_path,
         output_primary_name=output_file_name,
+        run_location=run_location,
     )
 
     assert hash.unordered(output_file_path) == 563371739
 
 
 @pytest.mark.integration
-def test_diamond_blastx_standard():
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
+def test_diamond_blastx_standard(run_location):
     """
     Tests Diamond blastx mode
     """
@@ -66,6 +71,7 @@ def test_diamond_blastx_standard():
         inputs="s3://toolchest-integration-tests/sample_r1_shortened.fastq",
         output_path=output_dir_path,
         output_primary_name=output_file_name,
+        run_location=run_location,
     )
 
     assert hash.unordered(output_file_path) == 883070112

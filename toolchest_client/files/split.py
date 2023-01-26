@@ -4,7 +4,7 @@ toolchest_client.files.split
 
 Functions for splitting files
 """
-
+from loguru import logger
 import os
 import pathlib
 import re
@@ -37,7 +37,7 @@ def split_file_by_lines(input_file_path, num_lines_in_group=4, max_bytes=4.5 * 1
     :param num_lines_in_group: Number of contiguous lines which cannot be split from one another.
     :param max_bytes: Maximum size of each new file.
     """
-    print(f"Creating file splits for {input_file_path}...")
+    logger.debug(f"Creating file splits for {input_file_path}...")
     file_extension = pathlib.Path(input_file_path).suffix
     if file_extension not in [".fastq", ".fasta", ".fa", ".fq", ".fna"]:
         raise ValueError("Cannot split a non FASTQ/FASTA file for parallelization")

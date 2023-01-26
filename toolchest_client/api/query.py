@@ -6,6 +6,7 @@ This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
 import datetime
+from loguru import logger
 import os
 import sys
 import time
@@ -24,6 +25,7 @@ from toolchest_client.api.output import Output
 from toolchest_client.api.streaming import StreamingClient
 from toolchest_client.api.urls import get_pipeline_segment_instances_url
 from toolchest_client.files import OutputType, path_is_s3_uri, path_is_http_url, path_is_accessible_ftp_url
+from toolchest_client.logging import get_log_level
 from .instance_type import InstanceType
 from .status import Status, PrettyStatus
 from ..files.s3 import UploadTracker
@@ -85,7 +87,7 @@ class Query:
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
                   output_primary_name=None, skip_decompression=False, custom_docker_image_id=None,
-                  instance_type=None, volume_size=None):
+                  instance_type=None, volume_size=None, run_location="aws"):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -110,6 +112,7 @@ class Query:
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param instance_type: instance type that the tool will run on.
         :param volume_size: size of the volume for the instance.
+        :param run_location: where the run will happen.
         """
         self.pretty_status = ''
 
@@ -132,6 +135,7 @@ class Query:
             instance_type=instance_type,
             volume_size=volume_size,
             streaming_enabled=self.streaming_enabled,
+            run_location=run_location
         )
         create_content = create_response.json()
 
@@ -188,7 +192,7 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
                               remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
                               compress_output, is_database_update, database_primary_name, custom_docker_image_id,
-                              instance_type, volume_size, streaming_enabled):
+                              instance_type, volume_size, streaming_enabled, run_location):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -215,6 +219,7 @@ class Query:
             "instance_type": validated_instance_type,
             "volume_size": volume_size,  # API tool definitions provide a default if not set here
             "streaming_enabled": streaming_enabled,
+            "run_location": run_location,
         }
 
         create_response = requests.post(
@@ -225,7 +230,7 @@ class Query:
         try:
             create_response.raise_for_status()
         except HTTPError:
-            print("Query creation failed.", file=sys.stderr)
+            logger.error("Query creation failed.", file=sys.stderr)
             raise
 
         return create_response
@@ -245,7 +250,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to update size for file: {file_id}", file=sys.stderr)
+            logger.error(f"Failed to update size for file: {file_id}", file=sys.stderr)
             raise
 
     def _register_input_file(self, input_file_path, input_prefix, input_order, input_is_compressed):
@@ -278,7 +283,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print(f"Failed to register input file at {input_file_path}", file=sys.stderr)
+            logger.error(f"Failed to register input file at {input_file_path}", file=sys.stderr)
             raise
 
         if not input_is_in_s3:
@@ -295,6 +300,7 @@ class Query:
     def _upload(self, input_file_paths, input_prefix_mapping, input_is_compressed):
         """Uploads the files at ``input_file_paths`` to Toolchest."""
 
+        logger.debug("Starting to upload files")
         self._update_status(Status.TRANSFERRING_FROM_CLIENT)
 
         for file_path in input_file_paths:
@@ -314,7 +320,7 @@ class Query:
                     input_is_compressed=input_is_compressed,
                 )
             else:
-                print(f"Uploading {file_path}")
+                logger.debug(f"Uploading {file_path}")
                 input_file_keys = self._register_input_file(
                     input_file_path=file_path,
                     input_prefix=input_prefix,
@@ -341,6 +347,7 @@ class Query:
                         f"{e} \n\nInput file upload failed for file at {file_path}.",
                         force_raise=True
                     )
+        logger.debug("Done uploading files")
 
     def _upload_docker_image(self, custom_docker_image_id):
         if custom_docker_image_id is None:
@@ -351,8 +358,8 @@ class Query:
         except ImageNotFound:
             return
         except (APIError, DockerException):
-            print(f"Unable to find Docker running on this machine, assuming {custom_docker_image_id} is in Dockerhub. "
-                  "If it's on this machine, start Docker and rerun.")
+            logger.warning(f"Unable to find Docker running on this machine, assuming {custom_docker_image_id} "
+                           "is in Dockerhub. If it's on this machine, start Docker and rerun.")
             return
         register_input_file_url = "/".join([
             self.pipeline_segment_instance_url,
@@ -370,7 +377,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Failed to create repository", file=sys.stderr)
+            logger.error("Failed to create repository", file=sys.stderr)
             raise
 
         response_json = response.json()
@@ -432,7 +439,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status update failed.", file=sys.stderr)
+            logger.error("Job status update failed.", file=sys.stderr)
             self._raise_for_failed_response(response)
 
         self.output.refresh_status()
@@ -460,7 +467,7 @@ class Query:
         if force_raise:
             raise ToolchestException(error_message) from None
         if print_msg:
-            print(error_message, file=sys.stderr)
+            logger.error(error_message, file=sys.stderr)
 
     def _raise_for_failed_response(self, response):
         """Raises an error if a job fails during execution, as indicated by the request response.
@@ -495,20 +502,25 @@ class Query:
         # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
         max_length = 120
         status_message = f"\r{job} | {jobs_duration} | Status: {self.pretty_status}"
-        print(f"{status_message}".ljust(max_length), end="\r")
+        # Not using logger here, because this is analogous to a progress bar – and logger doesn't respect \r
+        if get_log_level() in ["DEBUG", "INFO"]:
+            print(f"{status_message}".ljust(max_length), end="\r")
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
         status = self.get_job_status()
         start_time = time.time()
+        logger.debug("Waiting for job to finish")
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             try:
                 # Set up output streaming upon transition to executing
                 if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.initialized:
                     self._setup_streaming()
                 if self.streaming_client.ready_to_start and not self.streaming_client.stream_is_open:
-                    print("\nPausing job status updates soon. Will resume once standard output streaming is complete.")
-                    print("".ljust(120), end="\r")
+                    logger.info(
+                        "\nPausing job status updates soon. Will resume once standard output streaming is complete."
+                    )
+                    logger.info("".ljust(120), end="\r")
                     self.streaming_client.stream()
                 status_response = self.get_job_status(return_error=True)
                 status = status_response['status']
@@ -566,7 +578,7 @@ class Query:
         try:
             response.raise_for_status()
         except HTTPError:
-            print("Job status retrieval failed.", file=sys.stderr)
+            logger.error("Job status retrieval failed.", file=sys.stderr)
             # Assumes a job has already been marked as failed if failure is detected after execution begins.
             self.mark_as_failed = False
             self._raise_for_failed_response(response)

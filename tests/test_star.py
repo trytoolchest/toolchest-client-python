@@ -10,7 +10,8 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-def test_star_grch38():
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
+def test_star_grch38(run_location):
     """
     Tests STAR against the grch38 database
     """
@@ -31,6 +32,7 @@ def test_star_grch38():
         read_one=input_file_path,
         output_path=output_dir_path,
         database_name="GRCh38",
+        run_location=run_location
     )
 
     # Because STAR output contains run ID (non-deterministic), verify that the number of bytes is in range
@@ -73,7 +75,8 @@ def test_star_grch38_parallel():
 
 
 @pytest.mark.integration
-def test_star_grch38_dangerous_arg():
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
+def test_star_grch38_dangerous_arg(run_location):
     """
     Tests STAR against the grch38 database, with a dangerous arg (changing functionality)
     """
@@ -95,6 +98,7 @@ def test_star_grch38_dangerous_arg():
         database_name="GRCh38",
         tool_args="--outSAMtype BAM Unsorted",
         parallelize=True,  # this should be deliberately ignored
+        run_location=run_location,
     )
 
     # Because STAR output contains run ID (non-deterministic) and BAMs are compressed,

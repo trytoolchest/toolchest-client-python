@@ -3,6 +3,8 @@ max-line-length = 120
 exclude=
     demo.py
     docs/conf.py
+ignore =
+    E731
 per-file-ignores =
     # ignores unused imports and imports not at the top of file in init files
     */__init__.py:F401,E402
