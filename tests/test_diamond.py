@@ -10,7 +10,7 @@ if toolchest_api_key:
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_diamond_blastp_standard(run_location):
     """
     Tests Diamond blastp mode
@@ -32,7 +32,7 @@ def test_diamond_blastp_standard(run_location):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_diamond_blastp_remote_database(run_location):
     """
     Tests DIAMOND BLASTP with a remote database, including a primary name
@@ -56,7 +56,7 @@ def test_diamond_blastp_remote_database(run_location):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("run_location", ["AWS", "on-prem"])
+@pytest.mark.parametrize("run_location", ["aws", "tce"])
 def test_diamond_blastx_standard(run_location):
     """
     Tests Diamond blastx mode
