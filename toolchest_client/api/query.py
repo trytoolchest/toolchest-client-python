@@ -87,7 +87,7 @@ class Query:
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
                   output_primary_name=None, skip_decompression=False, custom_docker_image_id=None,
-                  instance_type=None, volume_size=None, run_location="aws"):
+                  instance_type=None, volume_size=None, provider="aws"):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -112,7 +112,7 @@ class Query:
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param instance_type: instance type that the tool will run on.
         :param volume_size: size of the volume for the instance.
-        :param run_location: where the run will happen.
+        :param provider: where the run will happen.
         """
         self.pretty_status = ''
 
@@ -135,7 +135,7 @@ class Query:
             instance_type=instance_type,
             volume_size=volume_size,
             streaming_enabled=self.streaming_enabled,
-            run_location=run_location
+            provider=provider
         )
         create_content = create_response.json()
 
@@ -192,7 +192,7 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
                               remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
                               compress_output, is_database_update, database_primary_name, custom_docker_image_id,
-                              instance_type, volume_size, streaming_enabled, run_location):
+                              instance_type, volume_size, streaming_enabled, provider):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -219,7 +219,7 @@ class Query:
             "instance_type": validated_instance_type,
             "volume_size": volume_size,  # API tool definitions provide a default if not set here
             "streaming_enabled": streaming_enabled,
-            "run_location": run_location,
+            "provider": provider,
         }
 
         create_response = requests.post(
