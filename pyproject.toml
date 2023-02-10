@@ -3,7 +3,6 @@ name = "toolchest-client"
 version = "0.11.11"
 description = "Python client for Toolchest"
 authors = [
-    "Bryce Cai <bryce@trytoolchest.com>",
     "Justin Herr <justin@trytoolchest.com>",
     "Noah Lebovic <noah@trytoolchest.com",
 ]
