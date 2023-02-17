@@ -514,7 +514,7 @@ class Query:
             f"You can view the running job at https://dash.trytoolchest.com/runs/{self.pipeline_segment_instance_id}"
         )
 
-        while status != Status.READY_TO_TRANSFER_TO_CLIENT:
+        while status not in [Status.READY_TO_TRANSFER_TO_CLIENT, Status.TERMINATED, Status.COMPLETE]:
             try:
                 # Set up output streaming upon transition to executing
                 if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.initialized:

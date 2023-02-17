@@ -311,7 +311,7 @@ class Tool:
             Status.AWAITING_EXECUTION,
             Status.BEGINNING_EXECUTION,
             Status.EXECUTING
-        ] if self.is_async else [Status.COMPLETE]
+        ] if self.is_async else [Status.COMPLETE, Status.TERMINATED]
         run_failed = query_output.last_status not in success_statuses
         if run_failed or self.terminating:
             logger.error(

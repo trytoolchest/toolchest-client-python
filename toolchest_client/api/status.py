@@ -39,6 +39,7 @@ class Status(str, Enum):
     READY_TO_TRANSFER_TO_CLIENT = "ready_to_transfer_to_client"
     TRANSFERRING_TO_CLIENT = "transferring_to_client"
     TRANSFERRED_TO_CLIENT = "transferred_to_client"
+    TERMINATED = "terminated"
     COMPLETE = "complete"
     FAILED = "failed"
 
@@ -53,4 +54,5 @@ class PrettyStatus(str, Enum):
     DOWNLOADING = "downloading"
     COMPLETE = "complete"
     INTERRUPTING = "interrupting"
+    TERMINATED = "terminated"
     FAILED = "failed"
