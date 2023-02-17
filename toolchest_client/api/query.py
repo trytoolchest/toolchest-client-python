@@ -5,7 +5,6 @@ toolchest_client.api.query
 This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
-import datetime
 from loguru import logger
 import os
 import sys
@@ -410,13 +409,13 @@ class Query:
                     raise ToolchestJobError("Failed to push image.")
                 # Print doesn't work on some consoles, like the JetBrains suite
                 if counter % 10 == 0:
-                    dots = '.' * (((counter // 10) % 5) + 1)
+                    dots = '*' * (((counter // 10) % 10) + 1)
                     sys.stdout.write(
-                        f"\rDocker image uploading{dots}",
+                        f"\rDocker image uploading ({dots})",
                     )
                     sys.stdout.flush()
                 counter += 1
-            print("\rDocker image uploaded")
+            logger.info("\rDocker image uploaded")
         except APIError:
             raise EnvironmentError('Unable to access ECR at this time. '
                                    'Contact Toolchest support if this error persists')
@@ -508,7 +507,6 @@ class Query:
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
         status = self.get_job_status()
-        start_time = time.time()
         logger.debug("Waiting for job to finish")
         counter = 0
         interval = 10
