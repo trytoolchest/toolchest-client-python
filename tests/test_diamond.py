@@ -3,6 +3,7 @@ import pytest
 
 from tests.util import hash, s3
 import toolchest_client as toolchest
+from toolchest_client.api.instance_type import InstanceType
 
 toolchest_api_key = os.environ.get("TOOLCHEST_API_KEY")
 if toolchest_api_key:
@@ -72,6 +73,7 @@ def test_diamond_blastx_standard(provider):
         output_path=output_dir_path,
         output_primary_name=output_file_name,
         provider=provider,
+        instance_type=InstanceType.COMPUTE_48
     )
 
     assert hash.unordered(output_file_path) == 883070112
