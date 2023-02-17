@@ -40,7 +40,7 @@ class Query:
     """
 
     # Period (in seconds) between requests when waiting for job(s) to finish executing.
-    WAIT_FOR_JOB_DELAY = 5
+    WAIT_FOR_JOB_DELAY = 1
     # Max number of retries on status check timeouts.
     RETRY_STATUS_CHECK_LIMIT = 5
 
@@ -404,17 +404,19 @@ class Query:
                 stream=True,
                 decode=True,
             )
+            counter = 0
             for update in push_output:
                 if 'errorDetail' in update:
                     raise ToolchestJobError("Failed to push image.")
                 # Print doesn't work on some consoles, like the JetBrains suite
-                sys.stdout.write(
-                    "\r{} {}".format(
-                        update.get("status", ""),
-                        update.get("progress", ""),
-                    ).ljust(120),
-                )
-                sys.stdout.flush()
+                if counter % 10 == 0:
+                    dots = '.' * (((counter // 10) % 5) + 1)
+                    sys.stdout.write(
+                        f"\rDocker image uploading{dots}",
+                    )
+                    sys.stdout.flush()
+                counter += 1
+            print("\rDocker image uploaded")
         except APIError:
             raise EnvironmentError('Unable to access ECR at this time. '
                                    'Contact Toolchest support if this error persists')
@@ -488,20 +490,17 @@ class Query:
                     )
                 raise ToolchestJobError(response_body["error"]) from None
 
-    def _pretty_print_query_status(self, elapsed_time):
+    def _pretty_print_query_status(self, dots):
         """Prints output of each job, supporting one query-associated job.
 
         Looks like: Running job (ID: 13a0f434-a19f-4a52-899a-42c85de9b97e) | Duration: 0:03:15 | Status: downloading
         """
 
-        job = f"Running job (ID: {self.pipeline_segment_instance_id})"
         # The below duration is for display only, this is a hacky way to truncate the microseconds
-        truncated_duration = str(datetime.timedelta(seconds=elapsed_time)).split(".")[0]
-        jobs_duration = f"Duration: {truncated_duration}"
 
         # Jupyter notebooks and Windows don't always support the canonical "clear-to-end-of-line" escape sequence
         max_length = 120
-        status_message = f"\r{job} | {jobs_duration} | Status: {self.pretty_status}"
+        status_message = f"Status: {self.pretty_status.name} ({dots}) "
         # Not using logger here, because this is analogous to a progress bar – and logger doesn't respect \r
         if get_log_level() in ["DEBUG", "INFO"]:
             print(f"{status_message}".ljust(max_length), end="\r")
@@ -511,6 +510,12 @@ class Query:
         status = self.get_job_status()
         start_time = time.time()
         logger.debug("Waiting for job to finish")
+        counter = 0
+        interval = 10
+        logger.info(
+            f"You can view the running job at https://dash.trytoolchest.com/runs/{self.pipeline_segment_instance_id}"
+        )
+
         while status != Status.READY_TO_TRANSFER_TO_CLIENT:
             try:
                 # Set up output streaming upon transition to executing
@@ -522,20 +527,20 @@ class Query:
                     )
                     logger.info("".ljust(120), end="\r")
                     self.streaming_client.stream()
-                status_response = self.get_job_status(return_error=True)
-                status = status_response['status']
-                if status == Status.FAILED:
-                    raise ToolchestJobError(status_response['error_message'])
+                if counter == interval - 1:
+                    status_response = self.get_job_status(return_error=True)
+                    status = status_response['status']
+                    if status == Status.FAILED:
+                        raise ToolchestJobError(status_response['error_message'])
             except TimeoutError as err:
                 self.status_check_retries += 1
                 if self.status_check_retries > self.RETRY_STATUS_CHECK_LIMIT:
                     raise ToolchestJobError("Status check timed out during execution, retry limit exceeded.") from err
-
-            elapsed_time = time.time() - start_time
+            counter = (counter + 1) % interval
             if not self.streaming_client or not self.streaming_client.stream_is_open:
-                self._pretty_print_query_status(elapsed_time)
-            leftover_delay = elapsed_time % self.WAIT_FOR_JOB_DELAY
-            time.sleep(leftover_delay)
+                self._pretty_print_query_status('*' * (counter + 1))
+            time.sleep(self.WAIT_FOR_JOB_DELAY)
+        print('\r\n')
 
     def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
