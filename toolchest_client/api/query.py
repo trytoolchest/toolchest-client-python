@@ -502,7 +502,10 @@ class Query:
         status_message = f"Status: {self.pretty_status.name} ({dots}) "
         # Not using logger here, because this is analogous to a progress bar – and logger doesn't respect \r
         if get_log_level() in ["DEBUG", "INFO"]:
-            print(f"{status_message}".ljust(max_length), end="\r")
+            sys.stdout.write(
+                f"\r{status_message}".ljust(max_length),
+            )
+            sys.stdout.flush()
 
     def _wait_for_job(self):
         """Waits for query task(s) to finish executing."""
@@ -520,10 +523,14 @@ class Query:
                 if status == Status.EXECUTING and self.streaming_client and not self.streaming_client.initialized:
                     self._setup_streaming()
                 if self.streaming_client.ready_to_start and not self.streaming_client.stream_is_open:
-                    logger.info(
-                        "\nPausing job status updates soon. Will resume once standard output streaming is complete."
+                    # Clear status message before pausing
+                    sys.stdout.write(
+                        "\r",
                     )
-                    logger.info("".ljust(120), end="\r")
+                    sys.stdout.flush()
+                    logger.info(
+                        "Pausing job status updates soon. Will resume once standard output streaming is complete."
+                    )
                     self.streaming_client.stream()
                 if counter == interval - 1:
                     status_response = self.get_job_status(return_error=True)
@@ -538,7 +545,11 @@ class Query:
             if not self.streaming_client or not self.streaming_client.stream_is_open:
                 self._pretty_print_query_status('*' * (counter + 1))
             time.sleep(self.WAIT_FOR_JOB_DELAY)
-        print('\r\n')
+        sys.stdout.write(
+            "\r",
+        )
+        sys.stdout.flush()
+        logger.info("Run finished")
 
     def _download(self, output_path, output_type, skip_decompression):
         """Retrieves information needed for downloading. If ``output_path`` is given,
