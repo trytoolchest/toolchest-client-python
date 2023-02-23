@@ -271,8 +271,7 @@ class Tool:
         self._prepare_inputs()
 
         logger.debug(f"Found {self.num_input_files} files to upload.")
-        logger.info('Packaging and uploading run now. '
-                    'This might take a while. For progress logs, set log_level="DEBUG"')
+        logger.info('Packaging and uploading run now. This might take a while.')
 
         query = Query(
             is_async=self.is_async,
