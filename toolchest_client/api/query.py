@@ -5,8 +5,6 @@ toolchest_client.api.query
 This module provides a Query object to execute any queries made by Toolchest
 tools. These queries are handled by the Toolchest (server) API.
 """
-import json
-
 from loguru import logger
 import os
 import sys
