@@ -805,7 +805,7 @@ def lastal5(output_path=None, output_primary_name="out.maf", inputs=[], database
 
 def lug(script, tool_version, custom_docker_image_id, container_name, docker_shell_location, inputs=None,
         output_path=None, tool_args="", instance_type=InstanceType.COMPUTE_2, volume_size=8, streaming_enabled=True,
-        pip_dependencies=None, **kwargs):
+        pip_dependencies=None, universal_name=None, **kwargs):
     """Runs Python via Toolchest and Lug.
 
     :param script: path to the Python script to run.
@@ -822,6 +822,7 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
     :param volume_size: (optional) allows you to set the amount of storage needed for your script.
     :param pip_dependencies: (optional) dependencies for the function to pip install.
     :param streaming_enabled: (optional) whether to enable live output streaming.
+    :param universal_name: (optional) the name of the universal function that stores parameters for the run.
     usage::
         >>> import toolchest_client as toolchest
         >>> toolchest.lug(
@@ -851,6 +852,7 @@ def lug(script, tool_version, custom_docker_image_id, container_name, docker_she
         instance_type=instance_type,
         volume_size=volume_size,
         streaming_enabled=streaming_enabled,
+        universal_name=universal_name,
         **kwargs,
     )
     output = instance.run()
