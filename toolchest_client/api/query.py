@@ -112,9 +112,8 @@ class Query:
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param instance_type: instance type that the tool will run on.
         :param volume_size: size of the volume for the instance.
-        :param universal_volume_name: the name of the volume that should be attached to the current run or persisted
-            after.
-        :param universal_name: the name of the universal function to pull parameters from.
+        :param universal_volume_name: the name of the universal volume.
+        :param universal_name: the name of the universal function.
         :param provider: where the run will happen.
         """
         self.pretty_status = ''
@@ -238,11 +237,11 @@ class Query:
         try:
             create_response.raise_for_status()
         except HTTPError:
-            error_message = "."
+            error_message = ""
             # 4XX errors have useful messages to display to the user but 5XX do not.
             if create_response.status_code < 500:
-                error_message = f" due to:\n{create_response.json()['error']}"
-            logger.error(f"Query creation failed{error_message}", file=sys.stderr)
+                error_message = f"due to:\n{create_response.json()['error']}"
+            logger.error(f"Query creation failed {error_message}", file=sys.stderr)
             raise
 
         return create_response
