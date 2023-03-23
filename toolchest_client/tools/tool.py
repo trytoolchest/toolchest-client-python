@@ -34,7 +34,8 @@ class Tool:
                  is_async=False, is_database_update=False, database_primary_name=None,
                  skip_decompression=False, custom_docker_image_id=None, instance_type=None,
                  volume_size=None, streaming_enabled=False, retain_base_directory=False,
-                 provider="aws", log_level=None):
+                 provider="aws", log_level=None, universal_volume_name=None,
+                 universal_name=None):
         self.tool_name = tool_name
         self.tool_version = tool_version
         self.tool_args = tool_args
@@ -81,6 +82,8 @@ class Tool:
         self.elapsed_seconds = 0
         self.retain_base_directory = retain_base_directory
         self.provider = provider
+        self.universal_volume_name = universal_volume_name
+        self.universal_name = universal_name
         setup_logging(log_level)
 
     def _prepare_inputs(self):
@@ -301,7 +304,9 @@ class Tool:
             tool_version=self.tool_version,
             tool_args=self.tool_args,
             volume_size=self.volume_size,
-            provider=self.provider
+            universal_volume_name=self.universal_volume_name,
+            universal_name=self.universal_name,
+            provider=self.provider,
         )
 
         # Check for interrupted or failed query
