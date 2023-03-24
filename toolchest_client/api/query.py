@@ -86,7 +86,8 @@ class Query:
                   remote_database_path=None, remote_database_primary_name=None, input_files=None,
                   input_is_compressed=False, is_database_update=False, database_primary_name=None, output_path=None,
                   output_primary_name=None, skip_decompression=False, custom_docker_image_id=None,
-                  instance_type=None, volume_size=None, provider="aws"):
+                  instance_type=None, volume_size=None, universal_volume_name=None, universal_name=None,
+                  provider="aws"):
         """Executes a query to the Toolchest API.
 
         :param tool_name: Tool to be used.
@@ -111,6 +112,8 @@ class Query:
         :param skip_decompression: Whether to skip decompression of the output file, if it is an archive.
         :param instance_type: instance type that the tool will run on.
         :param volume_size: size of the volume for the instance.
+        :param universal_volume_name: the name of the universal volume.
+        :param universal_name: the name of the universal function.
         :param provider: where the run will happen.
         """
         self.pretty_status = ''
@@ -133,6 +136,8 @@ class Query:
             output_primary_name=output_primary_name,
             instance_type=instance_type,
             volume_size=volume_size,
+            universal_volume_name=universal_volume_name,
+            universal_name=universal_name,
             streaming_enabled=self.streaming_enabled,
             provider=provider
         )
@@ -191,7 +196,8 @@ class Query:
     def _send_initial_request(self, tool_name, tool_version, tool_args, database_name, database_version,
                               remote_database_path, remote_database_primary_name, output_primary_name, output_file_path,
                               compress_output, is_database_update, database_primary_name, custom_docker_image_id,
-                              instance_type, volume_size, streaming_enabled, provider):
+                              instance_type, volume_size, universal_volume_name, universal_name,
+                              streaming_enabled, provider):
         """Sends the initial request to the Toolchest API to create the query.
 
         Returns the response from the POST request.
@@ -217,6 +223,8 @@ class Query:
             "custom_docker_image_id": custom_docker_image_id,
             "instance_type": validated_instance_type,
             "volume_size": volume_size,  # API tool definitions provide a default if not set here
+            "universal_volume_name": universal_volume_name,
+            "universal_name": universal_name,
             "streaming_enabled": streaming_enabled,
             "provider": provider,
         }
@@ -229,7 +237,11 @@ class Query:
         try:
             create_response.raise_for_status()
         except HTTPError:
-            logger.error("Query creation failed.", file=sys.stderr)
+            error_message = ""
+            # 4XX errors have useful messages to display to the user but 5XX do not.
+            if create_response.status_code < 500:
+                error_message = f"due to:\n{create_response.json()['error']}"
+            logger.error(f"Query creation failed {error_message}", file=sys.stderr)
             raise
 
         return create_response

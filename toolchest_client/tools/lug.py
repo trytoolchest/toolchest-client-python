@@ -13,7 +13,8 @@ class Lug(Tool):
     """
     The Lug implementation of the Tool class.
     """
-    def __init__(self, tool_args, inputs, output_path, tool_version, custom_docker_image_id=None, **kwargs):
+    def __init__(self, tool_args, inputs, output_path, tool_version,
+                 custom_docker_image_id=None, **kwargs):
         super().__init__(
             tool_name="lug",
             tool_version=tool_version,
