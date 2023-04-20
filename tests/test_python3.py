@@ -85,7 +85,7 @@ def test_python3_with_public_docker():
     )
 
     output_file = open(f"{test_dir}/output.txt", "r")
-    assert output_file.readline() == "['/data/home/ec2-user/input', '/usr/local/lib/python311.zip', " \
+    assert output_file.readline() == "['/data/home/ec2-user/persist/input', '/usr/local/lib/python311.zip', " \
                                      "'/usr/local/lib/python3.11', '/usr/local/lib/python3.11/lib-dynload', " \
                                      "'/usr/local/lib/python3.11/site-packages']"
     output_file.close()
