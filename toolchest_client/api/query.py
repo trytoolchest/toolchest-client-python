@@ -526,7 +526,7 @@ class Query:
         counter = 0
         interval = 10
         logger.info(
-            f"You can view the running job at https://dash.trytoolchest.com/runs/{self.pipeline_segment_instance_id}"
+            f"You can view the running job at https://app.flowdeploy.com/dashboard/{self.pipeline_segment_instance_id}"
         )
 
         while status not in [Status.READY_TO_TRANSFER_TO_CLIENT, Status.TERMINATED, Status.COMPLETE]:
